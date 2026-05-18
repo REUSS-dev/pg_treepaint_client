@@ -1,16 +1,15 @@
 io.stdout:setvbuf("no")
 
-local channel
+local listener
 
 function love.load()
-	local socket_thread = love.thread.newThread("scripts/thread_socket.lua")
-	socket_thread:start(CLIENT_IP, CLIENT_PORT, SOCKET_CHANNEL)
+	local TCPListener = require("classes.TCPListener")
 
-	channel = love.thread.getChannel(SOCKET_CHANNEL)
+	listener = TCPListener(CLIENT_IP, CLIENT_PORT):start()
 end
 
 function love.update(dt)
-	local message = channel:pop()
+	local message = listener:pop()
 
 	if message then
 		print(message.type, message.data)
