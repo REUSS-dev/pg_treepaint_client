@@ -14,6 +14,10 @@ local TCPListener = {}
 TCPListener.__index = TCPListener
 
 function TCPListener:start()
+	if self.channel then
+		return
+	end
+
 	self.channel = love.thread.getChannel(self.channel_name)
 
 	self.thread:start(self.ip, self.port, self.channel_name)
