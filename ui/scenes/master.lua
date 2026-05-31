@@ -1,9 +1,18 @@
 local gui = require("libs.stellargui")
 
+-- graphics
+
 local font_L = love.graphics.newFont("assets/font.ttf", 26)
 local font_M = love.graphics.newFont("assets/font.ttf", 18)
 
-love.graphics.setDefaultFilter("linear")
+local malyar_image = love.graphics.newImage("assets/malyar.png")
+malyar_image:setFilter("linear", "linear", 4)
+
+-- init
+
+local TCPListener = require("classes.TCPListener")
+
+-- scene
 
 local canvas = gui.createCanvas{
 	growth = "vertical",
@@ -26,9 +35,6 @@ local top_panel = gui.Container{
 	vertical = "top"
 }
 canvas:add(top_panel)
-
-local malyar_image = love.graphics.newImage("assets/malyar.png")
-malyar_image:setFilter("linear", "linear", 4)
 
 local malyar = gui.Image{
 	image = malyar_image,
@@ -59,6 +65,17 @@ label_container:add(treepaint_label)
 label_container:add(treepaint_desc)
 
 top_panel:add(label_container)
+
+local autocontainer = gui.Container{w = "fill"}
+top_panel:add(autocontainer)
+
+local tcp = gui.TCPApplet{
+	tcp = TCPListener(CLIENT_IP, CLIENT_PORT),
+	w = 180,
+	r = 5,
+	font = font_M
+}
+top_panel:add(tcp)
 
 --#endregion
 

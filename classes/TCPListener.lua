@@ -1,8 +1,20 @@
 -- classes/TCPListener.lua
 
+-- docs
+
+
+
 -- consts
 
+---@enum TCPListenerStatus
+local Status = {
+	ACTIVE = 1,
+	INACTIVE = 2
+}
+
 local CHANNEL_PREFIX = "TCPListener_"
+
+-- class
 
 ---@class TCPListener
 ---@field thread love.Thread
@@ -27,6 +39,20 @@ function TCPListener:start()
 	return self
 end
 
+---Return current listener status
+---@return TCPListenerStatus
+function TCPListener:getStatus()
+	if self.channel then
+		return Status.ACTIVE
+	else
+		return Status.INACTIVE
+	end
+end
+
+function TCPListener:getBindAddress()
+	return self.ip .. ':' .. self.port
+end
+
 function TCPListener:pop()
 	return self.channel:pop()
 end
@@ -47,5 +73,7 @@ function TCPListener:new(ip, port)
 end
 
 setmetatable(TCPListener, {__call = TCPListener.new})
+
+TCPListener.Status = Status
 
 return TCPListener
