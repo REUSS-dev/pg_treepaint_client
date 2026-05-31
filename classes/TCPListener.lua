@@ -2,7 +2,8 @@
 
 -- docs
 
-
+---@alias TCPMessageType "connect"|"data"|"disconnect"
+---@alias TCPMessage {type: TCPMessageType, data: string}
 
 -- consts
 
@@ -53,6 +54,8 @@ function TCPListener:getBindAddress()
 	return self.ip .. ':' .. self.port
 end
 
+---Pops TCP thread channel
+---@return TCPMessage?
 function TCPListener:pop()
 	return self.channel:pop()
 end

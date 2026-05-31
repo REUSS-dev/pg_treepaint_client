@@ -13,14 +13,14 @@ local client
 
 local function send_client_connect(client_address)
 	output:push{
-		type = "socket_connect",
+		type = "connect",
 		data = client_address
 	}
 end
 
 local function send_client_disconnect(client_address)
 	output:push{
-		type = "socket_disconnect",
+		type = "disconnect",
 		data = client_address
 	}
 end
@@ -53,7 +53,7 @@ end
 wait_client()
 
 while true do
-	local msg, err = client:receive("*a")
+	local msg, _ = client:receive("*a")
 
 	if msg then
 		send_data(msg)

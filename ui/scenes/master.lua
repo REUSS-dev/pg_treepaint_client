@@ -70,12 +70,31 @@ local autocontainer = gui.Container{w = "fill"}
 top_panel:add(autocontainer)
 
 local tcp = gui.TCPApplet{
-	tcp = TCPListener(CLIENT_IP, CLIENT_PORT),
+	tcp = TCPListener(CLIENT_IP, CLIENT_PORT):start(),
 	w = 180,
 	r = 5,
 	font = font_M
 }
 top_panel:add(tcp)
+
+--#endregion
+
+--#region
+
+local main_panel = gui.Container{
+	w = "fill",
+	h = "fill",
+	growth = "horizontal"
+}
+canvas:add(main_panel)
+
+local diagram_draw = gui.DiagramArea{
+	w = "fill",
+	h = "fill",
+	font = font_M
+}
+main_panel:add(diagram_draw)
+tcp:registerDiagramObject(diagram_draw)
 
 --#endregion
 

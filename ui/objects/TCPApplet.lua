@@ -41,7 +41,9 @@ local BORDER_INACTIVE = {200/255, 100/255, 100/255, 1}
 
 -- fnc
 
-
+local function fix_data(data)
+	return data .. "}" .. "]"
+end
 
 -- classes
 
@@ -51,6 +53,7 @@ local BORDER_INACTIVE = {200/255, 100/255, 100/255, 1}
 ---@field status TCPListenerStatus
 ---@field tcp TCPListener
 ---@field label Label
+---@field diagram DiagramArea?
 local TCPApplet = {}
 local TCPApplet_meta = {__index = TCPApplet}
 setmetatable(TCPApplet, {__index = composite.class}) -- Set parenthesis
@@ -59,6 +62,18 @@ function TCPApplet:tick(dt)
 	composite.class.tick(self, dt)
 
 	local current_status = self.tcp:getStatus()
+
+	if current_status == self.tcp.Status.ACTIVE then
+		local msg = self.tcp:pop()
+
+		if msg then
+			if msg.type == "data" then
+				if self.diagram then
+					self.diagram:plot(fix_data(msg.data))
+				end
+			end
+		end
+	end
 
 	if current_status ~= self.status then
 		self.status = current_status
@@ -75,6 +90,10 @@ function TCPApplet:tick(dt)
 			self.label:setText("TCP Inactive")
 		end
 	end
+end
+
+function TCPApplet:registerDiagramObject(obj)
+	self.diagram = obj
 end
 
 -- image fnc
