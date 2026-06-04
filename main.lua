@@ -1,9 +1,5 @@
 io.stdout:setvbuf("no")
 
-local listener
-
-local changed
-
 function love.load()
 	local gui = require("libs.stellargui"):hook()
 

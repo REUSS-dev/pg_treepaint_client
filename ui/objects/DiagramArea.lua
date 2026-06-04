@@ -21,13 +21,16 @@ diagram.rules = {
 	{{"font"}, "font", love.graphics.getFont()},
 }
 
+local GAP_HORIZONTAL = 25
+local GAP_VERTICAL = 15
+
 -- consts
 
 
 
 -- vars
 
-
+local pack_node, pack_node_list
 
 -- init
 
@@ -35,7 +38,40 @@ diagram.rules = {
 
 -- fnc
 
+---@param node DumpedNode
+---@return CompositeObject
+function pack_node(node)
+	if not node.children then
+		return gui.DiagramNode{node}
+	end
 
+	local vetical_container = gui.Container{ growth = "vertical", gap = GAP_VERTICAL }
+
+	local node_object = gui.DiagramNode{node}
+	vetical_container:add(node_object)
+
+	local children_object = pack_node_list(node.children)
+	vetical_container:add(children_object)
+
+	return vetical_container
+end
+
+---@param node_list DumpedNode[]
+---@return CompositeObject
+function pack_node_list(node_list)
+	if #node_list == 1 then
+		return pack_node(node_list[1])
+	end
+
+	local horizontal_container = gui.Container{ growth = "horizontal", gap = GAP_HORIZONTAL }
+
+	for _, node in ipairs(node_list) do
+		local node_object = pack_node(node)
+		horizontal_container:add(node_object)
+	end
+
+	return horizontal_container
+end
 
 -- classes
 
@@ -53,11 +89,9 @@ function DiagramArea:plot(data)
 
 	self.objects = {}
 
-	local babalabel = gui.Label{
-		text = "Loaded tree with " .. #object_tree .. " items",
-		font = self.font
-	}
-	self:add(babalabel)
+	local root_node = pack_node(object_tree.root)
+
+	self:add(root_node)
 
 	collectgarbage("collect")
 end
