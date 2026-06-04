@@ -13,7 +13,7 @@ local composite = require("classes.CompositeObject")
 node.name = "DiagramNode"
 node.aliases = {}
 node.rules = {
-    {"layout", {w = 200, h = "hug", padding = 10}},
+    {"layout", {w = 200, h = "hug", padding = {15, 10, 15, 10}, horizontal = "left"}},
 	{"palette", {additionalColor = {1, 1, 1, 1}, text_color = {1, 1, 1, 1}}},
 	{{1, "node"}, "node", nil},
 

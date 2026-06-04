@@ -72,6 +72,12 @@ top_panel:add(label_container)
 local autocontainer = gui.Container{w = "fill"}
 top_panel:add(autocontainer)
 
+local paste = gui.PasteApplet{
+	w = 140,
+	font = font_M
+}
+top_panel:add(paste)
+
 local tcp = gui.TCPApplet{
 	tcp = TCPListener(CLIENT_IP, CLIENT_PORT):start(),
 	w = 180,
@@ -98,6 +104,7 @@ local diagram_draw = gui.DiagramArea{
 }
 main_panel:add(diagram_draw)
 tcp:registerDiagramObject(diagram_draw)
+paste:registerDiagramObject(diagram_draw)
 
 --#endregion
 

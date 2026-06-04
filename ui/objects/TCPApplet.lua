@@ -41,7 +41,7 @@ local BORDER_INACTIVE = {200/255, 100/255, 100/255, 1}
 
 -- fnc
 
-local function fix_data(data)
+local function fix_data(data) ---@todo multiple explain types
 	return data .. "}" .. "]"
 end
 
