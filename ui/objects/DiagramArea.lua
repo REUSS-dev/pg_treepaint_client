@@ -21,9 +21,6 @@ diagram.rules = {
 	{{"font"}, "font", love.graphics.getFont()},
 }
 
-local GAP_HORIZONTAL = 25
-local GAP_VERTICAL = 15
-
 -- consts
 
 
@@ -45,7 +42,7 @@ function pack_node(node)
 		return gui.DiagramNode{node}
 	end
 
-	local vetical_container = gui.Container{ growth = "vertical", gap = GAP_VERTICAL }
+	local vetical_container = gui.DiagramVerticalContainer{}
 
 	local node_object = gui.DiagramNode{node}
 	vetical_container:add(node_object)
@@ -63,7 +60,7 @@ function pack_node_list(node_list)
 		return pack_node(node_list[1])
 	end
 
-	local horizontal_container = gui.Container{ growth = "horizontal", gap = GAP_HORIZONTAL }
+	local horizontal_container = gui.DiagramHorizontalContainer{}
 
 	for _, node in ipairs(node_list) do
 		local node_object = pack_node(node)

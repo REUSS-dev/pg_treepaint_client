@@ -12,6 +12,9 @@ malyar_image:setFilter("linear", "linear", 4)
 
 local TCPListener = require("classes.TCPListener")
 
+local DiagramNode = gui.getObjectDescriptor("DiagramNode")
+DiagramNode.class.font = font_M
+
 -- scene
 
 local canvas = gui.createCanvas{

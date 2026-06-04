@@ -13,12 +13,13 @@ local composite = require("classes.CompositeObject")
 node.name = "DiagramNode"
 node.aliases = {}
 node.rules = {
-    {"layout", {w = "hug", h = "hug", padding = 10}},
+    {"layout", {w = 200, h = "hug", padding = 10}},
 	{"palette", {additionalColor = {1, 1, 1, 1}, text_color = {1, 1, 1, 1}}},
 	{{1, "node"}, "node", nil},
 
-	{{"font"}, "font", love.graphics.getFont()},
-	{{"bsize", "border_size", "borderSize"}, "bsize", 3}
+	{{"font"}, "font"},
+	{{"bsize", "border_size", "borderSize"}, "bsize", 3},
+	{{"r", "radius"}, "r", 10},
 }
 
 -- consts
@@ -69,5 +70,7 @@ function node.new(prototype)
 
     return obj
 end
+
+node.class = DiagramNode
 
 return node
