@@ -7,7 +7,8 @@ local font_M = love.graphics.newFont("assets/font.ttf", 18)
 local font_S = love.graphics.newFont("assets/font.ttf", 16)
 
 local malyar_image = love.graphics.newImage("assets/malyar.png")
-malyar_image:setFilter("linear", "linear", 4)
+
+love.graphics.setBackgroundColor(15/255, 15/255, 15/255)
 
 -- init
 

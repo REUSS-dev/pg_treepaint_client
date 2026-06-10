@@ -19,7 +19,7 @@ local DiagramNode = {
 		{{"desc_font", "font_s"}, "desc_font"}
 	},
 	default = {
-		w = 200, h = "hug",
+		w = 250, h = "hug",
 		padding = {15, 10},
 		gap = 5,
 		horizontal = "left",
@@ -69,19 +69,20 @@ function DiagramNode:new()
 
 	local node_data = self.node
 
-	self.titleContainer = self:createChild "Container" { gap = 2, horizontal = "left" }
+	self.titleContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
 	self.titleContainer:createChild "Label" {
 		font = self.font,
 		horizontal = "left",
 		text = node_data.type
 	}
 
-	self.contentsContainer = self:createChild "Container" { gap = 2, horizontal = "left" }
+	self.contentsContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
 
-	self.footerContainer = self:createChild "Container" { gap = 2, horizontal = "left" }
+	self.footerContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
 	self.footerContainer:createChild "Label" {
+		w = "fill",
 		font = self.desc_font,
-		horizontal = "left",
+		horizontal = "right",
 		textColor = {0.8, 0.8, 0.8, 1},
 		text = "Cost: " .. node_data.startup_cost .. ".." .. node_data.total_cost,
 	}

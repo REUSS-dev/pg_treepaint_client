@@ -16,6 +16,7 @@ local json = require("libs.json")
 ---@field join_on string NestedLoop: name of a join target table
 ---@field table string Scans: name of a scanned table
 ---@field loop_count integer Scans: Amount of loops through table/index
+---@field sort_method SortMethod Sort: sort method
 
 -- consts
 
@@ -27,6 +28,11 @@ local NodeType = {
 	Sort = "Sort",
 
 	Unknown = "Unknown"
+}
+
+---@enum SortMethod
+local SortMethod = {
+	["quicksort"] = "Quick sort"
 }
 
 -- fnc
@@ -98,6 +104,10 @@ end
 dumpers[NodeType.Sort] = function(node_data, sink)
 	sink.startup_cost = string.format("%.2f", node_data["Startup Cost"] - node_data.Plans[1]["Total Cost"])
 	sink.total_cost = string.format("%.2f", node_data["Total Cost"] - node_data.Plans[1]["Total Cost"])
+
+	if node_data["Sort Method"] then
+		sink.sort_method = SortMethod[node_data["Sort Method"]]
+	end
 end
 
 dumpers[NodeType.Unknown] = function(_, _)
