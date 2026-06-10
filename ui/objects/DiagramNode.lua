@@ -1,76 +1,90 @@
 -- node
-local node = {}
 
-local gui = require("libs.stellargui")
-local composite = require("classes.CompositeObject")
-
--- documentation
-
-
-
--- config
-
-node.name = "DiagramNode"
-node.aliases = {}
-node.rules = {
-    {"layout", {w = 200, h = "hug", padding = {15, 10, 15, 10}, horizontal = "left"}},
-	{"palette", {additionalColor = {1, 1, 1, 1}, text_color = {1, 1, 1, 1}}},
-	{{1, "node"}, "node", nil},
-
-	{{"font"}, "font"},
-	{{"bsize", "border_size", "borderSize"}, "bsize", 3},
-	{{"r", "radius"}, "r", 10},
-}
-
--- consts
-
-
-
--- vars
-
-
-
--- init
-
-
-
--- fnc
-
-
-
--- classes
+local GLOW_INTENSITY = 0.2
+local GLOW_RANGE = 3
 
 ---@class DiagramNode : CompositeObject
+---@field titleContainer CompositeObject
+---@field contentsContainer CompositeObject
+---@field footerContainer CompositeObject
 ---@field font love.Font
+---@field desc_font love.Font
 ---@field node DumpedNode
----@field title Label
-local DiagramNode = {}
-local DiagramNode_meta = {__index = DiagramNode}
-setmetatable(DiagramNode, {__index = composite.class}) -- Set parenthesis
+local DiagramNode = {
+	name = "DiagramNode",
+	extends = "CompositeObject",
+	rules = {
+		{{1, "node"}, "node"},
+		{{"font"}, "font"},
+		{{"desc_font", "font_s"}, "desc_font"}
+	},
+	default = {
+		w = 200, h = "hug",
+		padding = {15, 10},
+		gap = 5,
+		horizontal = "left",
+
+		colors = {
+			main = {32/255, 32/255, 32/255, 255/255},
+			border = {1, 1, 1, 1},
+			text = {1, 1, 1, 1}
+		},
+		borderSize = 2,
+		r = 10
+	}
+}
+
+function DiagramNode:paint()
+	-- border
+	for i = GLOW_RANGE, 1, -1 do
+		love.graphics.setLineWidth(self.bsize + i*3)
+		love.graphics.setColor(self.palette.border[1], self.palette.border[2], self.palette.border[3], GLOW_INTENSITY * i/(GLOW_RANGE + 1))
+		love.graphics.rectangle("line", 0, 0, self.w, self.h, self.r)
+	end
+
+	love.graphics.setColor(self.palette.main)
+	love.graphics.rectangle("fill", 0, 0, self.w, self.h, self.r)
+
+	love.graphics.setLineWidth(self.bsize)
+	love.graphics.setColor(self.palette.border)
+	love.graphics.rectangle("line", 0, 0, self.w, self.h, self.r)
+
+	-- contents
+	for _, uiobject in ipairs(self.objects) do
+        if uiobject:isDrawn() then
+			local tx, ty = uiobject:getCoordinates()
+            love.graphics.translate(tx, ty)
+            uiobject:paint()
+            love.graphics.translate(-tx, -ty)
+        end
+    end
+end
 
 -- node fnc
 
-function node.new(prototype)
-    local obj = composite.new(prototype)
-    setmetatable(obj, DiagramNode_meta)
-	---@cast obj DiagramNode
+function DiagramNode:new()
+	assert(self.node, "DiagramNode object must be initialized with a DumpedNode object")
 
-	assert(obj.node, "DiagramNode object must be initialized with a DumpedNode object")
+	self:setGrowth("vertical")
 
-	obj:setGrowth("vertical")
+	local node_data = self.node
 
-	local node_data = obj.node
-
-	obj.title = gui.Label{
-		font = obj.font,
+	self.titleContainer = self:createChild "Container" { gap = 2, horizontal = "left" }
+	self.titleContainer:createChild "Label" {
+		font = self.font,
 		horizontal = "left",
 		text = node_data.type
 	}
-	obj:add(obj.title)
 
-    return obj
+	self.contentsContainer = self:createChild "Container" { gap = 2, horizontal = "left" }
+
+	self.footerContainer = self:createChild "Container" { gap = 2, horizontal = "left" }
+	self.footerContainer:createChild "Label" {
+		font = self.desc_font,
+		horizontal = "left",
+		textColor = {0.8, 0.8, 0.8, 1},
+		text = "Cost: " .. node_data.startup_cost .. ".." .. node_data.total_cost,
+	}
 end
 
-node.class = DiagramNode
-
-return node
+return DiagramNode

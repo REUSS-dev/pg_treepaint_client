@@ -1,37 +1,4 @@
--- tcp
-local tcp = {}
-
-local button = require("classes.objects.Button")
-
--- documentation
-
-
-
--- config
-
-tcp.name = "PasteApplet"
-tcp.aliases = {}
-tcp.rules = {
-    {"layout", {w = 140, h = "fill"}},
-	{"palette", {color = {100/255, 100/255, 0, 1}, additionalColor = {200/255, 200/255, 100/255, 1}, text_color = {1, 1, 1, 1}}},
-
-	{{"font"}, "font", love.graphics.getFont()},
-	{{"text", "label"}, "text", "Plot\nfrom clipboard"},
-    {{"r", "radius", "rounding", "round"}, "r", 5},
-	{{"bsize", "border_size", "borderSize"}, "bsize", 3},
-}
-
--- consts
-
-
-
--- vars
-
-
-
--- init
-
-
+-- PasteApplet
 
 -- fnc
 
@@ -50,22 +17,38 @@ end
 ---@field font love.Font
 ---@field label Label
 ---@field diagram DiagramArea?
-local PasteApplet = {}
-local PasteApplet_meta = {__index = PasteApplet}
-setmetatable(PasteApplet, {__index = button.class}) -- Set parenthesis
+local PasteApplet = {
+	name = "PasteApplet",
+	extends = "Button",
+	default = {
+		w = 140, h = "fill",
+		colors = {
+			main = {100/255, 100/255, 0, 1},
+			border = {200/255, 200/255, 100/255, 1},
+			text = {1, 1, 1, 1}
+		},
+
+		text = "Plot\nfrom clipboard",
+		r = 5,
+		bsize = 3
+	}
+}
 
 function PasteApplet:action()
 	if not self.diagram then
+		print("Cannot plot, diagram is not assigned to PasteApplet object")
 		return
 	end
 
 	local clipboard = love.system.getClipboardText()
 
 	if not clipboard then
+		print("Cannot plot, clipboard does not contain text")
 		return
 	end
 
 	if clipboard:sub(1, 1) ~= "[" then ---@todo multiple explain types
+		print("Cannot plot, clipboard does not contain valid plan data")
 		return
 	end
 
@@ -79,14 +62,4 @@ function PasteApplet:registerDiagramObject(obj)
 	self.diagram = obj
 end
 
--- image fnc
-
-function tcp.new(prototype)
-    local obj = button.new(prototype)
-    setmetatable(obj, PasteApplet_meta)
-	---@cast obj PasteApplet
-
-    return obj
-end
-
-return tcp
+return PasteApplet

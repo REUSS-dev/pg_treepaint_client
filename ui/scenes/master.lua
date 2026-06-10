@@ -4,6 +4,7 @@ local gui = require("libs.stellargui")
 
 local font_L = love.graphics.newFont("assets/font.ttf", 26)
 local font_M = love.graphics.newFont("assets/font.ttf", 18)
+local font_S = love.graphics.newFont("assets/font.ttf", 16)
 
 local malyar_image = love.graphics.newImage("assets/malyar.png")
 malyar_image:setFilter("linear", "linear", 4)
@@ -13,7 +14,8 @@ malyar_image:setFilter("linear", "linear", 4)
 local TCPListener = require("classes.TCPListener")
 
 local DiagramNode = gui.getObjectDescriptor("DiagramNode")
-DiagramNode.class.font = font_M
+DiagramNode.font = font_M
+DiagramNode.desc_font = font_S
 
 -- scene
 

@@ -1,46 +1,23 @@
 -- horizontal
-local horizontal = {}
-
-local composite = require("classes.CompositeObject")
-
--- documentation
-
-
-
--- config
-
-horizontal.name = "DiagramHorizontalContainer"
-horizontal.aliases = {}
-horizontal.rules = {
-    {"layout", {w = "hug", h = "hug", gap = 50, vertical = "top"}},
-	{"palette", {additionalColor = {1, 1, 1, 1}}},
-	{{"line_size", "lineSize"}, "lineSize", 2}
-}
-
--- consts
-
-
-
--- vars
-
-
-
--- init
-
-
-
--- fnc
-
-
-
--- classes
 
 ---@class DiagramHorizontalContainer : CompositeObject
+---@field CompositeObject CompositeObject
 ---@field lineSize number
 ---@field cachedLines number[][]
-local DiagramHorizontalContainer = {}
-local DiagramHorizontalContainer_meta = {__index = DiagramHorizontalContainer}
-setmetatable(DiagramHorizontalContainer, {__index = composite.class}) -- Set parenthesis
+local DiagramHorizontalContainer = {
+	name = "DiagramHorizontalContainer",
+	extends = "CompositeObject",
+	rules = {
+		{{"line_size", "lineSize"}, "lineSize"}
+	},
+	default = {
+		gap = 50,
+		growth = "horizontal",
+		vertical = "top",
+		additionalColor = {1, 1, 1, 1},
+		lineSize = 2
+	}
+}
 
 -- horizontal fnc
 
@@ -51,7 +28,7 @@ function DiagramHorizontalContainer:paint()
 		love.graphics.line(line)
 	end
 
-	composite.class.paint(self)
+	self.CompositeObject.paint(self)
 end
 
 function DiagramHorizontalContainer:getLines()
@@ -59,7 +36,7 @@ function DiagramHorizontalContainer:getLines()
 		return self.cachedLines
 	end
 
-	if not self.parent.getLine then
+	if not self.parent.name == "DiagramVerticalContainer" then
 		self.cachedLines = {}
 		return {}
 	end
@@ -90,17 +67,8 @@ function DiagramHorizontalContainer:getLines()
 	return lines
 end
 
-function horizontal.new(prototype)
-    local obj = composite.new(prototype)
-    setmetatable(obj, DiagramHorizontalContainer_meta)
-	---@cast obj DiagramHorizontalContainer
-
-	obj:setGrowth("horizontal")
-	obj.border_flag = false
-
-    return obj
+function DiagramHorizontalContainer:new()
+	self.border_flag = false
 end
 
-horizontal.class = DiagramHorizontalContainer
-
-return horizontal
+return DiagramHorizontalContainer
