@@ -1,4 +1,4 @@
--- node
+-- ui/objects/nodes/DiagramNodeIndexOnlyScan.lua
 
 ---@class DiagramNodeIndexOnlyScan : DiagramNode
 local DiagramNodeIndexOnlyScan = {
@@ -6,9 +6,7 @@ local DiagramNodeIndexOnlyScan = {
 	extends = "DiagramNode",
 	default = {
 		colors = {
-			main = {32/255, 32/255, 32/255, 255/255},
-			border = {0, 0.75, 0, 1},
-			text = {1, 1, 1, 1}
+			border = {0, 0.75, 0, 1}
 		}
 	}
 }
@@ -25,3 +23,5 @@ function DiagramNodeIndexOnlyScan:new()
 end
 
 return DiagramNodeIndexOnlyScan
+
+

@@ -5,6 +5,7 @@ local TreeParser = require("classes.TreeParser")
 -- classes
 
 ---@class DiagramArea : CompositeObject
+---@field CompositeObject CompositeObject
 ---@field font love.Font
 ---@field parser TreeParser
 local DiagramArea = {

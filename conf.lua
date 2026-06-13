@@ -1,4 +1,4 @@
-CLIENT_IP = "172.25.128.1"
+CLIENT_IP = "0.0.0.0"
 CLIENT_PORT = 4523
 
 function love.conf(t)

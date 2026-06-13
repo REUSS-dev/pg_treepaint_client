@@ -6,9 +6,7 @@ local DiagramNodeSort = {
 	extends = "DiagramNode",
 	default = {
 		colors = {
-			main = {32/255, 32/255, 32/255, 255/255},
-			border = {0, 0.75, 0.75, 1},
-			text = {1, 1, 1, 1}
+			border = {0, 0.75, 0.75, 1}
 		}
 	}
 }

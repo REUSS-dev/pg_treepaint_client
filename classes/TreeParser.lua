@@ -22,9 +22,12 @@ local json = require("libs.json")
 
 ---@enum NodeType
 local NodeType = {
+	BitmapHeapScan = "Bitmap Heap Scan",
+	BitmapIndexScan = "Bitmap Index Scan",
 	IndexOnlyScan = "Index Only Scan",
 	IndexScan = "Index Scan",
 	NestedLoop = "Nested Loop",
+	SeqScan = "Seq Scan",
 	Sort = "Sort",
 
 	Unknown = "Unknown"
@@ -88,17 +91,29 @@ end
 
 --#region node type dumpers
 
+local function scan(node_data, sink)
+	sink.table = node_data["Relation Name"]
+end
+
+dumpers[NodeType.BitmapHeapScan] = function (node_data, sink)
+	scan(node_data, sink)
+end
+
 dumpers[NodeType.IndexOnlyScan] = function(node_data, sink)
 	dumpers[NodeType.IndexScan](node_data, sink)
 end
 
 dumpers[NodeType.IndexScan] = function(node_data, sink)
-	sink.table = node_data["Relation Name"]
+	scan(node_data, sink)
 	sink.loop_count = node_data["Actual Loops"] -- только с analyze, потом переделать
 end
 
 dumpers[NodeType.NestedLoop] = function(node_data, sink)
 	sink.join_on = node_data.Plans[2]["Relation Name"]
+end
+
+dumpers[NodeType.SeqScan] = function (node_data, sink)
+	scan(node_data, sink)
 end
 
 dumpers[NodeType.Sort] = function(node_data, sink)
