@@ -50,14 +50,27 @@ function DiagramNode:paint()
 	love.graphics.rectangle("line", 0, 0, self.w, self.h, self.r)
 
 	-- contents
-	for _, uiobject in ipairs(self.objects) do
-        if uiobject:isDrawn() then
-			local tx, ty = uiobject:getCoordinates()
-            love.graphics.translate(tx, ty)
-            uiobject:paint()
-            love.graphics.translate(-tx, -ty)
-        end
-    end
+	local tx, ty = self.titleContainer:getCoordinates()
+    love.graphics.translate(tx, ty)
+	self.titleContainer:paint()
+    love.graphics.translate(-tx, -ty)
+
+	if #self.contentsContainer.objects ~= 0 then
+		tx, ty = self.contentsSeparator:getCoordinates()
+		love.graphics.translate(tx, ty)
+		self.contentsSeparator:paint()
+		love.graphics.translate(-tx, -ty)
+	end
+
+	tx, ty = self.contentsContainer:getCoordinates()
+    love.graphics.translate(tx, ty)
+	self.contentsContainer:paint()
+    love.graphics.translate(-tx, -ty)
+
+	tx, ty = self.footerContainer:getCoordinates()
+    love.graphics.translate(tx, ty)
+	self.footerContainer:paint()
+    love.graphics.translate(-tx, -ty)
 end
 
 -- node fnc
@@ -75,6 +88,8 @@ function DiagramNode:new()
 		horizontal = "left",
 		text = node_data.type
 	}
+
+	self.contentsSeparator = self:createChild "Container" { color = {0.5, 0.5, 0.5, 1}, w = "fill", h = 1 }
 
 	self.contentsContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
 
