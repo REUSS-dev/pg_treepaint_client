@@ -52,7 +52,8 @@ function PasteApplet:action()
 		return
 	end
 
-	clipboard = clipboard:gsub("%+\r?\n", "\n")
+	clipboard = clipboard:gsub("([^+\r])\r?\n", "%1")
+	clipboard = clipboard:gsub("%+\r?\n", " ")
 	clipboard = fix_data(clipboard)
 
 	self.diagram:plot(clipboard)
