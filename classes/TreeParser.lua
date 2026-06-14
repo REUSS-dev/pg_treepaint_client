@@ -13,7 +13,8 @@ local json = require("libs.json")
 ---@field children DumpedNode[]?
 ---@field startup_cost string
 ---@field total_cost string
----@field join_on string NestedLoop: name of a join target table
+---@field columns string[] Hash: Table columns hash are generated for
+---@field join_on string HashJoin: name of a join target table
 ---@field table string Scans: name of a scanned table
 ---@field loop_count integer Scans: Amount of loops through table/index
 ---@field sort_method SortMethod Sort: sort method
@@ -22,8 +23,11 @@ local json = require("libs.json")
 
 ---@enum NodeType
 local NodeType = {
+	Aggregate = "Aggregate",
 	BitmapHeapScan = "Bitmap Heap Scan",
 	BitmapIndexScan = "Bitmap Index Scan",
+	Hash = "Hash",
+	HashJoin = "Hash Join",
 	IndexOnlyScan = "Index Only Scan",
 	IndexScan = "Index Scan",
 	NestedLoop = "Nested Loop",
@@ -35,7 +39,8 @@ local NodeType = {
 
 ---@enum SortMethod
 local SortMethod = {
-	["quicksort"] = "Quick sort"
+	["quicksort"] = "Quick sort",
+	["top-N heapsort"] = "Top-N Heapsort",
 }
 
 -- fnc
@@ -93,10 +98,22 @@ end
 
 local function scan(node_data, sink)
 	sink.table = node_data["Relation Name"]
+
+	if node_data["Alias"] then
+		sink.table = sink.table .. " (" .. node_data["Alias"] .. ")"
+	end
 end
 
 dumpers[NodeType.BitmapHeapScan] = function (node_data, sink)
 	scan(node_data, sink)
+end
+
+dumpers[NodeType.Hash] = function (node_data, sink)
+	sink.columns = node_data["Output"]
+end
+
+dumpers[NodeType.HashJoin] = function (node_data, sink)
+	sink.join_on = string.match(node_data["Hash Cond"], "%((.+)%)") or node_data["Hash Cond"]
 end
 
 dumpers[NodeType.IndexOnlyScan] = function(node_data, sink)
@@ -109,7 +126,7 @@ dumpers[NodeType.IndexScan] = function(node_data, sink)
 end
 
 dumpers[NodeType.NestedLoop] = function(node_data, sink)
-	sink.join_on = node_data.Plans[2]["Relation Name"]
+	sink.table = node_data.Plans[2]["Relation Name"]
 end
 
 dumpers[NodeType.SeqScan] = function (node_data, sink)
@@ -121,7 +138,7 @@ dumpers[NodeType.Sort] = function(node_data, sink)
 	sink.total_cost = string.format("%.2f", node_data["Total Cost"] - node_data.Plans[1]["Total Cost"])
 
 	if node_data["Sort Method"] then
-		sink.sort_method = SortMethod[node_data["Sort Method"]]
+		sink.sort_method = SortMethod[node_data["Sort Method"]] or node_data["Sort Method"]
 	end
 end
 

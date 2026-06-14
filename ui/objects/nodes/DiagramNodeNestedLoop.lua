@@ -17,7 +17,7 @@ function DiagramNodeNestedLoop:new()
 	self.titleContainer:createChild "Label" {
 		font = self.desc_font,
 		horizontal = "left",
-		text = "JOIN on " .. self.node.join_on,
+		text = "JOIN on " .. self.node.table,
 		textColor = {0.7, 0.7, 0.7, 1}
 	}
 end
