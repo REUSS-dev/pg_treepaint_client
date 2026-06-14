@@ -74,6 +74,11 @@ function DiagramArea:resize(new_w, new_h, relayout)
 end
 
 function DiagramArea:wheel(x, y)
+	if (love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")) and x == 0 then
+		self:moveRoot(y * 20, 0)
+		return
+	end
+
 	self:moveRoot(x * -20, y * 20)
 end
 
