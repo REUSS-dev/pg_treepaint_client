@@ -70,12 +70,18 @@ end
 function DiagramArea:resize(new_w, new_h, relayout)
 	self.CompositeObject.resize(self, new_w, new_h, relayout)
 
-	if self.root then
-		self:moveRoot(0, 0)
-	end
+	self:moveRoot(0, 0)
+end
+
+function DiagramArea:wheel(x, y)
+	self:moveRoot(x * -20, y * 20)
 end
 
 function DiagramArea:moveRoot(x, y)
+	if not self.root then
+		return
+	end
+
 	local new_x, new_y
 
 	if self.root.w > self.w then
