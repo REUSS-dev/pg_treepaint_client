@@ -8,6 +8,8 @@ local TreeParser = require("classes.TreeParser")
 ---@field CompositeObject CompositeObject
 ---@field font love.Font
 ---@field parser TreeParser
+---@field root CompositeObject?
+---@field mouse_held {[1]: integer, [2]: integer}?
 local DiagramArea = {
 	name = "DiagramArea",
 	extends = "CompositeObject",
@@ -17,20 +19,90 @@ local DiagramArea = {
 	default = {
 		w = "fill", h = "fill",
 		text_color = {1, 1, 1, 1},
-		font = love.graphics.getFont()
+		font = love.graphics.getFont(),
+		vertical = "top",
+		padding = {0, 50, 0, 0},
+		hoverSelf = true
 	}
 }
 
+-- consts
+
+local MOVE_MAX = 100
+
 -- diagram fnc
+
+function DiagramArea:click(x, y, but)
+	if but == 1 then
+		self.mouse_held = {x, y}
+	end
+end
+
+function DiagramArea:clickRelease()
+	self.mouse_held = nil
+end
+
+function DiagramArea:tick(dt)
+	self.CompositeObject.tick(self, dt)
+
+	if self.root and self.mouse_held then
+		local mx, my = self:convertGlobalCoords(love.mouse.getPosition())
+
+		if mx ~= self.mouse_held[1] or my ~= self.mouse_held[2] then
+			self:moveRoot(mx - self.mouse_held[1], my - self.mouse_held[2])
+
+			self.mouse_held[1] = mx
+			self.mouse_held[2] = my
+		end
+	end
+end
+
+function DiagramArea:paint()
+	love.graphics.stencil(self.stencilFunction, "increment", 1, true)
+	local old_stencil_mode, old_stencil_value = love.graphics.getStencilTest()
+	love.graphics.setStencilTest("gequal", old_stencil_value + 1)
+
+	self.CompositeObject.paint(self)
+
+	love.graphics.setStencilTest(old_stencil_mode, old_stencil_value)
+end
+
+function DiagramArea:resize(new_w, new_h, relayout)
+	self.CompositeObject.resize(self, new_w, new_h, relayout)
+
+	if self.root then
+		self:moveRoot(0, 0)
+	end
+end
+
+function DiagramArea:moveRoot(x, y)
+	local new_x, new_y
+
+	if self.root.w > self.w then
+		new_x = math.max(self.w - self.root.w - MOVE_MAX, math.min(MOVE_MAX, self.root.x + x))
+	else
+		new_x = math.floor((self.w - self.root.w)/2 + .5)
+	end
+
+	if self.root.h > self.h then
+		new_y = math.max(self.h - self.root.h - MOVE_MAX, math.min(MOVE_MAX, self.root.y + y))
+	else
+		new_y = math.floor((self.h - self.root.h)/2 + .5)
+	end
+
+	self.root:move(new_x, new_y)
+end
 
 function DiagramArea:plot(data)
 	local object_tree = self.parser:parse(data)
 
 	self.objects = {}
 
-	local root_node = self:packNode(object_tree.root)
+	self.root = self:packNode(object_tree.root)
 
-	self:add(root_node)
+	self:add(self.root)
+
+	self.root.layout.ignore = true
 
 	collectgarbage("collect")
 end
@@ -90,6 +162,10 @@ function DiagramArea:new()
 	self:setGrowth("horizontal")
 
 	self.parser = TreeParser()
+
+	self.stencilFunction = function ()
+		love.graphics.rectangle("fill", 0, 0, self.w, self.h)
+	end
 end
 
 return DiagramArea

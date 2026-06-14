@@ -26,7 +26,8 @@ local canvas = gui.createCanvas{
 	colors = {
 		fill = {24/255, 24/255, 24/255, 255/255}
 	},
-	padding = {0, 0, 0, 0}
+	padding = {0, 0, 0, 0},
+	gap = 0
 }
 
 --#region top panel
