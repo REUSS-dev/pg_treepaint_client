@@ -19,7 +19,7 @@ local DiagramNode = {
 		{{"desc_font", "font_s"}, "desc_font"}
 	},
 	default = {
-		w = 250, h = "hug",
+		w = 280, h = "hug",
 		padding = {15, 10},
 		gap = 5,
 		horizontal = "left",

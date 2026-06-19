@@ -114,6 +114,7 @@ function DiagramArea:plot(data)
 	self:add(self.root)
 
 	self.root.layout.ignore = true
+	self:moveRoot(0, 0)
 
 	collectgarbage("collect")
 end

@@ -22,6 +22,14 @@ function DiagramNodeSort:new()
 			textColor = {0.8, 0.8, 0.8, 1}
 		}
 	end
+
+	if self.node.columns then
+		self.contentsContainer:createChild "Label" {
+			font = self.font,
+			horizontal = "left",
+			text = "by " .. table.concat(self.node.columns, ", ")
+		}
+	end
 end
 
 return DiagramNodeSort

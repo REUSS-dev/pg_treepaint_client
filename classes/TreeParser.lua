@@ -13,7 +13,7 @@ local json = require("libs.json")
 ---@field children DumpedNode[]?
 ---@field startup_cost string
 ---@field total_cost string
----@field columns string[] Hash: Table columns hash are generated for
+---@field columns string[] Hash: Table columns hash are generated for / Sort: columns, resulted records are sorted against
 ---@field join_on string HashJoin: name of a join target table
 ---@field table string Scans: name of a scanned table
 ---@field loop_count integer Scans: Amount of loops through table/index
@@ -140,6 +140,8 @@ dumpers[NodeType.Sort] = function(node_data, sink)
 	if node_data["Sort Method"] then
 		sink.sort_method = SortMethod[node_data["Sort Method"]] or node_data["Sort Method"]
 	end
+
+	sink.columns = node_data["Sort Key"]
 end
 
 dumpers[NodeType.Unknown] = function(_, _)
