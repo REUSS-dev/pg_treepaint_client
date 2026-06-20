@@ -6,7 +6,7 @@ local DiagramNodeSort = {
 	extends = "DiagramNode",
 	default = {
 		colors = {
-			border = {0, 0.75, 0.75, 1}
+			border = COLORS.NODE_SORT
 		}
 	}
 }
@@ -19,7 +19,7 @@ function DiagramNodeSort:new()
 			font = self.desc_font,
 			horizontal = "left",
 			text = self.node.sort_method,
-			textColor = {0.8, 0.8, 0.8, 1}
+			textColor = self.text_color_desc
 		}
 	end
 
@@ -27,7 +27,8 @@ function DiagramNodeSort:new()
 		self.contentsContainer:createChild "Label" {
 			font = self.font,
 			horizontal = "left",
-			text = "by " .. table.concat(self.node.columns, ", ")
+			text = "by " .. table.concat(self.node.columns, ", "),
+			textColor = self.text_color
 		}
 	end
 end

@@ -14,7 +14,7 @@ local DiagramHorizontalContainer = {
 		gap = 50,
 		growth = "horizontal",
 		vertical = "top",
-		additionalColor = {1, 1, 1, 1},
+		additionalColor = COLORS.CONNECTION,
 		lineSize = 2
 	}
 }
@@ -23,6 +23,7 @@ local DiagramHorizontalContainer = {
 
 function DiagramHorizontalContainer:paint()
 	love.graphics.setLineWidth(self.lineSize)
+	love.graphics.setColor(self.palette.border)
 
 	for _, line in ipairs(self:getLines()) do
 		love.graphics.line(line)

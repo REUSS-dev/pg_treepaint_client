@@ -9,6 +9,8 @@ local GLOW_RANGE = 3
 ---@field footerContainer CompositeObject
 ---@field font love.Font
 ---@field desc_font love.Font
+---@field text_color ColorTable
+---@field text_color_desc ColorTable
 ---@field node DumpedNode
 local DiagramNode = {
 	name = "DiagramNode",
@@ -25,13 +27,13 @@ local DiagramNode = {
 		horizontal = "left",
 
 		colors = {
-			main = {32/255, 32/255, 32/255, 255/255},
-			border = {1, 1, 1, 1},
-			text = {1, 1, 1, 1}
+			main = COLORS.NODE_FILL,
+			border = COLORS.NODE_BORDER,
+			text = COLORS.NODE_TEXT
 		},
 		borderSize = 2,
 		r = 10
-	}
+	},
 }
 
 function DiagramNode:paint()
@@ -82,11 +84,19 @@ function DiagramNode:new()
 
 	local node_data = self.node
 
+	self.text_color = self.palette:getColorByIndex(2)
+
+	if not self.palette:getColorByIndex(4) then
+		self.palette:setColor(4, COLORS.NODE_TEXT_DESC)
+	end
+	self.text_color_desc = self.palette:getColorByIndex(4)
+
 	self.titleContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
 	self.titleContainer:createChild "Label" {
 		font = self.font,
 		horizontal = "left",
-		text = node_data.type
+		text = node_data.type,
+		textColor = self.text_color
 	}
 
 	self.contentsSeparator = self:createChild "Container" { color = {0.5, 0.5, 0.5, 1}, w = "fill", h = 1 }
@@ -98,7 +108,7 @@ function DiagramNode:new()
 		w = "fill",
 		font = self.desc_font,
 		horizontal = "right",
-		textColor = {0.8, 0.8, 0.8, 1},
+		textColor = self.text_color_desc,
 		text = "Cost: " .. node_data.startup_cost .. ".." .. node_data.total_cost,
 	}
 end

@@ -6,7 +6,7 @@ local DiagramNodeAggregate = {
 	extends = "DiagramNode",
 	default = {
 		colors = {
-			border = {0.75, 0.5, 0, 1}
+			border = COLORS.NODE_AGGREGATE
 		}
 	}
 }

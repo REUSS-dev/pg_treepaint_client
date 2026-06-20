@@ -6,7 +6,7 @@ local DiagramNodeIndexOnlyScan = {
 	extends = "DiagramNode",
 	default = {
 		colors = {
-			border = {0, 0.75, 0, 1}
+			border = COLORS.NODE_INDEX_ONLY_SCAN
 		}
 	}
 }
@@ -18,7 +18,7 @@ function DiagramNodeIndexOnlyScan:new()
 		font = self.desc_font,
 		horizontal = "left",
 		text = "on " .. self.node.table,
-		textColor = {0.8, 0.8, 0.8, 1}
+		textColor = self.text_color_desc
 	}
 end
 

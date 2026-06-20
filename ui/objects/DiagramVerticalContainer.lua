@@ -13,7 +13,7 @@ local DiagramVerticalContainer = {
 	default = {
 		gap = 50,
 		growth = "vertical",
-		additionalColor = {1, 1, 1, 1},
+		additionalColor = COLORS.CONNECTION,
 		lineSize = 2
 	}
 }
@@ -22,6 +22,7 @@ local DiagramVerticalContainer = {
 
 function DiagramVerticalContainer:paint()
 	love.graphics.setLineWidth(self.lineSize)
+	love.graphics.setColor(self.palette.border)
 	love.graphics.line(self:getLine())
 
 	self.CompositeObject.paint(self)

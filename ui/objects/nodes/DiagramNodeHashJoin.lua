@@ -6,7 +6,7 @@ local DiagramNodeHashJoin = {
 	extends = "DiagramNode",
 	default = {
 		colors = {
-			border = {0.5, 0, 0.5, 1}
+			border = COLORS.NODE_HASH_JOIN
 		}
 	}
 }
@@ -18,7 +18,7 @@ function DiagramNodeHashJoin:new()
 		font = self.desc_font,
 		horizontal = "left",
 		text = "on " .. self.node.join_on,
-		textColor = {0.8, 0.8, 0.8, 1}
+		textColor = self.text_color_desc
 	}
 end
 

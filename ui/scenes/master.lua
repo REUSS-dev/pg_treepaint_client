@@ -8,7 +8,7 @@ local font_S = love.graphics.newFont("assets/font.ttf", 16)
 
 local malyar_image = love.graphics.newImage("assets/malyar.png")
 
-love.graphics.setBackgroundColor(15/255, 15/255, 15/255)
+love.graphics.setBackgroundColor(COLORS.BACKGROUND)
 
 -- init
 
@@ -23,9 +23,6 @@ DiagramNode.desc_font = font_S
 local canvas = gui.createCanvas{
 	growth = "vertical",
 	vertical = "top",
-	colors = {
-		fill = {24/255, 24/255, 24/255, 255/255}
-	},
 	padding = {0, 0, 0, 0},
 	gap = 0
 }
@@ -35,7 +32,7 @@ local canvas = gui.createCanvas{
 local top_panel = gui.Container{
 	w = "fill",
 	h = 75,
-	color = {42/255, 42/255, 42/255, 255/255},
+	color = COLORS.TOP_PANEL,
 	padding = {10, 10, 10, 10},
 	growth = "horizontal",
 	horizontal = "left",
@@ -60,12 +57,12 @@ local label_container = gui.Container{
 local treepaint_label = gui.Label{
 	text = "TreePaint",
 	font = font_L,
-	text_color = {200/255, 200/255, 200/255}
+	text_color = COLORS.LABEL_TREEPAINT
 }
 local treepaint_desc = gui.Label{
 	text = "A PostgreSQL Tree Visualization Tool",
 	font = font_M,
-	text_color = {180/255, 180/255, 180/255}
+	text_color = COLORS.LABEL_TREEMOTTO
 }
 
 label_container:add(treepaint_label)

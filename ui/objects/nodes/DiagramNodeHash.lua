@@ -6,7 +6,7 @@ local DiagramNodeHash = {
 	extends = "DiagramNode",
 	default = {
 		colors = {
-			border = {0.75, 0, 0.75, 1}
+			border = COLORS.NODE_HASH
 		}
 	}
 }
@@ -18,14 +18,15 @@ function DiagramNodeHash:new()
 		self.contentsContainer:createChild "Label" {
 			font = self.font,
 			horizontal = "left",
-			text = "Columns"
+			text = "Columns",
+			textColor = self.text_color
 		}
 	
 		self.contentsContainer:createChild "Label" {
 			font = self.desc_font,
 			horizontal = "left",
 			text = table.concat(self.node.columns, "\n"),
-			textColor = {0.8, 0.8, 0.8, 1}
+			textColor = self.text_color_desc
 		}
 	end
 end

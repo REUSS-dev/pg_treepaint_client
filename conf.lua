@@ -1,6 +1,9 @@
 CLIENT_IP = "0.0.0.0"
 CLIENT_PORT = 4523
 
+UI_THEME = "dark"
+require("themes")
+
 function love.conf(t)
 	t.window.title = "Treepaint"
     t.window.width = 1280

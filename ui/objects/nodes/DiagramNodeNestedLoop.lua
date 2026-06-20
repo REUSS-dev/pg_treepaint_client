@@ -6,7 +6,7 @@ local DiagramNodeNestedLoop = {
 	extends = "DiagramNode",
 	default = {
 		colors = {
-			border = {0.5, 0.5, 1, 1}
+			border = COLORS.NODE_NESTED_LOOP
 		}
 	}
 }
@@ -18,7 +18,7 @@ function DiagramNodeNestedLoop:new()
 		font = self.desc_font,
 		horizontal = "left",
 		text = "JOIN on " .. self.node.table,
-		textColor = {0.7, 0.7, 0.7, 1}
+		textColor = self.text_color_desc
 	}
 end
 

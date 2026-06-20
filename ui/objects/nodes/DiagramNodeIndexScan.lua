@@ -6,7 +6,7 @@ local DiagramNodeIndexScan = {
 	extends = "DiagramNode",
 	default = {
 		colors = {
-			border = {0.5, 1, 0.5, 1}
+			border = COLORS.NODE_INDEX_SCAN
 		}
 	}
 }
@@ -18,13 +18,14 @@ function DiagramNodeIndexScan:new()
 		font = self.desc_font,
 		horizontal = "left",
 		text = "on " .. self.node.table,
-		textColor = {0.8, 0.8, 0.8, 1}
+		textColor = self.text_color_desc
 	}
 
 	if self.node.loop_count then
 		self.contentsContainer:createChild "Label" {
 			font = self.font,
-			text = "Loops: " .. self.node.loop_count
+			text = "Loops: " .. self.node.loop_count,
+			textColor = self.text_color
 		}
 	end
 end

@@ -23,9 +23,9 @@ local PasteApplet = {
 	default = {
 		w = 140, h = "fill",
 		colors = {
-			main = {100/255, 100/255, 0, 1},
-			border = {200/255, 200/255, 100/255, 1},
-			text = {1, 1, 1, 1}
+			main = COLORS.PASTE_FILL,
+			border = COLORS.PASTE_BORDER,
+			text = COLORS.PASTE_TEXT
 		},
 
 		text = "Plot\nfrom clipboard",

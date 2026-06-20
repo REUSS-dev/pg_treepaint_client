@@ -6,7 +6,7 @@ local DiagramNodeBitmapHeapScan = {
 	extends = "DiagramNode",
 	default = {
 		colors = {
-			border = {0.25, 1, 1, 1}
+			border = COLORS.NODE_BITMAP_HEAP_SCAN
 		}
 	}
 }
@@ -18,7 +18,7 @@ function DiagramNodeBitmapHeapScan:new()
 		font = self.desc_font,
 		horizontal = "left",
 		text = "on " .. self.node.table,
-		textColor = {0.8, 0.8, 0.8, 1}
+		textColor = self.text_color_desc
 	}
 end
 
