@@ -11,6 +11,7 @@ function love.conf(t)
     t.window.resizable = true
     t.window.minwidth = 854
     t.window.minheight = 480
+	t.window.icon = "icon.png"
 	t.window.msaa = 4
 
 
