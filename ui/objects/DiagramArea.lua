@@ -89,13 +89,13 @@ function DiagramArea:moveRoot(x, y)
 
 	local new_x, new_y
 
-	if self.root.w > self.w then
+	if self.root.w + 2*MOVE_MAX> self.w then
 		new_x = math.max(self.w - self.root.w - MOVE_MAX, math.min(MOVE_MAX, self.root.x + x))
 	else
 		new_x = math.floor((self.w - self.root.w)/2 + .5)
 	end
 
-	if self.root.h > self.h then
+	if self.root.h + 2*MOVE_MAX > self.h then
 		new_y = math.max(self.h - self.root.h - MOVE_MAX, math.min(MOVE_MAX, self.root.y + y))
 	else
 		new_y = math.floor((self.h - self.root.h)/2 + .5)
@@ -106,6 +106,10 @@ end
 
 function DiagramArea:plot(data)
 	local object_tree = self.parser:parse(data)
+
+	if not object_tree then
+		return
+	end
 
 	self.objects = {}
 

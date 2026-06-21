@@ -2,6 +2,8 @@
 
 local json = require("libs.json")
 
+local TextParser = require("classes.TextParser")
+
 -- docs
 
 ---@alias PlanNode {["Node Type"]: NodeType, Plans: PlanNode[]}
@@ -151,18 +153,57 @@ setmetatable(dumpers, {__index = function(self) return self[NodeType.Unknown] en
 
 --#endregion
 
+local function fix_data(data)
+	if data:sub(-1, -1) == "]" then
+		return data
+	end
+
+	return data .. "}" .. "]"
+end
+
 -- class
 
 ---@class TreeParser
+---@field textParser TextParser
 local TreeParser = {}
 TreeParser.__index = TreeParser
 
 function TreeParser:parse(tree)
+	tree = tree:gsub("[^-]%+\n", "\n")
+
+	local _, _, nonspace = string.find(tree, "(%S)")
+
+	if nonspace == "[" then
+		return self:parseJSON(tree)
+	end
+
+	return self:parseText(tree)
+end
+
+function TreeParser:parseJSON(json_string)
 	local parsed = {}
 
-	tree = json.decode(tree)
+	local tree = json.decode(fix_data(json_string))
+	local root = tree[1]["Plan"]
+
+	parsed.root = dump_node(root)
+
+	return parsed
+end
+
+function TreeParser:parseText(text)
+	local parsed = {}
+
+	local success, tree = pcall(self.textParser.parse, self.textParser, text)
+
+	if not success then
+		print("Failed to parse plan data, error: " .. tostring(tree))
+		return
+	end
 
 	local root = tree[1]["Plan"]
+
+	print(json.encode(root))
 
 	parsed.root = dump_node(root)
 
@@ -173,6 +214,8 @@ function TreeParser:new()
 	local new_parser = {}
 
 	setmetatable(new_parser, TreeParser)
+
+	self.textParser = TextParser()
 
 	return new_parser
 end

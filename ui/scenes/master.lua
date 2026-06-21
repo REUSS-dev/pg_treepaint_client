@@ -14,7 +14,7 @@ love.graphics.setBackgroundColor(COLORS.BACKGROUND)
 
 local TCPListener = require("classes.TCPListener")
 
-local DiagramNode = gui.getObjectDescriptor("DiagramNode")
+local DiagramNode = gui.getObjectDescriptor("DiagramNode") --[[@as DiagramNode]]
 DiagramNode.font = font_M
 DiagramNode.desc_font = font_S
 

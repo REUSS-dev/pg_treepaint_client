@@ -14,12 +14,15 @@ local DiagramNodeNestedLoop = {
 -- node fnc
 
 function DiagramNodeNestedLoop:new()
-	self.titleContainer:createChild "Label" {
-		font = self.desc_font,
-		horizontal = "left",
-		text = "JOIN on " .. self.node.table,
-		textColor = self.text_color_desc
-	}
+
+	if self.node.table then
+		self.titleContainer:createChild "Label" {
+			font = self.desc_font,
+			horizontal = "left",
+			text = "JOIN on " .. self.node.table,
+			textColor = self.text_color_desc
+		}
+	end
 end
 
 return DiagramNodeNestedLoop

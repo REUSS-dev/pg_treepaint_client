@@ -28,7 +28,8 @@ function DiagramNodeSort:new()
 			font = self.font,
 			horizontal = "left",
 			text = "by " .. table.concat(self.node.columns, ", "),
-			textColor = self.text_color
+			textColor = self.text_color,
+			width = "fill"
 		}
 	end
 end

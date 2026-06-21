@@ -1,15 +1,5 @@
 -- PasteApplet
 
--- fnc
-
-local function fix_data(data)
-	if data:sub(-1, -1) == "]" then
-		return data
-	end
-
-	return data .. "}" .. "]"
-end
-
 -- classes
 
 ---@class PasteApplet : Button
@@ -47,14 +37,7 @@ function PasteApplet:action()
 		return
 	end
 
-	if clipboard:sub(1, 1) ~= "[" then ---@todo multiple explain types
-		print("Cannot plot, clipboard does not contain valid plan data")
-		return
-	end
-
-	clipboard = clipboard:gsub("([^+\r])\r?\n", "%1")
 	clipboard = clipboard:gsub("%+\r?\n", " ")
-	clipboard = fix_data(clipboard)
 
 	self.diagram:plot(clipboard)
 end
