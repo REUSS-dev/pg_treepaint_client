@@ -32,6 +32,7 @@ local theme_dark = {
 	NODE_TEXT_DESC = {0.8, 0.8, 0.8, 1},
 
 	CONNECTION = {1, 1, 1, 1},
+	CONNECTION_HOVER = {1, 0.75, 0, 0.75},
 
 	NODE_AGGREGATE = {0.75, 0.5, 0, 1},
 	NODE_BITMAP_HEAP_SCAN = {0.25, 1, 1, 1},

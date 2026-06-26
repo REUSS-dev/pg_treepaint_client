@@ -32,7 +32,8 @@ local DiagramNode = {
 			text = COLORS.NODE_TEXT
 		},
 		borderSize = 2,
-		r = 10
+		r = 10,
+		hover = true
 	},
 }
 
@@ -104,13 +105,16 @@ function DiagramNode:new()
 	self.contentsContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
 
 	self.footerContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
-	self.footerContainer:createChild "Label" {
-		w = "fill",
-		font = self.desc_font,
-		horizontal = "right",
-		textColor = self.text_color_desc,
-		text = "Cost: " .. node_data.startup_cost .. ".." .. node_data.total_cost,
-	}
+
+	if node_data.startup_cost then
+		self.footerContainer:createChild "Label" {
+			w = "fill",
+			font = self.desc_font,
+			horizontal = "right",
+			textColor = self.text_color_desc,
+			text = "Cost: " .. node_data.startup_cost .. ".." .. node_data.total_cost,
+		}
+	end
 end
 
 return DiagramNode
