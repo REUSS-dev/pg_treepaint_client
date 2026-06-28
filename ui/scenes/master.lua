@@ -101,7 +101,8 @@ canvas:add(main_panel)
 local diagram_draw = gui.DiagramArea{
 	w = "fill",
 	h = "fill",
-	font = font_M
+	font = font_M,
+	color = COLORS.BACKGROUND
 }
 main_panel:add(diagram_draw)
 tcp:registerDiagramObject(diagram_draw)

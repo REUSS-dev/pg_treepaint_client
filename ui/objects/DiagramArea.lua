@@ -58,13 +58,13 @@ function DiagramArea:tick(dt)
 end
 
 function DiagramArea:paint()
-	love.graphics.stencil(self.stencilFunction, "increment", 1, true)
-	local old_stencil_mode, old_stencil_value = love.graphics.getStencilTest()
-	love.graphics.setStencilTest("gequal", old_stencil_value + 1)
+	local sx, sy, sw, sh = love.graphics.getScissor()
+	local tx, ty = self:getTranslation()
+	love.graphics.intersectScissor(tx, ty, self.w, self.h)
 
 	self.CompositeObject.paint(self)
 
-	love.graphics.setStencilTest(old_stencil_mode, old_stencil_value)
+	love.graphics.setScissor(sx, sy, sw, sh)
 end
 
 function DiagramArea:resize(new_w, new_h, relayout)
@@ -87,6 +87,8 @@ function DiagramArea:moveRoot(x, y)
 		return
 	end
 
+	x, y = math.floor(x + .5), math.floor(y + .5)
+
 	local new_x, new_y
 
 	if self.root.w + 2*MOVE_MAX> self.w then
@@ -101,7 +103,12 @@ function DiagramArea:moveRoot(x, y)
 		new_y = math.floor((self.h - self.root.h)/2 + .5)
 	end
 
+	if new_x == self.root.x and new_y == self.root.y then
+		return
+	end
+
 	self.root:move(new_x, new_y)
+	self:redraw()
 end
 
 function DiagramArea:plot(data)

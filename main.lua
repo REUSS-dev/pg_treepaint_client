@@ -5,9 +5,9 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
 	print("debugger enabled")
 end
 
-function love.load()
-	local gui = require("libs.stellargui"):hook()
+local gui = require("libs.stellargui")
 
+function love.load()
 	gui.loadExternalObjects()
 	gui.loadExternalObjects("ui/objects")
 

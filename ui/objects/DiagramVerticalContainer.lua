@@ -95,6 +95,10 @@ function DiagramVerticalContainer:toggleCollapse()
 		self.objects[2]:show()
 	else
 		collapse:show()
+		if self.hl then
+			collapse:hoverOn(0, 0)
+		end
+
 		self.objects[2]:hide()
 	end
 
