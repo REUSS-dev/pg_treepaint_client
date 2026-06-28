@@ -392,7 +392,7 @@ end
 --#region Level 1 - Lexems
 
 function TextParser:parseParameterName()
-	return self:parsePattern("([%w _-]+):%s*")
+	return self:parsePattern("([%w _%-/]+):%s*")
 end
 
 function TextParser:parseNodeType()
@@ -454,9 +454,7 @@ function TextParser:parseIdentifier()
 end
 
 function TextParser:parseUnsignedNumber()
-	local _, finish, left_part, dot, right_part
-
-	_, finish, left_part, dot, right_part = string.find(self.text, "^(%d+)(%.?)(%d*)", self.pos)
+	local _, finish, left_part, dot, right_part = string.find(self.text, "^(%d+)(%.?)(%d*)", self.pos)
 	if not left_part then
 		return nil
 	end
@@ -485,7 +483,7 @@ function TextParser:checkSingleCharacter(char)
 end
 
 function TextParser:checkLevelPadding()
-	local _, _, level_padding = string.find(self.text, "^( *)", self.pos)
+	local _, _, level_padding = string.find(self.text, "^([ \t]*)", self.pos)
 
 	return #level_padding
 end

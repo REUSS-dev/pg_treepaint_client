@@ -185,10 +185,6 @@ function DiagramArea:new()
 	self:setGrowth("horizontal")
 
 	self.parser = TreeParser()
-
-	self.stencilFunction = function ()
-		love.graphics.rectangle("fill", 0, 0, self.w, self.h)
-	end
 end
 
 return DiagramArea

@@ -2,6 +2,7 @@
 
 local json = require("libs.json")
 
+local NodeStringParser = require("classes.NodeStringParser")
 local TextParser = require("classes.TextParser")
 
 -- docs
@@ -165,6 +166,7 @@ end
 
 ---@class TreeParser
 ---@field textParser TextParser
+---@field queryParser NodeStringParser
 local TreeParser = {}
 TreeParser.__index = TreeParser
 
@@ -214,6 +216,8 @@ function TreeParser:new()
 	local new_parser = {}
 
 	setmetatable(new_parser, TreeParser)
+
+	self.queryParser = NodeStringParser()
 
 	self.textParser = TextParser()
 
