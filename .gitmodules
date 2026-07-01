@@ -2,3 +2,7 @@
 	path = libs/stellargui
 	url = https://github.com/REUSS-dev/qguir
 	branch = layout
+[submodule "libs/angeliclove"]
+	path = libs/angeliclove
+	url = https://github.com/REUSS-dev/AngelicLove
+	branch = angeliclove

@@ -6,10 +6,12 @@ local TreeParser = require("classes.TreeParser")
 
 ---@class DiagramArea : CompositeObject
 ---@field CompositeObject CompositeObject
+---@field nodeInfoObject DiagramInfoPanel
 ---@field font love.Font
 ---@field parser TreeParser
 ---@field root CompositeObject?
 ---@field mouse_held {[1]: integer, [2]: integer}?
+---@field mouse_held_origin {[1]: integer, [2]: integer}?
 local DiagramArea = {
 	name = "DiagramArea",
 	extends = "CompositeObject",
@@ -23,7 +25,7 @@ local DiagramArea = {
 		vertical = "top",
 		padding = {0, 50, 0, 0},
 		hoverSelf = true
-	}
+	},
 }
 
 -- consts
@@ -35,11 +37,19 @@ local MOVE_MAX = 100
 function DiagramArea:click(x, y, but)
 	if but == 1 then
 		self.mouse_held = {x, y}
+		self.mouse_held_origin = {x, y}
 	end
 end
 
-function DiagramArea:clickRelease()
-	self.mouse_held = nil
+function DiagramArea:clickRelease(x, y, but)
+	if but == 1 then
+		if x == self.mouse_held_origin[1] and y == self.mouse_held_origin[2] then
+			self.nodeInfoObject:hide()
+		end
+		
+		self.mouse_held = nil
+		self.mouse_held_origin = nil
+	end
 end
 
 function DiagramArea:tick(dt)
@@ -111,6 +121,12 @@ function DiagramArea:moveRoot(x, y)
 	self:redraw()
 end
 
+function DiagramArea:renderNodeInfo(node)
+	if self.nodeInfoObject then
+		self.nodeInfoObject:displayNode(node)
+	end
+end
+
 function DiagramArea:plot(data)
 	local object_tree = self.parser:parse(data)
 
@@ -179,6 +195,10 @@ function DiagramArea:makeNodeObject(node)
 	end
 
 	return self:create "DiagramNode" {node}
+end
+
+function DiagramArea:registerNodeInfo(node_info_object)
+	self.nodeInfoObject = node_info_object
 end
 
 function DiagramArea:new()

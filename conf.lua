@@ -23,7 +23,7 @@ function love.conf(t)
     t.modules.image = true
     t.modules.joystick = false
     t.modules.keyboard = true
-    t.modules.math = false
+    t.modules.math = true
     t.modules.mouse = true
     t.modules.physics = false
     t.modules.sound = false

@@ -150,6 +150,10 @@ function DiagramVerticalContainer:moveRoot(...)
 	self.parent:moveRoot(...)
 end
 
+function DiagramVerticalContainer:renderNodeInfo(...)
+	self.parent:renderNodeInfo(...)
+end
+
 function DiagramVerticalContainer:new()
 	self.border_flag = false
 end

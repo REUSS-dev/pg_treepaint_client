@@ -117,6 +117,10 @@ function DiagramHorizontalContainer:moveRoot(...)
 	self.parent:moveRoot(...)
 end
 
+function DiagramHorizontalContainer:renderNodeInfo(...)
+	self.parent:renderNodeInfo(...)
+end
+
 function DiagramHorizontalContainer:new()
 	self.border_flag = false
 end

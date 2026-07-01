@@ -11,14 +11,17 @@ local GLOW_RANGE = 3
 ---@field desc_font love.Font
 ---@field text_color ColorTable
 ---@field text_color_desc ColorTable
+---@field hoverColor ColorTable
 ---@field node DumpedNode
+---@field nodeType NodeType
 local DiagramNode = {
 	name = "DiagramNode",
 	extends = "CompositeObject",
 	rules = {
 		{{1, "node"}, "node"},
 		{{"font"}, "font"},
-		{{"desc_font", "font_s"}, "desc_font"}
+		{{"desc_font", "font_s"}, "desc_font"},
+		{{"hoverColor"}, "hoverColor"},
 	},
 	default = {
 		w = 280, h = "hug",
@@ -31,10 +34,14 @@ local DiagramNode = {
 			border = COLORS.NODE_BORDER,
 			text = COLORS.NODE_TEXT
 		},
+		hoverColor = COLORS.NODE_HOVER,
+
 		borderSize = 2,
 		r = 10,
 		hover = true
 	},
+
+	defaultCursor = "hand"
 }
 
 function DiagramNode:paint()
@@ -45,7 +52,11 @@ function DiagramNode:paint()
 		love.graphics.rectangle("line", 0, 0, self.w, self.h, self.r)
 	end
 
-	love.graphics.setColor(self.palette.main)
+	if self.hl then
+		love.graphics.setColor(self.hoverColor)
+	else
+		love.graphics.setColor(self.palette.main)
+	end
 	love.graphics.rectangle("fill", 0, 0, self.w, self.h, self.r)
 
 	love.graphics.setLineWidth(self.bsize)
@@ -76,6 +87,12 @@ function DiagramNode:paint()
     love.graphics.translate(-tx, -ty)
 end
 
+function DiagramNode:clickRelease(x, y, but)
+	if but == 1 then
+		self.parent:renderNodeInfo(self)
+	end
+end
+
 -- node fnc
 
 function DiagramNode:new()
@@ -84,6 +101,7 @@ function DiagramNode:new()
 	self:setGrowth("vertical")
 
 	local node_data = self.node
+	self.nodeType = self.node.type
 
 	self.text_color = self.palette:getColorByIndex(2)
 

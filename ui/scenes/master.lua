@@ -94,7 +94,8 @@ top_panel:add(tcp)
 local main_panel = gui.Container{
 	w = "fill",
 	h = "fill",
-	growth = "horizontal"
+	growth = "horizontal",
+	gap = 0
 }
 canvas:add(main_panel)
 
@@ -107,6 +108,14 @@ local diagram_draw = gui.DiagramArea{
 main_panel:add(diagram_draw)
 tcp:registerDiagramObject(diagram_draw)
 paste:registerDiagramObject(diagram_draw)
+
+local node_info = gui.DiagramInfoPanel{
+	color = COLORS.INFO_PANEL,
+	font = "assets/font.ttf"
+}
+main_panel:add(node_info)
+
+diagram_draw:registerNodeInfo(node_info)
 
 --#endregion
 
