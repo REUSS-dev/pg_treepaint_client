@@ -12,6 +12,7 @@ local TextParser = require("classes.TextParser")
 ---@alias NodeDumper fun(node_data: PlanNode, sink: DumpedNode)
 
 ---@class DumpedNode
+---@field raw PlanNode
 ---@field type NodeType
 ---@field children DumpedNode[]?
 ---@field startup_cost string
@@ -72,7 +73,8 @@ end
 function dump_node(node)
 	local node_type = node["Node Type"]
 	local new_node = {
-		type = node_type
+		type = node_type,
+		raw = node
 	}
 
 	local startup_cost, total_cost = node["Startup Cost"], node["Total Cost"]
@@ -80,17 +82,21 @@ function dump_node(node)
 	if node.Plans then
 		new_node.children = dump_node_list(node.Plans)
 
-		for _, child in ipairs(node.Plans) do
-			startup_cost = startup_cost - child["Startup Cost"]
-			total_cost = total_cost - child["Total Cost"]
-		end
+		if startup_cost then
+			for _, child in ipairs(node.Plans) do
+				startup_cost = startup_cost - child["Startup Cost"]
+				total_cost = total_cost - child["Total Cost"]
+			end
 
-		startup_cost = math.max(0, startup_cost)
-		total_cost = math.max(startup_cost, total_cost)
+			startup_cost = math.max(0, startup_cost)
+			total_cost = math.max(startup_cost, total_cost)
+		end
 	end
 
-	new_node.startup_cost = string.format("%.2f", startup_cost)
-	new_node.total_cost = string.format("%.2f", total_cost)
+	if startup_cost then
+		new_node.startup_cost = string.format("%.2f", startup_cost)
+		new_node.total_cost = string.format("%.2f", total_cost)
+	end
 
 	dumpers[node_type](node, new_node)
 
@@ -182,8 +188,17 @@ function TreeParser:parse(tree)
 	return self:parseText(tree)
 end
 
+function TreeParser:sanitizeData(data)
+	data = string.gsub(data, "%s*%+\n", "\n")
+	data = string.gsub(data, "\r", "")
+
+	return data
+end
+
 function TreeParser:parseJSON(json_string)
 	local parsed = {}
+
+	json_string = json_string:gsub("\n(%S)", "%1")
 
 	local tree = json.decode(fix_data(json_string))
 	local root = tree[1]["Plan"]

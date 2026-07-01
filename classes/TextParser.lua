@@ -39,8 +39,6 @@ TextParser.__index = TextParser
 function TextParser:parse(text)
 	local parsed = {{}}
 
-	text = text:gsub("\r", "")
-
 	self.text = text
 	self.pos = 1
 
