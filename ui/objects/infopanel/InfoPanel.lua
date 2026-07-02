@@ -70,6 +70,7 @@ function InfoPanel:createContents(node)
 	self.contentsContainer.objects = objects
 
 	self:createNodeSpecific(objects, node, coverage)
+	self:createCosts(node, coverage)
 
 	self:createUnknown(node, coverage)
 
@@ -94,6 +95,25 @@ function InfoPanel:createNodeSpecific(storage, node, covered)
 		object.parent = self.contentsContainer
 		storage[#storage+1] = object
 	end
+end
+
+---@param node DiagramNode
+---@param covered table<string, boolean>
+function InfoPanel:createCosts(node, covered)
+	if not node.node.raw["Total Cost"] then
+		return
+	end
+
+	covered["Startup Cost"] = true
+	covered["Total Cost"] = true
+	covered["Plan Rows"] = true
+	covered["Plan Width"] = true
+
+	self.contentsContainer:createChild "InfoPanelSection" { title = "Costs Info" }
+		:addText("Node: " .. node.node.startup_cost .. " .. " .. node.node.total_cost)
+		:addText("Tree: " .. node.node.raw["Startup Cost"] .. " .. " .. node.node.raw["Total Cost"])
+		:addText("Plan Rows: " .. node.node.raw["Plan Rows"])
+		:addText("Plan Width: " .. node.node.raw["Plan Width"])
 end
 
 ---@param node DiagramNode
