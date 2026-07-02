@@ -109,7 +109,7 @@ main_panel:add(diagram_draw)
 tcp:registerDiagramObject(diagram_draw)
 paste:registerDiagramObject(diagram_draw)
 
-local node_info = gui.DiagramInfoPanel{
+local node_info = gui.InfoPanel{
 	color = COLORS.INFO_PANEL,
 	font = "assets/font.ttf"
 }

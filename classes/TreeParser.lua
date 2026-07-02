@@ -177,7 +177,7 @@ local TreeParser = {}
 TreeParser.__index = TreeParser
 
 function TreeParser:parse(tree)
-	tree = tree:gsub("[^-]%+\n", "\n")
+	tree = self:sanitizeData(tree)
 
 	local _, _, nonspace = string.find(tree, "(%S)")
 

@@ -4,6 +4,7 @@ local GLOW_INTENSITY = 0.2
 local GLOW_RANGE = 3
 
 ---@class DiagramNode : CompositeObject
+---@field parent DiagramArea|DiagramHorizontalContainer|DiagramVerticalContainer
 ---@field titleContainer CompositeObject
 ---@field contentsContainer CompositeObject
 ---@field footerContainer CompositeObject
@@ -87,7 +88,7 @@ function DiagramNode:paint()
     love.graphics.translate(-tx, -ty)
 end
 
-function DiagramNode:clickRelease(x, y, but)
+function DiagramNode:clickRelease(_, _, but)
 	if but == 1 then
 		self.parent:renderNodeInfo(self)
 	end

@@ -7,10 +7,11 @@ local HOVER_MULTIPLIER = 2
 
 ---@class DiagramVerticalContainer : CompositeObject
 ---@field CompositeObject CompositeObject
+---@field parent DiagramArea|DiagramHorizontalContainer|DiagramVerticalContainer
+---@field objects {[1]: DiagramNode, [2]: DiagramNode|DiagramHorizontalContainer|DiagramVerticalContainer}
 ---@field lineSize number
 ---@field cachedLines number[][]
 ---@field collapseEllipsis CompositeObject
----@field parent DiagramArea|DiagramHorizontalContainer|DiagramVerticalContainer
 local DiagramVerticalContainer = {
 	name = "DiagramVerticalContainer",
 	extends = "CompositeObject",

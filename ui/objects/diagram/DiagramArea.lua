@@ -6,7 +6,7 @@ local TreeParser = require("classes.TreeParser")
 
 ---@class DiagramArea : CompositeObject
 ---@field CompositeObject CompositeObject
----@field nodeInfoObject DiagramInfoPanel
+---@field nodeInfoObject InfoPanel
 ---@field font love.Font
 ---@field parser TreeParser
 ---@field root CompositeObject?
