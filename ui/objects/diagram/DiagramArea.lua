@@ -24,7 +24,8 @@ local DiagramArea = {
 		font = love.graphics.getFont(),
 		vertical = "top",
 		padding = {0, 50, 0, 0},
-		hoverSelf = true
+		hoverSelf = true,
+		shear = true
 	},
 }
 
@@ -65,16 +66,6 @@ function DiagramArea:tick(dt)
 			self.mouse_held[2] = my
 		end
 	end
-end
-
-function DiagramArea:paint()
-	local sx, sy, sw, sh = love.graphics.getScissor()
-	local tx, ty = self:getTranslation()
-	love.graphics.intersectScissor(tx, ty, self.w, self.h)
-
-	self.CompositeObject.paint(self)
-
-	love.graphics.setScissor(sx, sy, sw, sh)
 end
 
 function DiagramArea:resize(new_w, new_h, relayout)
@@ -142,6 +133,7 @@ function DiagramArea:plot(data)
 
 	self.root.layout.ignore = true
 	self:moveRoot(0, 0)
+	self.nodeInfoObject:hide()
 
 	collectgarbage("collect")
 end

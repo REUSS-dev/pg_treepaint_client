@@ -94,6 +94,10 @@ function DiagramNode:clickRelease(_, _, but)
 	end
 end
 
+function DiagramNode:populateInfo(_)
+	return {}
+end
+
 -- node fnc
 
 function DiagramNode:new()

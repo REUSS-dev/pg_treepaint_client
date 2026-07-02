@@ -11,6 +11,17 @@ local DiagramNodeSeqScan = {
 	}
 }
 
+function DiagramNodeSeqScan:populateInfo(covered)
+	covered["Schema"] = true
+	covered["Relation Name"] = true
+	covered["Alias"] = true
+
+	return self:create "InfoPanelSection" { title = "Scan Info" }
+		:addTextProtected("Schema: ", self.node.raw["Schema"])
+		:addTextProtected("Relation: ", self.node.raw["Relation Name"])
+		:addTextProtected("Alias: ", self.node.raw["Alias"])
+end
+
 -- node fnc
 
 function DiagramNodeSeqScan:new()

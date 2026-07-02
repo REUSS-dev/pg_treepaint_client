@@ -11,6 +11,8 @@ local CACHE_SIZE = 5
 ---@field footerContainer CompositeObject
 ---@field head InfoPanelHead
 ---@field cacheStorage table<DiagramNode, CompositeObject[]>
+---@field cacheBuckets DiagramNode[]
+---@field cacheCounter integer
 local InfoPanel = {
 	name = "InfoPanel",
 	extends = "CompositeObject",
@@ -23,6 +25,7 @@ local InfoPanel = {
 		growth = "vertical",
 		vertical = "top",
 		padding = 15,
+		gap = 10,
 
 		color = COLORS.INFO_PANEL
 	},
@@ -38,7 +41,7 @@ function InfoPanel:displayNode(node)
 	end
 
 	self:setNodeInfo(node)
-	--self.contentsContainer.objects = self.cacheStorage[node]
+	self.contentsContainer.objects = self.cacheStorage[node]
 	self.contentsContainer:relayout()
 
 	self:show()
@@ -51,18 +54,75 @@ end
 
 ---@param node DiagramNode
 function InfoPanel:createContents(node)
-	
+	local bucket = self.cacheCounter % CACHE_SIZE
+	local objects = {}
+	local coverage = {
+		["Node Type"] = true,
+		["Plans"] = true
+	}
+
+	if self.cacheBuckets[bucket] then
+		self.cacheStorage[self.cacheBuckets[bucket]] = nil
+	end
+
+	self.cacheBuckets[bucket] = node
+	self.cacheStorage[node] = objects
+	self.contentsContainer.objects = objects
+
+	self:createNodeSpecific(objects, node, coverage)
+
+	self:createUnknown(node, coverage)
+
+	self.cacheCounter = self.cacheCounter + 1
+end
+
+---Generates node-specific section of info panel body
+---@param storage ObjectUI[]
+---@param node DiagramNode
+---@param covered table<string, boolean>
+function InfoPanel:createNodeSpecific(storage, node, covered)
+	local node_specifics = node:populateInfo(covered)
+
+	if node_specifics.name then
+		node_specifics.parent = self.contentsContainer
+		storage[#storage+1] = node_specifics
+
+		return
+	end
+
+	for _, object in ipairs(node_specifics) do
+		object.parent = self.contentsContainer
+		storage[#storage+1] = object
+	end
+end
+
+---@param node DiagramNode
+---@param covered table<string, boolean>
+function InfoPanel:createUnknown(node, covered)
+	local unknown
+
+	for k, v in pairs(node.node.raw) do
+		if not covered[k] then
+			unknown = unknown or self.contentsContainer:createChild "InfoPanelSection" { title = "Other" }
+
+			unknown:addText(k .. ": " .. tostring(v))
+		end
+	end
 end
 
 function InfoPanel:new()
 	self.cacheStorage = {}
+	self.cacheBuckets = {}
+	self.cacheCounter = 0
+
+	self:getObjectClass("InfoPanelSection").font = self.font
 
 	-- Head
 	self.head = self:createChild "InfoPanelHead" {
 		font = self.font
 	}
 
-	self.contentsContainer = self:createChild "Container" { gap = 5, horizontal = "left", w = "fill" }
+	self.contentsContainer = self:createChild "Container" { gap = 10, horizontal = "left", vertical = "top", w = "fill", h = "fill", shear = true, scroll = true, hover = true }
 	self.footerContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
 
 	self:hide()
