@@ -20,12 +20,6 @@ local InfoPanelSectionCollapse = {
 
 function InfoPanelSectionCollapse:action()
 	self.parent.parent:toggleCollapse()
-
-	if self.icon.style == "ChevronDown" then
-		self.icon:setStyle("ChevronLeft")
-	elseif self.icon.style == "ChevronLeft" then
-		self.icon:setStyle("ChevronDown")
-	end
 end
 
 function InfoPanelSectionCollapse:new()

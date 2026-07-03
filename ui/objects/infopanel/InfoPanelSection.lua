@@ -1,8 +1,10 @@
 -- InfoPanelSection
 
 ---@class InfoPanelSection : CompositeObject
+---@field CompositeObject CompositeObject
 ---@field divider CompositeObject
 ---@field contents CompositeObject
+---@field collapseButton InfoPanelSectionCollapse
 ---@field font string
 ---@field fontS love.Font
 ---@field title string
@@ -24,7 +26,17 @@ local InfoPanelSection = {
 		padding = {10, 8},
 		color = COLORS.INFO_PANEL_ELEMENT
 	},
+
+	sectionStates = {
+		["Costs Info"] = false,
+		["Other"] = false
+	}
 }
+
+function InfoPanelSection:paint(...)
+	self:resolveState()
+	self.CompositeObject.paint(self)
+end
 
 function InfoPanelSection:getContentsContainer()
 	return self.contents
@@ -52,19 +64,29 @@ function InfoPanelSection:addText(text)
 end
 
 function InfoPanelSection:toggleCollapse()
-	if self.contents.draw then
-		self.contents:hide()
-		self.divider:hide()
-	else
+	self.sectionStates[self.title] = not self.sectionStates[self.title]
+	self:resolveState()
+end
+
+function InfoPanelSection:resolveState()
+	if self.sectionStates[self.title] then
 		self.contents:show()
 		self.divider:show()
+		self.collapseButton.icon:setStyle("ChevronDown")
+	else
+		self.contents:hide()
+		self.divider:hide()
+		self.collapseButton.icon:setStyle("ChevronLeft")
 	end
 end
 
 function InfoPanelSection:new()
 	local fontM = love.graphics.newFont(self.font, 20)
-
 	self.fontS = love.graphics.newFont(self.font, 17)
+
+	if self.sectionStates[self.title] == nil then
+		self.sectionStates[self.title] = true
+	end
 
 	local top_container = self:createChild "Container" {
 		growth = "horizontal",
@@ -78,7 +100,7 @@ function InfoPanelSection:new()
 		horizontal = "left"
 	}
 
-	top_container:createChild "InfoPanelSectionCollapse" {
+	self.collapseButton = top_container:createChild "InfoPanelSectionCollapse" {
 		w = 24,
 		h = 24,
 		r = 12,
