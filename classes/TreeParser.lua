@@ -10,6 +10,8 @@ local TextParser = require("classes.TextParser")
 ---@alias PlanNode {["Node Type"]: NodeType, Plans: PlanNode[]}
 
 ---@alias NodeDumper fun(node_data: PlanNode, sink: DumpedNode)
+---@alias TimingStats {single: {[1]: string, [2]: string}, total: {[1]: string, [2]: string}}
+---@alias TimingTable {node: TimingStats, tree: TimingStats?}
 
 ---@class DumpedNode
 ---@field raw PlanNode
@@ -17,6 +19,7 @@ local TextParser = require("classes.TextParser")
 ---@field children DumpedNode[]?
 ---@field startup_cost string
 ---@field total_cost string
+---@field timing TimingTable
 ---@field columns string[] Hash: Table columns hash are generated for / Sort: columns, resulted records are sorted against
 ---@field join_on string HashJoin: name of a join target table
 ---@field table string Scans: name of a scanned table
@@ -50,6 +53,7 @@ local SortMethod = {
 -- fnc
 
 local dump_node, dump_node_list
+local dump_costs, dump_timing
 
 ---@type table<NodeType, NodeDumper>
 local dumpers = {}
@@ -77,30 +81,78 @@ function dump_node(node)
 		raw = node
 	}
 
-	local startup_cost, total_cost = node["Startup Cost"], node["Total Cost"]
+	dump_costs(node, new_node)
 
 	if node.Plans then
 		new_node.children = dump_node_list(node.Plans)
-
-		if startup_cost then
-			for _, child in ipairs(node.Plans) do
-				startup_cost = startup_cost - child["Startup Cost"]
-				total_cost = total_cost - child["Total Cost"]
-			end
-
-			startup_cost = math.max(0, startup_cost)
-			total_cost = math.max(startup_cost, total_cost)
-		end
 	end
 
-	if startup_cost then
-		new_node.startup_cost = string.format("%.2f", startup_cost)
-		new_node.total_cost = string.format("%.2f", total_cost)
-	end
+	dump_timing(node, new_node)
 
 	dumpers[node_type](node, new_node)
 
 	return new_node
+end
+
+---Dumps costs information about node
+---@param node_data PlanNode
+---@param sink DumpedNode
+function dump_costs(node_data, sink)
+	local cost_startup, cost_total = node_data["Startup Cost"], node_data["Total Cost"]
+
+	if not cost_startup then
+		return
+	end
+
+	if node_data.Plans then
+		for _, child in ipairs(node_data.Plans) do
+			cost_startup = cost_startup - child["Startup Cost"]
+			cost_total = cost_total - child["Total Cost"]
+		end
+
+		cost_startup = math.max(0, cost_startup)
+		cost_total = math.max(cost_startup, cost_total)
+	end
+
+	sink.startup_cost = string.format("%.2f", cost_startup)
+	sink.total_cost = string.format("%.2f", cost_total)
+end
+
+---Dumps analyze timing information about node
+---@param node_data PlanNode
+---@param sink DumpedNode
+function dump_timing(node_data, sink)
+	local loops = node_data["Actual Loops"]
+
+	if not loops then
+		return
+	end
+
+	local real_startup, real_total = node_data["Actual Startup Time"] * loops, node_data["Actual Total Time"] * loops
+
+	local timing = {}
+
+	if node_data.Plans then
+		timing.tree = {
+			single = { string.format("%.3f", node_data["Actual Startup Time"]), string.format("%.3f", node_data["Actual Total Time"]) },
+			total = {string.format("%.3f", real_startup), string.format("%.3f", real_total)}
+		}
+		
+		for _, child in ipairs(node_data.Plans) do
+			real_startup = real_startup - child["Actual Startup Time"] * child["Actual Loops"]
+			real_total = real_total - child["Actual Total Time"] * child["Actual Loops"]
+		end
+
+		real_startup = math.max(0, real_startup)
+		real_startup = math.min(real_startup, real_total)
+	end
+
+	timing.node = {
+		single = {string.format("%.3f", real_startup / loops), string.format("%.3f", real_total / loops)},
+		total = {string.format("%.3f", real_startup), string.format("%.3f", real_total)},
+	}
+
+	sink.timing = timing
 end
 
 --#region node type dumpers

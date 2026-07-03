@@ -129,7 +129,15 @@ function DiagramNode:new()
 
 	self.footerContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
 
-	if node_data.startup_cost then
+	if node_data.timing then
+		self.footerContainer:createChild "Label" {
+			w = "fill",
+			font = self.desc_font,
+			horizontal = "right",
+			textColor = self.text_color_desc,
+			text = "Time: " .. node_data.timing.node.total[2] .. "s",
+		}
+	elseif node_data.startup_cost then
 		self.footerContainer:createChild "Label" {
 			w = "fill",
 			font = self.desc_font,

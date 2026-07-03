@@ -71,6 +71,7 @@ function InfoPanel:createContents(node)
 
 	self:createNodeSpecific(objects, node, coverage)
 	self:createCosts(node, coverage)
+	self:createAnalyze(node, coverage)
 
 	self:createUnknown(node, coverage)
 
@@ -109,11 +110,51 @@ function InfoPanel:createCosts(node, covered)
 	covered["Plan Rows"] = true
 	covered["Plan Width"] = true
 
-	self.contentsContainer:createChild "InfoPanelSection" { title = "Costs Info" }
-		:addText("Node: " .. node.node.startup_cost .. " .. " .. node.node.total_cost)
-		:addText("Tree: " .. node.node.raw["Startup Cost"] .. " .. " .. node.node.raw["Total Cost"])
-		:addText("Plan Rows: " .. node.node.raw["Plan Rows"])
+	local costs = self.contentsContainer:createChild "InfoPanelSection" { title = "Costs Info" }
+		:addText("Node: " .. node.node.startup_cost .. ".." .. node.node.total_cost)
+	
+	if node.parent.name == "DiagramVerticalContainer" and node.parent.objects[1] == node then
+		costs:addText("Tree: " .. node.node.raw["Startup Cost"] .. ".." .. node.node.raw["Total Cost"])
+	end
+
+	costs:addText("Plan Rows: " .. node.node.raw["Plan Rows"])
 		:addText("Plan Width: " .. node.node.raw["Plan Width"])
+end
+
+---@param node DiagramNode
+---@param covered table<string, boolean>
+function InfoPanel:createAnalyze(node, covered)
+	if not node.node.raw["Actual Total Time"] then
+		return
+	end
+
+	covered["Actual Startup Time"] = true
+	covered["Actual Total Time"] = true
+	covered["Actual Rows"] = true
+	covered["Actual Loops"] = true
+
+	local loops = node.node.raw["Actual Loops"]
+
+	local section = self.contentsContainer:createChild "InfoPanelSection" { title = "Timing Info" }
+		:addText("Loops: " .. loops)
+		:addTextProtected("Rows: ", tonumber(node.node.raw["Actual Rows"] or ""))
+
+	if loops == 0 then
+		section:addText("Did not execute a single time")
+		return
+	end
+
+	section
+		:addTextProtected("Node (total): ", loops ~= 1 and (node.node.timing.node.total[1] .. ".." .. node.node.timing.node.total[2] .. "s") or nil)
+		:addTextProtected("Node (single time): ", loops ~= 1 and (node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "s") or nil)
+		:addTextProtected("Node: ", loops == 1 and (node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "s") or nil)
+
+	if node.parent.name == "DiagramVerticalContainer" and node.parent.objects[1] == node then
+		section
+			:addTextProtected("Tree (total): ", loops ~= 1 and (node.node.timing.tree.total[1] .. ".." .. node.node.timing.tree.total[2] .. "s") or nil)
+			:addTextProtected("Tree (single time): ", loops ~= 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "s") or nil)
+			:addTextProtected("Tree: ", loops == 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "s") or nil)
+	end
 end
 
 ---@param node DiagramNode
