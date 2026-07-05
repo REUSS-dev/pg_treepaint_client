@@ -24,7 +24,7 @@ local InfoPanelSection = {
 		vertical = "top",
 		r = 10,
 		padding = {10, 8},
-		color = COLORS.INFO_PANEL_ELEMENT
+		color = COLORS.INFO_PANEL_ELEMENT,
 	},
 
 	sectionStates = {

@@ -1,3 +1,9 @@
+if love._os == "Windows" then
+  local ffi = require "ffi"
+  ffi.cdef[[ bool SetProcessDPIAware(); ]]
+  ffi.C.SetProcessDPIAware();
+end
+
 CLIENT_IP = "0.0.0.0"
 CLIENT_PORT = 4523
 
@@ -12,7 +18,7 @@ function love.conf(t)
     t.window.minwidth = 854
     t.window.minheight = 480
 	t.window.icon = "icon.png"
-	t.window.msaa = 4
+	t.window.msaa = 1
 
 
 	t.modules.audio = false

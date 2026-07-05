@@ -124,7 +124,7 @@ function DiagramNode:selectOff()
 	for _, relative in ipairs(self.select) do
 		relative:resetSelect()
 	end
-	
+
 	self.select = false
 end
 
@@ -135,11 +135,11 @@ function DiagramNode:getParentNode()
 	end
 
 	if self.parent.name == "DiagramHorizontalContainer" then
-		if self.parent.parent.name ~= "DiagramVerticalContainer" then
-			return nil
+		if self.parent.parent.name == "DiagramVerticalContainer" then
+			return self.parent.parent.objects[1] --[[@as DiagramNode]]
 		end
 
-		return self.parent.parent.objects[1]
+		return nil
 	end
 
 	if self.parent.name ~= "DiagramVerticalContainer" then
@@ -147,15 +147,15 @@ function DiagramNode:getParentNode()
 	end
 
 	if self.parent.objects[2] == self then
-		return self.parent.objects[1]
+		return self.parent.objects[1] --[[@as DiagramNode]]
 	end
 
 	if self.parent.parent.name == "DiagramVerticalContainer" then
-		return self.parent.parent.objects[1]
+		return self.parent.parent.objects[1] --[[@as DiagramNode]]
 	end
 
 	if self.parent.parent.parent.name == "DiagramVerticalContainer" then
-		return self.parent.parent.parent.objects[1]
+		return self.parent.parent.parent.objects[1] --[[@as DiagramNode]]
 	end
 
 	return nil
