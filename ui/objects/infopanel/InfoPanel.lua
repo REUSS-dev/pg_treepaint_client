@@ -5,6 +5,7 @@
 local CACHE_SIZE = 5
 
 ---@class InfoPanel : CompositeObject
+---@field CompositeObject CompositeObject
 ---@field font string
 ---@field titleContainer CompositeObject
 ---@field contentsContainer CompositeObject
@@ -13,6 +14,7 @@ local CACHE_SIZE = 5
 ---@field cacheStorage table<DiagramNode, CompositeObject[]>
 ---@field cacheBuckets DiagramNode[]
 ---@field cacheCounter integer
+---@field currentNode DiagramNode?
 local InfoPanel = {
 	name = "InfoPanel",
 	extends = "CompositeObject",
@@ -33,12 +35,33 @@ local InfoPanel = {
 	opaque = true
 }
 
+function InfoPanel:hide()
+	self.CompositeObject.hide(self)
+	self:nodeDeselect()
+end
+
+function InfoPanel:nodeSelect(node)
+	self:nodeDeselect()
+
+	self.currentNode = node
+	node:selectOn()
+end
+
+function InfoPanel:nodeDeselect()
+	if self.currentNode then
+		self.currentNode:selectOff()
+		self.currentNode = nil
+	end
+end
+
 ---Display specific node information on info panel
 ---@param node DiagramNode
 function InfoPanel:displayNode(node)
 	if not self.cacheStorage[node] then
 		self:createContents(node)
 	end
+
+	self:nodeSelect(node)
 
 	self:setNodeInfo(node)
 	self.contentsContainer.objects = self.cacheStorage[node]

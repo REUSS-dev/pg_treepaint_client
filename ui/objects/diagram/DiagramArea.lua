@@ -193,6 +193,14 @@ function DiagramArea:registerNodeInfo(node_info_object)
 	self.nodeInfoObject = node_info_object
 end
 
+function DiagramArea:selectRelatives(_)
+	return {}
+end
+
+function DiagramArea:resetSelect(_)
+	return {}
+end
+
 function DiagramArea:new()
 	self:setGrowth("horizontal")
 

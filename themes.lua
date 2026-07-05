@@ -29,6 +29,7 @@ local theme_dark = {
 	NODE_FILL = {32/255, 32/255, 32/255, 255/255},
 	NODE_BORDER = {1, 1, 1, 1},
 	NODE_HOVER = {40/255, 40/255, 40/255, 255/255},
+	NODE_SELECT = {64/255, 64/255, 64/255, 255/255},
 	NODE_TEXT = {1, 1, 1, 1},
 	NODE_TEXT_DESC = {0.8, 0.8, 0.8, 1},
 
@@ -39,6 +40,8 @@ local theme_dark = {
 
 	CONNECTION = {1, 1, 1, 1},
 	CONNECTION_HOVER = {1, 0.75, 0, 0.75},
+	CONNECTION_PARENT = {1, 0, 0, 1},
+	CONNECTION_CHILD = {0, 1, 0, 1},
 
 	NODE_AGGREGATE = {0.75, 0.5, 0, 1},
 	NODE_BITMAP_HEAP_SCAN = {0.25, 1, 1, 1},

@@ -12,6 +12,7 @@ local HOVER_MULTIPLIER = 2
 ---@field lineSize number
 ---@field cachedLines number[][]
 ---@field collapseEllipsis CompositeObject
+---@field selectMode "parent"|"child"|nil
 local DiagramVerticalContainer = {
 	name = "DiagramVerticalContainer",
 	extends = "CompositeObject",
@@ -45,12 +46,18 @@ function DiagramVerticalContainer:checkHover(x, y)
 end
 
 function DiagramVerticalContainer:paint()
+	love.graphics.setLineWidth(self.lineSize)
+	love.graphics.setColor(self.palette.border)
+
 	if self:getConnectionHl() then
 		love.graphics.setLineWidth(self.lineSize * HOVER_MULTIPLIER)
 		love.graphics.setColor(self.hoverColor)
-	else
-		love.graphics.setLineWidth(self.lineSize)
-		love.graphics.setColor(self.palette.border)
+	elseif self.selectMode then
+		if self.selectMode == "parent" then
+			love.graphics.setColor(COLORS.CONNECTION_PARENT)
+		elseif self.selectMode == "child" then
+			love.graphics.setColor(COLORS.CONNECTION_CHILD)
+		end
 	end
 
 	love.graphics.line(self:getLine())
@@ -145,6 +152,30 @@ function DiagramVerticalContainer:hoverOff(x, y)
 	end
 
 	return self.CompositeObject.hoverOff(self, x, y)
+end
+
+function DiagramVerticalContainer:resetSelect()
+	self.selectMode = nil
+end
+
+function DiagramVerticalContainer:selectRelatives(node)
+	if self.objects[2] == node then
+		self.selectMode = "parent"
+		self:redraw()
+		return {self}
+	end
+
+	local relatives = self.parent:selectRelatives(self)
+
+	relatives[#relatives+1] = self
+	self.selectMode = "child"
+
+	if self.objects[2].name == "DiagramHorizontalContainer" then
+		relatives[#relatives+1] = self.objects[2]
+		self.objects[2].selectMode = "child"
+	end
+
+	return relatives
 end
 
 function DiagramVerticalContainer:moveRoot(...)

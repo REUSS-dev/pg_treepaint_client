@@ -32,48 +32,36 @@ function InfoPanelHead:setNode(node)
 	self.nameLabel:setText(node.nodeType)
 
 	-- 3 & 4 - Parent and children
-	self.parentLabel:hide()
-	self.childrenLabel:hide()
-
-	if node.parent.name == "DiagramHorizontalContainer" then
-		if node.parent.parent.name == "DiagramVerticalContainer" then
-			self:setParent(node.parent.parent.objects[1].nodeType)
-		end
-	elseif node.parent.name == "DiagramVerticalContainer" then
-		if node.parent.objects[2] == node then
-			self:setParent(node.parent.objects[1].nodeType)
-		elseif node.parent.objects[1] == node then
-			if node.parent.parent.name == "DiagramHorizontalContainer" then
-				if node.parent.parent.parent.name == "DiagramVerticalContainer" then
-					self:setParent(node.parent.parent.parent.objects[1].nodeType)
-				end
-			elseif node.parent.parent.name == "DiagramVerticalContainer" then
-				self:setParent(node.parent.parent.objects[1].nodeType)
-			end
-
-			if node.parent.objects[2].name == "DiagramHorizontalContainer" then
-				self:setChildren(node.parent.objects[2].objects)
-			elseif node.parent.objects[2].name == "DiagramVerticalContainer" then
-				self:setChild(node.parent.objects[2].objects[1].nodeType)
-			else
-				self:setChild(node.parent.objects[2].nodeType)
-			end
-		end
-	end
+	self:setParent(node)
+	self:setChildren(node)
 end
 
-function InfoPanelHead:setParent(parent_name)
-	self.parentLabel:setText("Parent: " .. parent_name)
+function InfoPanelHead:setParent(node)
+	local parent = node:getParentNode()
+
+	if not parent then
+		self.parentLabel:hide()
+		return
+	end
+
+	self.parentLabel:setText("Parent: " .. parent.nodeType)
 	self.parentLabel:show()
 end
 
-function InfoPanelHead:setChild(child_name)
-	self.childrenLabel:setText("Child: " .. child_name)
-	self.childrenLabel:show()
-end
+function InfoPanelHead:setChildren(node)
+	local children = node:getChildrenNodes()
 
-function InfoPanelHead:setChildren(children)
-	self.childrenLabel:setText("Children: " .. #children)
+	if #children == 0 then
+		self.childrenLabel:hide()
+		return
+	end
+
+	if #children == 1 then
+		self.childrenLabel:setText("Child: " .. children[1].nodeType)
+	else
+		self.childrenLabel:setText("Children: " .. #children)
+	end
+
 	self.childrenLabel:show()
 end
 

@@ -3,12 +3,15 @@
 local GLOW_INTENSITY = 0.2
 local GLOW_RANGE = 3
 
+local HATCH_INTERVAL = 4
+
 ---@class DiagramNode : CompositeObject
 ---@field parent DiagramArea|DiagramHorizontalContainer|DiagramVerticalContainer
 ---@field titleContainer CompositeObject
 ---@field contentsContainer CompositeObject
 ---@field footerContainer CompositeObject
 ---@field font love.Font
+---@field select (DiagramHorizontalContainer|DiagramVerticalContainer)[]|false
 ---@field desc_font love.Font
 ---@field text_color ColorTable
 ---@field text_color_desc ColorTable
@@ -61,6 +64,21 @@ function DiagramNode:paint()
 	love.graphics.rectangle("fill", 0, 0, self.w, self.h, self.r)
 
 	love.graphics.setLineWidth(self.bsize)
+
+	if self.select then
+		local sm, sv = love.graphics.getStencilTest()
+		love.graphics.stencil(self.stencil, "increment")
+		love.graphics.setStencilTest("gequal", sv + 1)
+
+		love.graphics.setColor(COLORS.NODE_SELECT)
+
+		for x1 = self.r, self.w + self.h, self.bsize * HATCH_INTERVAL do
+			love.graphics.line(x1, 0, 0, x1)
+		end
+
+		love.graphics.setStencilTest(sm, sv)
+	end
+
 	love.graphics.setColor(self.palette.border)
 	love.graphics.rectangle("line", 0, 0, self.w, self.h, self.r)
 
@@ -94,6 +112,72 @@ function DiagramNode:clickRelease(_, _, but)
 	end
 end
 
+function DiagramNode:selectOn()
+	self.select = self.parent:selectRelatives(self)
+end
+
+function DiagramNode:selectOff()
+	if not self.select then
+		return
+	end
+
+	for _, relative in ipairs(self.select) do
+		relative:resetSelect()
+	end
+	
+	self.select = false
+end
+
+---@return DiagramNode?
+function DiagramNode:getParentNode()
+	if self.parent.name ~= "DiagramHorizontalContainer" and self.parent.name ~= "DiagramVerticalContainer" then
+		return nil
+	end
+
+	if self.parent.name == "DiagramHorizontalContainer" then
+		if self.parent.parent.name ~= "DiagramVerticalContainer" then
+			return nil
+		end
+
+		return self.parent.parent.objects[1]
+	end
+
+	if self.parent.name ~= "DiagramVerticalContainer" then
+		return nil
+	end
+
+	if self.parent.objects[2] == self then
+		return self.parent.objects[1]
+	end
+
+	if self.parent.parent.name == "DiagramVerticalContainer" then
+		return self.parent.parent.objects[1]
+	end
+
+	if self.parent.parent.parent.name == "DiagramVerticalContainer" then
+		return self.parent.parent.parent.objects[1]
+	end
+
+	return nil
+end
+
+---@return DiagramNode[]
+function DiagramNode:getChildrenNodes()
+	if self.parent.name ~= "DiagramVerticalContainer" then
+		return {}
+	end
+
+	if self.parent.objects[2].name == "DiagramHorizontalContainer" then
+		return self.parent.objects[2].objects
+	end
+
+	if self.parent.objects[2].name == "DiagramVerticalContainer" then
+		return {self.parent.objects[2].objects[1]}
+	end
+
+	return {self.parent.objects[2]}
+end
+
 function DiagramNode:populateInfo(_)
 	return {}
 end
@@ -105,6 +189,8 @@ function DiagramNode:new()
 
 	self:setGrowth("vertical")
 
+	self.select = false
+
 	local node_data = self.node
 	self.nodeType = self.node.type
 
@@ -114,6 +200,12 @@ function DiagramNode:new()
 		self.palette:setColor(4, COLORS.NODE_TEXT_DESC)
 	end
 	self.text_color_desc = self.palette:getColorByIndex(4)
+
+	self.stencil = function ()
+		love.graphics.rectangle("fill", 0, 0, self.w, self.h, self.r)
+	end
+
+	-- Children
 
 	self.titleContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
 	self.titleContainer:createChild "Label" {

@@ -13,6 +13,8 @@ local HOVER_MULTIPLIER = 2
 ---@field objects (DiagramNode|DiagramVerticalContainer)[]
 ---@field lineSize number
 ---@field cachedLines number[][]
+---@field selectMode "parent"|"child"|nil
+---@field selectModeParentIndex integer
 local DiagramHorizontalContainer = {
 	name = "DiagramHorizontalContainer",
 	extends = "CompositeObject",
@@ -48,16 +50,28 @@ function DiagramHorizontalContainer:checkHover(x, y)
 end
 
 function DiagramHorizontalContainer:paint()
+	love.graphics.setLineWidth(self.lineSize)
+	love.graphics.setColor(self.palette.border)
+
 	if self:getConnectionHl() then
 		love.graphics.setLineWidth(self.lineSize * HOVER_MULTIPLIER)
 		love.graphics.setColor(self.hoverColor)
-	else
-		love.graphics.setLineWidth(self.lineSize)
-		love.graphics.setColor(self.palette.border)
+	elseif self.selectMode == "child" then
+		love.graphics.setColor(COLORS.CONNECTION_CHILD)
 	end
 
-	for _, line in ipairs(self:getLines()) do
+	local lines = self:getLines()
+
+	for _, line in ipairs(lines) do
 		love.graphics.line(line)
+	end
+
+	if not self.hl and self.selectMode == "parent" then
+		love.graphics.setColor(COLORS.CONNECTION_PARENT)
+		love.graphics.line(lines[self.selectModeParentIndex])
+
+		local y = lines[#lines][2]
+		love.graphics.line(self.w/2, y, lines[self.selectModeParentIndex][1], y)
 	end
 
 	self.CompositeObject.paint(self)
@@ -81,7 +95,7 @@ function DiagramHorizontalContainer:getLines()
 
 	local lines = {}
 
-	for _, node in ipairs(self.objects) do
+	for i, node in ipairs(self.objects) do
 		local line = {}
 
 		line[1] = node.x + node.w/2
@@ -89,7 +103,7 @@ function DiagramHorizontalContainer:getLines()
 		line[3] = line[1]
 		line[4] = node.y
 
-		lines[#lines+1] = line
+		lines[i] = line
 	end
 
 	local sumup_line = {
@@ -112,6 +126,26 @@ end
 
 function DiagramHorizontalContainer:getConnectionHl()
 	return self.hl or (self.parent.name == "DiagramVerticalContainer" and self.parent.hl)
+end
+
+function DiagramHorizontalContainer:resetSelect()
+	self.selectMode = nil
+end
+
+function DiagramHorizontalContainer:selectRelatives(node)
+	local relatives = self.parent:selectRelatives(self)
+
+	relatives[#relatives+1] = self
+	self.selectMode = "parent"
+
+	for index, child in ipairs(self.objects) do
+		if child == node then
+			self.selectModeParentIndex = index
+			break
+		end
+	end
+
+	return relatives
 end
 
 function DiagramHorizontalContainer:moveRoot(...)
