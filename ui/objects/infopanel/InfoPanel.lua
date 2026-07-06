@@ -95,6 +95,7 @@ function InfoPanel:createContents(node)
 	self:createNodeSpecific(objects, node, coverage)
 	self:createCosts(node, coverage)
 	self:createAnalyze(node, coverage)
+	self:createBuffers(node, coverage)
 
 	self:createUnknown(node, coverage)
 
@@ -135,13 +136,13 @@ function InfoPanel:createCosts(node, covered)
 
 	local costs = self.contentsContainer:createChild "InfoPanelSection" { title = "Costs Info" }
 		:addText("Node: " .. node.node.startup_cost .. ".." .. node.node.total_cost)
-	
+
 	if node.parent.name == "DiagramVerticalContainer" and node.parent.objects[1] == node then
 		costs:addText("Tree: " .. node.node.raw["Startup Cost"] .. ".." .. node.node.raw["Total Cost"])
 	end
 
 	costs:addText("Plan Rows: " .. node.node.raw["Plan Rows"])
-		:addText("Plan Width: " .. node.node.raw["Plan Width"])
+		:addText("Plan Width: " .. node.node.raw["Plan Width"] .. " bytes")
 end
 
 ---@param node DiagramNode
@@ -178,6 +179,32 @@ function InfoPanel:createAnalyze(node, covered)
 			:addTextProtected("Tree (single time): ", loops ~= 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "s") or nil)
 			:addTextProtected("Tree: ", loops == 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "s") or nil)
 	end
+end
+
+---@param node DiagramNode
+---@param covered table<string, boolean>
+function InfoPanel:createBuffers(node, covered)
+	if not node.node.buffers then
+		return
+	end
+
+	covered["Shared Hit Blocks"] = true
+	covered["Shared Read Blocks"] = true
+	covered["Shared Dirtied Blocks"] = true
+	covered["Shared Written Blocks"] = true
+	covered["Local Hit Blocks"] = true
+	covered["Local Read Blocks"] = true
+	covered["Local Dirtied Blocks"] = true
+	covered["Local Written Blocks"] = true
+	covered["Temp Read Blocks"] = true
+	covered["Temp Written Blocks"] = true
+
+	self.contentsContainer:createChild "InfoPanelSection" { title = "Buffers Info" }
+		:getContentsContainer()
+			:createChild "InfoPanelBuffers" {
+				buffers = node.node.buffers,
+				font = self.font
+			}
 end
 
 ---@param node DiagramNode

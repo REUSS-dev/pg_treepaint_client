@@ -12,6 +12,8 @@ local TextParser = require("classes.TextParser")
 ---@alias NodeDumper fun(node_data: PlanNode, sink: DumpedNode)
 ---@alias TimingStats {single: {[1]: string, [2]: string}, total: {[1]: string, [2]: string}}
 ---@alias TimingTable {node: TimingStats, tree: TimingStats?}
+---@alias BufferStats {hit: integer, read: integer, dirtied: integer, written: integer, total: integer}
+---@alias BufferTable {Local: BufferStats?, Shared: BufferStats?, Temp: BufferStats?, Total: BufferStats?}
 
 ---@class DumpedNode
 ---@field raw PlanNode
@@ -19,7 +21,8 @@ local TextParser = require("classes.TextParser")
 ---@field children DumpedNode[]?
 ---@field startup_cost string
 ---@field total_cost string
----@field timing TimingTable
+---@field timing TimingTable?
+---@field buffers BufferTable?
 ---@field columns string[] Hash: Table columns hash are generated for / Sort: columns, resulted records are sorted against
 ---@field join_on string HashJoin: name of a join target table
 ---@field table string Scans: name of a scanned table
@@ -53,7 +56,7 @@ local SortMethod = {
 -- fnc
 
 local dump_node, dump_node_list
-local dump_costs, dump_timing
+local dump_costs, dump_costs_sort, dump_timing, dump_buffers
 
 ---@type table<NodeType, NodeDumper>
 local dumpers = {}
@@ -88,6 +91,7 @@ function dump_node(node)
 	end
 
 	dump_timing(node, new_node)
+	dump_buffers(node, new_node)
 
 	dumpers[node_type](node, new_node)
 
@@ -118,6 +122,30 @@ function dump_costs(node_data, sink)
 	sink.total_cost = string.format("%.2f", cost_total)
 end
 
+---Dumps costs information about Sort node, that has specific relationship between its startup_cost and total_cost of its children
+---@param node_data PlanNode
+---@param sink DumpedNode
+function dump_costs_sort(node_data, sink)
+	local cost_startup, cost_total = node_data["Startup Cost"], node_data["Total Cost"]
+
+	if not cost_startup then
+		return
+	end
+
+	if node_data.Plans then
+		for _, child in ipairs(node_data.Plans) do
+			cost_startup = cost_startup - child["Total Cost"]
+			cost_total = cost_total - child["Total Cost"]
+		end
+
+		cost_startup = math.max(0, cost_startup)
+		cost_total = math.max(cost_startup, cost_total)
+	end
+
+	sink.startup_cost = string.format("%.2f", cost_startup)
+	sink.total_cost = string.format("%.2f", cost_total)
+end
+
 ---Dumps analyze timing information about node
 ---@param node_data PlanNode
 ---@param sink DumpedNode
@@ -137,10 +165,12 @@ function dump_timing(node_data, sink)
 			single = { string.format("%.3f", node_data["Actual Startup Time"]), string.format("%.3f", node_data["Actual Total Time"]) },
 			total = {string.format("%.3f", real_startup), string.format("%.3f", real_total)}
 		}
-		
+
 		for _, child in ipairs(node_data.Plans) do
-			real_startup = real_startup - child["Actual Startup Time"] * child["Actual Loops"]
-			real_total = real_total - child["Actual Total Time"] * child["Actual Loops"]
+			if not child["Subplan Name"] then
+				real_startup = real_startup - child["Actual Startup Time"] * child["Actual Loops"]
+				real_total = real_total - child["Actual Total Time"] * child["Actual Loops"]
+			end
 		end
 
 		real_startup = math.max(0, real_startup)
@@ -155,12 +185,82 @@ function dump_timing(node_data, sink)
 	sink.timing = timing
 end
 
+function dump_buffers(node_data, sink)
+	if not node_data["Shared Hit Blocks"] then
+		return
+	end
+
+	local buffers = {}
+
+	local shared_hit, shared_read, shared_dirtied, shared_written =
+		node_data["Shared Hit Blocks"],
+		node_data["Shared Read Blocks"],
+		node_data["Shared Dirtied Blocks"],
+		node_data["Shared Written Blocks"]
+
+	local local_hit, local_read, local_dirtied, local_written =
+		node_data["Local Hit Blocks"],
+		node_data["Local Read Blocks"],
+		node_data["Local Dirtied Blocks"],
+		node_data["Local Written Blocks"]
+
+	local temp_read, temp_written =
+		node_data["Local Read Blocks"],
+		node_data["Local Written Blocks"]
+
+	if node_data.Plans then
+		for _, child in ipairs(node_data.Plans) do
+			if not child["Subplan Name"] then
+				shared_hit = shared_hit - child["Shared Hit Blocks"]
+				shared_read = shared_read - child["Shared Read Blocks"]
+				shared_dirtied = shared_dirtied - child["Shared Dirtied Blocks"]
+				shared_written = shared_written - child["Shared Written Blocks"]
+
+				local_hit = local_hit - child["Local Hit Blocks"]
+				local_read = local_read - child["Local Read Blocks"]
+				local_dirtied = local_dirtied - child["Local Dirtied Blocks"]
+				local_written = local_written - child["Local Written Blocks"]
+
+				temp_read = temp_read - child["Temp Read Blocks"]
+				temp_written = temp_written - child["Temp Written Blocks"]
+			end
+		end
+	end
+
+	if shared_hit ~= 0 or shared_read ~= 0 or shared_dirtied ~= 0 or shared_written ~= 0 then
+		buffers.Shared = {hit = shared_hit, read = shared_read, dirtied = shared_dirtied, written = shared_written, total = shared_hit + shared_read + shared_dirtied + shared_written}
+		buffers.Total = {hit = shared_hit, read = shared_read, dirtied = shared_dirtied, written = shared_written, total = shared_hit + shared_read + shared_dirtied + shared_written}
+	end
+
+	if local_hit ~= 0 or local_read ~= 0 or local_dirtied ~= 0 or local_written ~= 0 then
+		buffers.Local = {hit = local_hit, read = local_read, dirtied = local_dirtied, written = local_written, total = local_hit + local_read + local_dirtied + local_written}
+		buffers.Total = buffers.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+		buffers.Total.hit = buffers.Total.hit + local_hit
+		buffers.Total.read = buffers.Total.read + local_read
+		buffers.Total.dirtied = buffers.Total.dirtied + local_dirtied
+		buffers.Total.written = buffers.Total.written + local_written
+		buffers.Total.total = buffers.Total.total + buffers.Local.total
+	end
+
+	if temp_read ~= 0 or temp_written ~= 0 then
+		buffers.Temp = {read = temp_read, written = temp_written, total = temp_read + temp_written}
+		buffers.Total = buffers.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+		buffers.Total.read = buffers.Total.read + temp_read
+		buffers.Total.written = buffers.Total.written + temp_written
+		buffers.Total.total = buffers.Total.total + buffers.Temp.total
+	end
+
+	sink.buffers = buffers
+end
+
 --#region node type dumpers
 
 local function scan(node_data, sink)
 	sink.table = node_data["Relation Name"]
 
-	if node_data["Alias"] then
+	if node_data["Alias"] and node_data["Alias"] ~= node_data["Relation Name"] then
 		sink.table = sink.table .. " (" .. node_data["Alias"] .. ")"
 	end
 end
@@ -195,8 +295,7 @@ dumpers[NodeType.SeqScan] = function (node_data, sink)
 end
 
 dumpers[NodeType.Sort] = function(node_data, sink)
-	sink.startup_cost = string.format("%.2f", node_data["Startup Cost"] - node_data.Plans[1]["Total Cost"])
-	sink.total_cost = string.format("%.2f", node_data["Total Cost"] - node_data.Plans[1]["Total Cost"])
+	dump_costs_sort(node_data, sink)
 
 	if node_data["Sort Method"] then
 		sink.sort_method = SortMethod[node_data["Sort Method"]] or node_data["Sort Method"]

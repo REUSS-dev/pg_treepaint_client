@@ -323,62 +323,62 @@ end
 
 function TextParser:parseBuffers(sink)
 	if self:parsePattern("shared") then
-		local hit = self:parsePattern("%s*hit=(%d+)")
+		local hit = self:parsePattern("%s*hit=([%d,]+)")
 		if hit then
-			sink["Shared Hit Blocks"] = hit
+			sink["Shared Hit Blocks"] = tonumber(hit:gsub(",", ""))
 		end
 
-		local read = self:parsePattern("%s*read=(%d+)")
+		local read = self:parsePattern("%s*read=([%d,]+)")
 		if read then
-			sink["Shared Read Blocks"] = read
+			sink["Shared Read Blocks"] = tonumber(read:gsub(",", ""))
 		end
 
-		local dirtied = self:parsePattern("%s*dirtied=(%d+)")
+		local dirtied = self:parsePattern("%s*dirtied=([%d,]+)")
 		if dirtied then
-			sink["Shared Dirtied Blocks"] = dirtied
+			sink["Shared Dirtied Blocks"] = tonumber(dirtied:gsub(",", ""))
 		end
 
-		local written = self:parsePattern("%s*written=(%d+)")
+		local written = self:parsePattern("%s*written=([%d,]+)")
 		if written then
-			sink["Shared Written Blocks"] = written
+			sink["Shared Written Blocks"] = tonumber(written:gsub(",", ""))
 		end
 
-		self:parsePattern(",%s*")
+		self:parsePattern("%s*")
 	end
 
 	if self:parsePattern("local") then
-		local hit = self:parsePattern("%s*hit=(%d+)")
+		local hit = self:parsePattern("%s*hit=([%d,]+)")
 		if hit then
-			sink["Local Hit Blocks"] = hit
+			sink["Local Hit Blocks"] = tonumber(hit:gsub(",", ""))
 		end
 
-		local read = self:parsePattern("%s*read=(%d+)")
+		local read = self:parsePattern("%s*read=([%d,]+)")
 		if read then
-			sink["Local Read Blocks"] = read
+			sink["Local Read Blocks"] = tonumber(read:gsub(",", ""))
 		end
 
-		local dirtied = self:parsePattern("%s*dirtied=(%d+)")
+		local dirtied = self:parsePattern("%s*dirtied=([%d,]+)")
 		if dirtied then
-			sink["Local Dirtied Blocks"] = dirtied
+			sink["Local Dirtied Blocks"] = tonumber(dirtied:gsub(",", ""))
 		end
 
-		local written = self:parsePattern("%s*written=(%d+)")
+		local written = self:parsePattern("%s*written=([%d,]+)")
 		if written then
-			sink["Local Written Blocks"] = written
+			sink["Local Written Blocks"] = tonumber(written:gsub(",", ""))
 		end
 
-		self:parsePattern(",%s*")
+		self:parsePattern("%s*")
 	end
 
 	if self:parsePattern("temp") then
-		local read = self:parsePattern("%s*read=(%d+)")
+		local read = self:parsePattern("%s*read=([%d,]+)")
 		if read then
-			sink["Temp Read Blocks"] = read
+			sink["Temp Read Blocks"] = tonumber(read:gsub(",", ""))
 		end
 
-		local written = self:parsePattern("%s*written=(%d+)")
+		local written = self:parsePattern("%s*written=([%d,]+)")
 		if written then
-			sink["Temp Written Blocks"] = written
+			sink["Temp Written Blocks"] = tonumber(written:gsub(",", ""))
 		end
 	end
 
@@ -486,6 +486,11 @@ function TextParser:checkLevelPadding()
 	return #level_padding
 end
 
+---Parses a pattern from current position and return captures or success
+---@param pattern string
+---@return string|integer|nil
+---@return string?
+---@return string?
 function TextParser:parsePattern(pattern)
 	local _, finish, c1, c2, c3 = string.find(self.text, "^" .. pattern, self.pos)
 

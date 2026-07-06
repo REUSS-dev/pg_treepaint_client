@@ -1,13 +1,18 @@
+--#region Handle Windows DPI settings
 if love._os == "Windows" then
   local ffi = require "ffi"
   ffi.cdef[[ bool SetProcessDPIAware(); ]]
   ffi.C.SetProcessDPIAware();
 end
+--#endregion
 
 CLIENT_IP = "0.0.0.0"
 CLIENT_PORT = 4523
 
 UI_THEME = "dark"
+
+BUFFER_SIZE = 8192
+
 require("themes")
 
 function love.conf(t)
