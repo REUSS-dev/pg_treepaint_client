@@ -16,6 +16,7 @@ local DiagramNodeHash = {
 function DiagramNodeHash:new()
 	if self.node.columns then
 		self.contentsContainer:createChild "Label" {
+			w = "fill",
 			font = self.font,
 			horizontal = "left",
 			text = "Columns",
@@ -23,6 +24,7 @@ function DiagramNodeHash:new()
 		}
 	
 		self.contentsContainer:createChild "Label" {
+			w = "fill",
 			font = self.desc_font,
 			horizontal = "left",
 			text = table.concat(self.node.columns, "\n"),

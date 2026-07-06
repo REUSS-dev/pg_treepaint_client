@@ -15,6 +15,7 @@ local DiagramNodeBitmapHeapScan = {
 
 function DiagramNodeBitmapHeapScan:new()
 	self.titleContainer:createChild "Label" {
+		w = "fill",
 		font = self.desc_font,
 		horizontal = "left",
 		text = "on " .. self.node.table,

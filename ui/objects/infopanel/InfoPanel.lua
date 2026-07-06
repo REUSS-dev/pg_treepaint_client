@@ -135,14 +135,13 @@ function InfoPanel:createCosts(node, covered)
 	covered["Plan Width"] = true
 
 	local costs = self.contentsContainer:createChild "InfoPanelSection" { title = "Costs Info" }
-		:addText("Node: " .. node.node.startup_cost .. ".." .. node.node.total_cost)
+		:addText("Plan Width: " .. node.node.raw["Plan Width"] .. " bytes")
+		:addText("Plan Rows: " .. node.node.raw["Plan Rows"])
+		:addText("Cost: " .. node.node.startup_cost .. ".." .. node.node.total_cost)
 
 	if node.parent.name == "DiagramVerticalContainer" and node.parent.objects[1] == node then
-		costs:addText("Tree: " .. node.node.raw["Startup Cost"] .. ".." .. node.node.raw["Total Cost"])
+		costs:addText("Tree: " .. node.node.raw["Startup Cost"] .. ".." .. node.node.raw["Total Cost"], true)
 	end
-
-	costs:addText("Plan Rows: " .. node.node.raw["Plan Rows"])
-		:addText("Plan Width: " .. node.node.raw["Plan Width"] .. " bytes")
 end
 
 ---@param node DiagramNode
@@ -175,9 +174,9 @@ function InfoPanel:createAnalyze(node, covered)
 
 	if node.parent.name == "DiagramVerticalContainer" and node.parent.objects[1] == node then
 		section
-			:addTextProtected("Tree (total): ", loops ~= 1 and (node.node.timing.tree.total[1] .. ".." .. node.node.timing.tree.total[2] .. "s") or nil)
-			:addTextProtected("Tree (single time): ", loops ~= 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "s") or nil)
-			:addTextProtected("Tree: ", loops == 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "s") or nil)
+			:addTextProtected("Tree (total): ", loops ~= 1 and (node.node.timing.tree.total[1] .. ".." .. node.node.timing.tree.total[2] .. "s") or nil, true)
+			:addTextProtected("Tree (single time): ", loops ~= 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "s") or nil, true)
+			:addTextProtected("Tree: ", loops == 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "s") or nil, true)
 	end
 end
 

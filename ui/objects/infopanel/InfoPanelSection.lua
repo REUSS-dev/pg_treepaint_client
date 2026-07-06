@@ -42,22 +42,22 @@ function InfoPanelSection:getContentsContainer()
 	return self.contents
 end
 
-function InfoPanelSection:addTextProtected(prefix, value)
+function InfoPanelSection:addTextProtected(prefix, value, greyed)
 	if not value then
 		return self
 	end
 
-	return self:addText(prefix .. value)
+	return self:addText(prefix .. value, greyed)
 end
 
-function InfoPanelSection:addText(text)
+function InfoPanelSection:addText(text, greyed)
 	self.contents:createChild "Label" {
 		w = "fill",
 		h = "hug",
 		horizontal = "left",
 		text = text,
 		font = self.fontS,
-		textColor = COLORS.NODE_TEXT
+		textColor = greyed and COLORS.NODE_TEXT_GREYED or COLORS.NODE_TEXT
 	}
 
 	return self

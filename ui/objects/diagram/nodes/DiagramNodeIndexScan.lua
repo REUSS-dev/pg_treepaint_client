@@ -42,6 +42,7 @@ end
 
 function DiagramNodeIndexScan:new()
 	self.titleContainer:createChild "Label" {
+		w = "fill",
 		font = self.desc_font,
 		horizontal = "left",
 		text = "on " .. self.node.table,
@@ -50,6 +51,7 @@ function DiagramNodeIndexScan:new()
 
 	if self.node.loop_count then
 		self.contentsContainer:createChild "Label" {
+			w = "fill",
 			font = self.font,
 			text = "Loops: " .. self.node.loop_count,
 			textColor = self.text_color

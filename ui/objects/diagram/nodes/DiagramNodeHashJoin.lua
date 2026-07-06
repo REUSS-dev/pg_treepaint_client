@@ -15,6 +15,7 @@ local DiagramNodeHashJoin = {
 
 function DiagramNodeHashJoin:new()
 	self.titleContainer:createChild "Label" {
+		w = "fill",
 		font = self.desc_font,
 		horizontal = "left",
 		text = "on " .. self.node.join_on,

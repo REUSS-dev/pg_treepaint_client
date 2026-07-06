@@ -16,6 +16,7 @@ local DiagramNodeSort = {
 function DiagramNodeSort:new()
 	if self.node.sort_method then
 		self.titleContainer:createChild "Label" {
+			w = "fill",
 			font = self.desc_font,
 			horizontal = "left",
 			text = self.node.sort_method,
@@ -25,6 +26,7 @@ function DiagramNodeSort:new()
 
 	if self.node.columns then
 		self.contentsContainer:createChild "Label" {
+			w = "fill",
 			font = self.font,
 			horizontal = "left",
 			text = "by " .. table.concat(self.node.columns, ", "),
