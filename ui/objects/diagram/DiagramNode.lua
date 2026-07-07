@@ -106,7 +106,7 @@ function DiagramNode:paint()
     love.graphics.translate(-tx, -ty)
 end
 
-function DiagramNode:clickRelease(_, _, but)
+function DiagramNode:click(_, _, but)
 	if but == 1 then
 		self.parent:renderNodeInfo(self)
 	end

@@ -1,9 +1,10 @@
 -- ui/objects/nodes/DiagramNodeIndexOnlyScan.lua
 
 ---@class DiagramNodeIndexOnlyScan : DiagramNode
+---@field DiagramNodeSeqScan DiagramNodeSeqScan
 local DiagramNodeIndexOnlyScan = {
 	name = "DiagramNodeIndexOnlyScan",
-	extends = "DiagramNode",
+	extends = "DiagramNodeSeqScan",
 	default = {
 		colors = {
 			border = COLORS.NODE_INDEX_ONLY_SCAN
@@ -12,21 +13,13 @@ local DiagramNodeIndexOnlyScan = {
 }
 
 function DiagramNodeIndexOnlyScan:populateInfo(covered)
-	local sections = {}
+	local sections = self.DiagramNodeSeqScan.populateInfo(self, covered)
 
-	covered["Schema"] = true
-	covered["Relation Name"] = true
-	covered["Alias"] = true
 	covered["Index Name"] = true
 	covered["Scan Direction"] = true
 	covered["Index Searches"] = true
 	covered["Rows Removed by Index Recheck"] = true
 	covered["Index Cond"] = true
-
-	sections[#sections+1] = self:create "InfoPanelSection" { title = "Scan Info" }
-		:addTextProtected("Schema: ", self.node.raw["Schema"])
-		:addTextProtected("Relation: ", self.node.raw["Relation Name"])
-		:addTextProtected("Alias: ", self.node.raw["Alias"])
 
 	sections[#sections+1] = self:create "InfoPanelSection" { title = "Index Info" }
 		:addTextProtected("Index: ", self.node.raw["Index Name"])
@@ -41,13 +34,6 @@ end
 -- node fnc
 
 function DiagramNodeIndexOnlyScan:new()
-	self.titleContainer:createChild "Label" {
-		w = "fill",
-		font = self.desc_font,
-		horizontal = "left",
-		text = "on " .. self.node.table,
-		textColor = self.text_color_desc
-	}
 end
 
 return DiagramNodeIndexOnlyScan

@@ -29,6 +29,7 @@ local InfoPanelSection = {
 
 	sectionStates = {
 		["Costs Info"] = false,
+		["WAL Info"] = false,
 		["Other"] = false
 	}
 }

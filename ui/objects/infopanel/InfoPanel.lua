@@ -96,6 +96,7 @@ function InfoPanel:createContents(node)
 	self:createCosts(node, coverage)
 	self:createAnalyze(node, coverage)
 	self:createBuffers(node, coverage)
+	self:createWAL(node, coverage)
 
 	self:createUnknown(node, coverage)
 
@@ -204,6 +205,43 @@ function InfoPanel:createBuffers(node, covered)
 				buffers = node.node.buffers,
 				font = self.font
 			}
+end
+
+---@param node DiagramNode
+---@param covered table<string, boolean>
+function InfoPanel:createWAL(node, covered)
+	if not node.node.raw["WAL Records"] then
+		return
+	end
+
+	covered["WAL Records"] = true
+	covered["WAL Bytes"] = true
+	covered["WAL FPI"] = true
+	covered["WAL FPI Bytes"] = true
+	covered["WAL Buffers Full"] = true
+
+	if node.node.raw["WAL Records"] == 0 then
+		self.contentsContainer:createChild "InfoPanelSection" { title = "WAL Info" }
+			:addText("No WAL Records created.")
+
+		return
+	end
+
+	local wal = self.contentsContainer:createChild "InfoPanelSection" { title = "WAL Info" }
+
+	if node.node.raw["WAL Bytes"] and node.node.raw["WAL Bytes"] > 0 then
+		wal:addText("Records: " .. node.node.raw["WAL Records"] .. " (" .. node.node.raw["WAL Bytes"] .. " bytes)")
+	else
+		wal:addTextProtected("Records: ", node.node.raw["WAL Records"])
+	end
+
+	if node.node.raw["WAL FPI Bytes"] and node.node.raw["WAL FPI Bytes"] > 0 then
+		wal:addText("FPI: " .. node.node.raw["WAL FPI"] .. " (" .. node.node.raw["WAL FPI Bytes"] .. " bytes)")
+	else
+		wal:addTextProtected("FPI: ", node.node.raw["WAL FPI"])
+	end
+
+	wal:addTextProtected("Buffers Full: ", node.node.raw["WAL Buffers Full"])
 end
 
 ---@param node DiagramNode

@@ -10,7 +10,7 @@ local ViewStates = {
 	BYTES = "KB"
 }
 
-local InformationUnits = {"KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"}
+local InformationUnits = {"kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"}
 
 local DEFAULT_VIEW_STATE = ViewStates.PAGE
 
