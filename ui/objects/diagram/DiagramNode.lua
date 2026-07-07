@@ -235,7 +235,7 @@ function DiagramNode:new()
 			font = self.desc_font,
 			horizontal = "right",
 			textColor = self.text_color_desc,
-			text = "Time: " .. node_data.timing.node.total[2] .. "s",
+			text = "Time: " .. node_data.timing.node.total[2] .. "ms",
 		}
 	elseif node_data.startup_cost then
 		self.footerContainer:createChild "Label" {

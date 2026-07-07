@@ -169,15 +169,15 @@ function InfoPanel:createAnalyze(node, covered)
 	end
 
 	section
-		:addTextProtected("Node (total): ", loops ~= 1 and (node.node.timing.node.total[1] .. ".." .. node.node.timing.node.total[2] .. "s") or nil)
-		:addTextProtected("Node (single time): ", loops ~= 1 and (node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "s") or nil)
-		:addTextProtected("Node: ", loops == 1 and (node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "s") or nil)
+		:addTextProtected("Node (total): ", loops ~= 1 and (node.node.timing.node.total[1] .. ".." .. node.node.timing.node.total[2] .. "ms") or nil)
+		:addTextProtected("Node (single time): ", loops ~= 1 and (node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "ms") or nil)
+		:addTextProtected("Node: ", loops == 1 and (node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "ms") or nil)
 
 	if node.parent.name == "DiagramVerticalContainer" and node.parent.objects[1] == node then
 		section
-			:addTextProtected("Tree (total): ", loops ~= 1 and (node.node.timing.tree.total[1] .. ".." .. node.node.timing.tree.total[2] .. "s") or nil, true)
-			:addTextProtected("Tree (single time): ", loops ~= 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "s") or nil, true)
-			:addTextProtected("Tree: ", loops == 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "s") or nil, true)
+			:addTextProtected("Tree (total): ", loops ~= 1 and (node.node.timing.tree.total[1] .. ".." .. node.node.timing.tree.total[2] .. "ms") or nil, true)
+			:addTextProtected("Tree (single time): ", loops ~= 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "ms") or nil, true)
+			:addTextProtected("Tree: ", loops == 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "ms") or nil, true)
 	end
 end
 
