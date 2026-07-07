@@ -1,63 +1,33 @@
 -- horizontal
 
--- consts
-
-local HOVER_RADIUS = 5
-local HOVER_MULTIPLIER = 2
-
 -- class
 
----@class DiagramHorizontalContainer : CompositeObject
----@field CompositeObject CompositeObject
+---@class DiagramHorizontalContainer : DiagramContainer
+---@field DiagramContainer DiagramContainer
 ---@field parent DiagramArea|DiagramVerticalContainer
 ---@field objects (DiagramNode|DiagramVerticalContainer)[]
----@field lineSize number
----@field cachedLines number[][]
----@field selectMode "parent"|"child"|nil
 ---@field selectModeParentIndex integer
 local DiagramHorizontalContainer = {
 	name = "DiagramHorizontalContainer",
-	extends = "CompositeObject",
-	rules = {
-		{{"line_size", "lineSize"}, "lineSize"}
-	},
+	extends = "DiagramContainer",
 	default = {
-		gap = 50,
 		growth = "horizontal",
-		vertical = "top",
-		additionalColor = COLORS.CONNECTION,
-		lineSize = 2
 	},
-
-	hoverColor = COLORS.CONNECTION_HOVER,
-	defaultCursor = "hand"
 }
 
 -- horizontal fnc
 
-function DiagramHorizontalContainer:checkHover(x, y)
-	local hover_object = self.CompositeObject.checkHover(self, x, y)
-
-	if hover_object then
-		return hover_object
-	end
-
-	local tx, ty = self:getTranslation()
-	local lines = self:getLines()
-	local line = lines[#lines]
-
-	return x >= (tx + line[1] - HOVER_RADIUS) and x <= (tx + line[3] + HOVER_RADIUS) and y >= (ty + line[2] - HOVER_RADIUS) and y <= (ty + line[4] + HOVER_RADIUS) and self
-end
-
-function DiagramHorizontalContainer:paint()
+function DiagramHorizontalContainer:paintLines()
 	love.graphics.setLineWidth(self.lineSize)
 	love.graphics.setColor(self.palette.border)
 
 	if self:getConnectionHl() then
-		love.graphics.setLineWidth(self.lineSize * HOVER_MULTIPLIER)
+		love.graphics.setLineWidth(self.lineSize * self.hoverMultiplier)
 		love.graphics.setColor(self.hoverColor)
-	elseif self.selectMode == "child" then
-		love.graphics.setColor(COLORS.CONNECTION_CHILD)
+	elseif self.selectMode then
+		if self.selectMode == "child" then
+			love.graphics.setColor(COLORS.CONNECTION_CHILD)
+		end
 	end
 
 	local lines = self:getLines()
@@ -73,8 +43,6 @@ function DiagramHorizontalContainer:paint()
 		local y = lines[#lines][2]
 		love.graphics.line(self.w/2, y, lines[self.selectModeParentIndex][1], y)
 	end
-
-	self.CompositeObject.paint(self)
 end
 
 function DiagramHorizontalContainer:click(_, _, but)
@@ -83,14 +51,10 @@ function DiagramHorizontalContainer:click(_, _, but)
 	end
 end
 
-function DiagramHorizontalContainer:getLines()
-	if self.cachedLines then
-		return self.cachedLines
-	end
-
+function DiagramHorizontalContainer:generateLines()
 	if not self.parent.name == "DiagramVerticalContainer" then
 		self.cachedLines = {}
-		return {}
+		return
 	end
 
 	local lines = {}
@@ -119,45 +83,20 @@ function DiagramHorizontalContainer:getLines()
 	return lines
 end
 
-function DiagramHorizontalContainer:resize(new_w, new_h, relayout)
-	self.CompositeObject.resize(self, new_w, new_h, relayout)
-	self.cachedLines = nil
-end
-
 function DiagramHorizontalContainer:getConnectionHl()
 	return self.hl or (self.parent.name == "DiagramVerticalContainer" and self.parent.hl)
 end
 
-function DiagramHorizontalContainer:resetSelect()
-	self.selectMode = nil
-end
-
 function DiagramHorizontalContainer:selectRelatives(node)
-	local relatives = self.parent:selectRelatives(self)
-
-	relatives[#relatives+1] = self
-	self.selectMode = "parent"
+	local relatives = self.DiagramContainer.selectRelatives(self, node)
 
 	for index, child in ipairs(self.objects) do
 		if child == node then
 			self.selectModeParentIndex = index
-			break
 		end
 	end
 
 	return relatives
-end
-
-function DiagramHorizontalContainer:moveRoot(...)
-	self.parent:moveRoot(...)
-end
-
-function DiagramHorizontalContainer:renderNodeInfo(...)
-	self.parent:renderNodeInfo(...)
-end
-
-function DiagramHorizontalContainer:new()
-	self.border_flag = false
 end
 
 return DiagramHorizontalContainer

@@ -47,7 +47,7 @@ function DiagramArea:clickRelease(x, y, but)
 		if x == self.mouse_held_origin[1] and y == self.mouse_held_origin[2] then
 			self.nodeInfoObject:hide()
 		end
-		
+
 		self.mouse_held = nil
 		self.mouse_held_origin = nil
 	end
@@ -127,7 +127,7 @@ function DiagramArea:plot(data)
 
 	self.objects = {}
 
-	self.root = self:packNode(object_tree.root)
+	self.root = self:packChild(object_tree.root)
 
 	self:add(self.root)
 
@@ -142,17 +142,33 @@ end
 ---@return CompositeObject
 function DiagramArea:packNodeList(node_list)
 	if #node_list == 1 then
-		return self:packNode(node_list[1])
+		return self:packChild(node_list[1])
 	end
 
 	local horizontal_container = self:create "DiagramHorizontalContainer" {}
 
 	for _, node in ipairs(node_list) do
-		local node_object = self:packNode(node)
+		local node_object = self:packChild(node)
 		horizontal_container:add(node_object)
 	end
 
 	return horizontal_container
+end
+
+---@param node DumpedNode
+---@return CompositeObject
+---@protected
+function DiagramArea:packChild(node)
+	local packed = self:packNode(node)
+
+	if node.subplan then
+		local subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, font = self.font }
+			:pack(packed)
+
+		return subplan_container
+	end
+
+	return packed
 end
 
 ---@param node DumpedNode

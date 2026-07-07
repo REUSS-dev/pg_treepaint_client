@@ -23,6 +23,7 @@ local TextParser = require("classes.TextParser")
 ---@field total_cost string
 ---@field timing TimingTable?
 ---@field buffers BufferTable?
+---@field subplan string Subplans: Subplan name
 ---@field columns string[] Hash: Table columns hash are generated for / Sort: columns, resulted records are sorted against
 ---@field join_on string HashJoin: name of a join target table
 ---@field table string Scans: name of a scanned table
@@ -81,6 +82,7 @@ function dump_node(node)
 	local node_type = node["Node Type"]
 	local new_node = {
 		type = node_type,
+		subplan = node["Subplan Name"],
 		raw = node
 	}
 

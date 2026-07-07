@@ -54,6 +54,7 @@ local theme_dark = {
 
 	NODE_AGGREGATE = {0.75, 0.5, 0, 1},
 	NODE_BITMAP_HEAP_SCAN = {0.25, 1, 1, 1},
+	NODE_CTE_SCAN = {0.9, 1, 0, 1},
 	NODE_HASH = {0.75, 0, 0.75, 1},
 	NODE_HASH_JOIN = {0.5, 0, 0.5, 1},
 	NODE_INDEX_ONLY_SCAN = {0, 0.75, 0, 1},

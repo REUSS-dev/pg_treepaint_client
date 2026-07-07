@@ -130,16 +130,20 @@ end
 
 ---@return DiagramNode?
 function DiagramNode:getParentNode()
-	if self.parent.name ~= "DiagramHorizontalContainer" and self.parent.name ~= "DiagramVerticalContainer" then
+	if self.parent.name == "DiagramArea" then
 		return nil
 	end
 
 	if self.parent.name == "DiagramHorizontalContainer" then
 		if self.parent.parent.name == "DiagramVerticalContainer" then
-			return self.parent.parent.objects[1] --[[@as DiagramNode]]
+			return self.parent.parent.master
 		end
 
 		return nil
+	end
+
+	if self.parent.name == "DiagramSubplanContainer" then
+		return self.getParentNode(self.parent.parent)
 	end
 
 	if self.parent.name ~= "DiagramVerticalContainer" then
@@ -147,15 +151,19 @@ function DiagramNode:getParentNode()
 	end
 
 	if self.parent.objects[2] == self then
-		return self.parent.objects[1] --[[@as DiagramNode]]
+		return self.parent.master
+	end
+
+	if self.parent.parent.name == "DiagramSubplanContainer" then
+		return self.getParentNode(self.parent.parent.parent)
 	end
 
 	if self.parent.parent.name == "DiagramVerticalContainer" then
-		return self.parent.parent.objects[1] --[[@as DiagramNode]]
+		return self.parent.parent.master
 	end
 
 	if self.parent.parent.parent.name == "DiagramVerticalContainer" then
-		return self.parent.parent.parent.objects[1] --[[@as DiagramNode]]
+		return self.parent.parent.parent.master --[[@as DiagramNode]]
 	end
 
 	return nil
@@ -167,15 +175,15 @@ function DiagramNode:getChildrenNodes()
 		return {}
 	end
 
-	if self.parent.objects[2].name == "DiagramHorizontalContainer" then
-		return self.parent.objects[2].objects
+	if self.parent.slave.name == "DiagramHorizontalContainer" then
+		return self.parent.slave.objects
 	end
 
-	if self.parent.objects[2].name == "DiagramVerticalContainer" then
-		return {self.parent.objects[2].objects[1]}
+	if self.parent.slave.name == "DiagramVerticalContainer" then
+		return {self.parent.slave.master --[[@as DiagramNode]]}
 	end
 
-	return {self.parent.objects[2]}
+	return {self.parent.slave}
 end
 
 function DiagramNode:populateInfo(_)

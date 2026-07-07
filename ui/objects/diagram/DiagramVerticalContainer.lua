@@ -1,68 +1,27 @@
--- horizontal
+-- vertical
 
--- consts
-
-local HOVER_RADIUS = 5
-local HOVER_MULTIPLIER = 2
-
----@class DiagramVerticalContainer : CompositeObject
----@field CompositeObject CompositeObject
----@field parent DiagramArea|DiagramHorizontalContainer|DiagramVerticalContainer
----@field objects {[1]: DiagramNode, [2]: DiagramNode|DiagramHorizontalContainer|DiagramVerticalContainer}
----@field lineSize number
----@field cachedLines number[][]
----@field collapseEllipsis CompositeObject
----@field selectMode "parent"|"child"|nil
+---@class DiagramVerticalContainer : DiagramContainer
+---@field DiagramContainer DiagramContainer
+---@field parent DiagramArea|DiagramContainer
+---@field master DiagramNode
+---@field slave DiagramNode|DiagramContainer
 local DiagramVerticalContainer = {
 	name = "DiagramVerticalContainer",
-	extends = "CompositeObject",
-	rules = {
-		{{"line_size", "lineSize"}, "lineSize"}
-	},
+	extends = "DiagramContainer",
 	default = {
-		gap = 50,
 		growth = "vertical",
-		additionalColor = COLORS.CONNECTION,
-		lineSize = 2
 	},
-
-	hoverColor = COLORS.CONNECTION_HOVER,
-	defaultCursor = "hand"
 }
 
--- horizontal fnc
+-- vertical fnc
 
-function DiagramVerticalContainer:checkHover(x, y)
-	local hover_object = self.CompositeObject.checkHover(self, x, y)
-
-	if hover_object then
-		return hover_object
+function DiagramVerticalContainer:add(...)
+	self.DiagramContainer.add(self, ...)
+	if #self.objects == 1 then
+		self.master = self.objects[#self.objects] --[[@as DiagramNode]]
+	elseif #self.objects == 2 then
+		self.slave = self.objects[#self.objects]
 	end
-
-	local tx, ty = self:getTranslation()
-	local line = self:getLine()
-
-	return x >= (tx + line[1] - HOVER_RADIUS) and x <= (tx + line[3] + HOVER_RADIUS) and y >= (ty + line[2] - HOVER_RADIUS) and y <= (ty + line[4] + HOVER_RADIUS) and self
-end
-
-function DiagramVerticalContainer:paint()
-	love.graphics.setLineWidth(self.lineSize)
-	love.graphics.setColor(self.palette.border)
-
-	if self:getConnectionHl() then
-		love.graphics.setLineWidth(self.lineSize * HOVER_MULTIPLIER)
-		love.graphics.setColor(self.hoverColor)
-	elseif self.selectMode then
-		if self.selectMode == "parent" then
-			love.graphics.setColor(COLORS.CONNECTION_PARENT)
-		elseif self.selectMode == "child" then
-			love.graphics.setColor(COLORS.CONNECTION_CHILD)
-		end
-	end
-
-	love.graphics.line(self:getLine())
-
-	self.CompositeObject.paint(self)
 end
 
 function DiagramVerticalContainer:click(_, _, but)
@@ -71,48 +30,42 @@ function DiagramVerticalContainer:click(_, _, but)
 	end
 end
 
-function DiagramVerticalContainer:getLine()
-	if self.cachedLine then
-		return self.cachedLine
-	end
-
+function DiagramVerticalContainer:generateLines()
 	local line = {}
 
-	line[1] = self.objects[1].x + self.objects[1].w/2
-	line[2] = self.objects[1].y + self.objects[1].h
+	line[1] = self.master.x + self.master.w/2
+	line[2] = self.master.y + self.master.h
 	line[3] = line[1]
 
-	if self.objects[2]:isDrawn() and self.objects[2].name == "DiagramHorizontalContainer" then
+	if self.slave:isDrawn() and self.slave.name == "DiagramHorizontalContainer" then
 		line[4] = line[2] + self.layout.gap/2
 	else
 		line[4] = line[2] + self.layout.gap
 	end
 
-	self.cachedLine = line
-
-	return line
+	self.cachedLines = {line}
 end
 
 function DiagramVerticalContainer:toggleCollapse()
 	local collapse = self:getCollapseObject()
 
-	local tx, ty = self.objects[1]:getTranslation()
+	local tx, ty = self.master:getTranslation()
 
 	if collapse:isDrawn() then
 		collapse:hide()
-		self.objects[2]:show()
+		self.slave:show()
 	else
 		collapse:show()
 		if self.hl then
 			collapse:hoverOn(0, 0)
 		end
 
-		self.objects[2]:hide()
+		self.slave:hide()
 	end
 
 	self:relayout()
 
-	local new_tx, new_ty = self.objects[1]:getTranslation()
+	local new_tx, new_ty = self.master:getTranslation()
 
 	self:moveRoot(tx - new_tx, ty - new_ty)
 end
@@ -129,13 +82,8 @@ function DiagramVerticalContainer:getCollapseObject()
 	return self.collapseEllipsis
 end
 
-function DiagramVerticalContainer:resize(new_w, new_h, relayout)
-	self.CompositeObject.resize(self, new_w, new_h, relayout)
-	self.cachedLine = nil
-end
-
 function DiagramVerticalContainer:getConnectionHl()
-	return self.hl or (self.objects[2].name == "DiagramHorizontalContainer" and self.objects[2].hl) or (self.objects[3] and self.objects[3].draw and self.objects[3].hl)
+	return self.hl or (self.slave.name == "DiagramHorizontalContainer" and self.slave.hl) or (self.objects[3] and self.objects[3].draw and self.objects[3].hl)
 end
 
 function DiagramVerticalContainer:hoverOn(x, y)
@@ -154,12 +102,8 @@ function DiagramVerticalContainer:hoverOff(x, y)
 	return self.CompositeObject.hoverOff(self, x, y)
 end
 
-function DiagramVerticalContainer:resetSelect()
-	self.selectMode = nil
-end
-
 function DiagramVerticalContainer:selectRelatives(node)
-	if self.objects[2] == node then
+	if self.slave == node then
 		self.selectMode = "parent"
 		self:redraw()
 		return {self}
@@ -170,24 +114,19 @@ function DiagramVerticalContainer:selectRelatives(node)
 	relatives[#relatives+1] = self
 	self.selectMode = "child"
 
-	if self.objects[2].name == "DiagramHorizontalContainer" then
-		relatives[#relatives+1] = self.objects[2]
-		self.objects[2].selectMode = "child"
+	if self.slave.name == "DiagramHorizontalContainer" then
+		relatives[#relatives+1] = self.slave
+		self.slave.selectMode = "child"
+
+		for _, child in ipairs(self.slave.objects) do
+			if child.name == "DiagramSubplanContainer" then
+				relatives[#relatives+1] = child
+				child.selectMode = "child"
+			end
+		end
 	end
 
 	return relatives
-end
-
-function DiagramVerticalContainer:moveRoot(...)
-	self.parent:moveRoot(...)
-end
-
-function DiagramVerticalContainer:renderNodeInfo(...)
-	self.parent:renderNodeInfo(...)
-end
-
-function DiagramVerticalContainer:new()
-	self.border_flag = false
 end
 
 return DiagramVerticalContainer
