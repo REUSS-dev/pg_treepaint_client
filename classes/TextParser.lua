@@ -167,22 +167,22 @@ function TextParser:parseCosts(sink)
 	end
 
 	local startup_cost = self:parseUnsignedNumber()
-	sink["Startup Cost"] = startup_cost
+	sink["Startup Cost"] = tonumber(startup_cost)
 
 	self:advancePosition(2) -- skip ".."
 
 	local total_cost = self:parseUnsignedNumber()
-	sink["Total Cost"] = total_cost
+	sink["Total Cost"] = tonumber(total_cost)
 
 	self:parsePattern("%s*rows=")
 
 	local rows = self:parseUnsignedNumber()
-	sink["Plan Rows"] = rows
+	sink["Plan Rows"] = tonumber(rows)
 
 	self:parsePattern("%s*width=")
 
 	local width = self:parseUnsignedNumber()
-	sink["Plan Width"] = width
+	sink["Plan Width"] = tonumber(width)
 
 	self:advancePosition(1) -- skip ")"
 end
@@ -195,22 +195,22 @@ function TextParser:parseAnalyze(sink)
 	end
 
 	local actual_startup_time = self:parseUnsignedNumber()
-	sink["Actual Startup Time"] = actual_startup_time
+	sink["Actual Startup Time"] = tonumber(actual_startup_time)
 
 	self:advancePosition(2) -- skip ".."
 
 	local actual_total_time = self:parseUnsignedNumber()
-	sink["Actual Total Time"] = actual_total_time
+	sink["Actual Total Time"] = tonumber(actual_total_time)
 
 	self:parsePattern("%s*rows=")
 
 	local rows = self:parseUnsignedNumber()
-	sink["Actual Rows"] = rows
+	sink["Actual Rows"] = tonumber(rows)
 
 	self:parsePattern("%s*loops=")
 
 	local loops = self:parseUnsignedNumber()
-	sink["Actual Loops"] = loops
+	sink["Actual Loops"] = tonumber(loops)
 
 	self:advancePosition(1) -- skip ")"
 end
@@ -228,7 +228,8 @@ function TextParser:parseParameter(sink)
 		sink[parameter_name] = self:parseExpressionList()
 		self:parseSingleCharacter("\n")
 	else
-		sink[parameter_name] = self:parsePattern("(.-)\n")
+		local value = self:parsePattern("(.-)\n")
+		sink[parameter_name] = tonumber(value) or value
 	end
 end
 
@@ -302,17 +303,17 @@ function TextParser:parseSortMethod(sink)
 
 	if memory then
 		sink["Sort Method"] = method
-		sink["Sort Space Used"] = memory
+		sink["Sort Space Used"] = tonumber(memory)
 		sink["Sort Space Type"] = "Memory"
-		
+
 		return
 	end
-	
+
 	method, disk = self:parsePattern("([^:]-)%s*Disk:%s*(%d+)kB\n")
-	
+
 	if disk then
 		sink["Sort Method"] = method
-		sink["Sort Space Used"] = disk
+		sink["Sort Space Used"] = tonumber(disk)
 		sink["Sort Space Type"] = "Disk"
 
 		return
