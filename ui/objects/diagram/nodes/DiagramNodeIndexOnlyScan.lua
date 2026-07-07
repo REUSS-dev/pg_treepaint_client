@@ -1,6 +1,6 @@
 -- ui/objects/nodes/DiagramNodeIndexOnlyScan.lua
 
----@class DiagramNodeIndexOnlyScan : DiagramNode
+---@class DiagramNodeIndexOnlyScan : DiagramNodeSeqScan
 ---@field DiagramNodeSeqScan DiagramNodeSeqScan
 local DiagramNodeIndexOnlyScan = {
 	name = "DiagramNodeIndexOnlyScan",
@@ -18,6 +18,7 @@ function DiagramNodeIndexOnlyScan:populateInfo(covered)
 	covered["Index Name"] = true
 	covered["Scan Direction"] = true
 	covered["Index Searches"] = true
+	covered["Heap Fetches"] = true
 	covered["Rows Removed by Index Recheck"] = true
 	covered["Index Cond"] = true
 
@@ -25,6 +26,7 @@ function DiagramNodeIndexOnlyScan:populateInfo(covered)
 		:addTextProtected("Index: ", self.node.raw["Index Name"])
 		:addTextProtected("Scan Direction: ", self.node.raw["Scan Direction"])
 		:addTextProtected("Index Searches: ", self.node.raw["Index Searches"])
+		:addTextProtected("Heap fetches (rows total): ", self.node.raw["Heap Fetches"])
 		:addTextProtected("Rows Removed by Recheck: ", self.node.raw["Rows Removed by Index Recheck"])
 		:addTextProtected("Condition:\n", self.node.raw["Index Cond"])
 

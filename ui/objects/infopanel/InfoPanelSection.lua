@@ -28,9 +28,8 @@ local InfoPanelSection = {
 	},
 
 	sectionStates = {
-		["Costs Info"] = false,
-		["WAL Info"] = false,
-		["Other"] = false
+		["Timing Info"] = true,
+		["Buffers Info"] = true
 	}
 }
 
@@ -86,7 +85,7 @@ function InfoPanelSection:new()
 	self.fontS = love.graphics.newFont(self.font, 17)
 
 	if self.sectionStates[self.title] == nil then
-		self.sectionStates[self.title] = true
+		self.sectionStates[self.title] = false
 	end
 
 	local top_container = self:createChild "Container" {

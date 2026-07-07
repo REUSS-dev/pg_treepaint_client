@@ -36,6 +36,7 @@ function InfoPanelHead:setNode(node)
 	self:setChildren(node)
 end
 
+---@param node DiagramNode
 function InfoPanelHead:setParent(node)
 	local parent = node:getParentNode()
 
@@ -48,6 +49,7 @@ function InfoPanelHead:setParent(node)
 	self.parentLabel:show()
 end
 
+---@param node DiagramNode
 function InfoPanelHead:setChildren(node)
 	local children = node:getChildrenNodes()
 

@@ -1,6 +1,6 @@
 -- node
 
----@class DiagramNodeIndexScan : DiagramNode
+---@class DiagramNodeIndexScan : DiagramNodeIndexOnlyScan
 local DiagramNodeIndexScan = {
 	name = "DiagramNodeIndexScan",
 	extends = "DiagramNodeIndexOnlyScan",
