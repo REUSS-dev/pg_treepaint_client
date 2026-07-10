@@ -3,7 +3,7 @@
 ---@class DiagramNodeBitmapHeapScan : DiagramNode
 local DiagramNodeBitmapHeapScan = {
 	name = "DiagramNodeBitmapHeapScan",
-	extends = "DiagramNode",
+	extends = "DiagramNodeSeqScan",
 	default = {
 		colors = {
 			border = COLORS.NODE_BITMAP_HEAP_SCAN
@@ -14,13 +14,6 @@ local DiagramNodeBitmapHeapScan = {
 -- node fnc
 
 function DiagramNodeBitmapHeapScan:new()
-	self.titleContainer:createChild "Label" {
-		w = "fill",
-		font = self.desc_font,
-		horizontal = "left",
-		text = "on " .. self.node.table,
-		textColor = self.text_color_desc
-	}
 end
 
 return DiagramNodeBitmapHeapScan

@@ -9,6 +9,7 @@
 ---@field titleContainer CompositeObject
 ---@field divider CompositeObject
 ---@field subplanContainer CompositeObject
+---@field node DiagramNode
 local DiagramSubplanContainer = {
 	name = "DiagramSubplanContainer",
 	extends = "DiagramContainer",
@@ -24,20 +25,23 @@ local DiagramSubplanContainer = {
 		borderSize = 1
 	},
 
-	hoverMultiplier = 1,
-	hoverColor = COLORS.CONNECTION
+	hoverMultiplier = 1
 }
 
 -- horizontal fnc
 
 function DiagramSubplanContainer:checkHover(x, y)
-	local hover_object = self.CompositeObject.checkHover(self, x, y)
+	local hover_object = self.DiagramContainer.checkHover(self, x, y)
 
 	if hover_object then
 		return hover_object
 	end
 
 	return self.ObjectUI.checkHover(self.titleContainer, x, y) and self
+end
+
+function DiagramSubplanContainer:getConnectionHl()
+	return false
 end
 
 function DiagramSubplanContainer:hoverOn(...)
@@ -64,7 +68,7 @@ function DiagramSubplanContainer:toggleCollapse()
 	self.cachedLines = nil
 
 	if self.subplanContainer:isDrawn() then
-		self.titleContainer.layout.w = self:getObjectClass("DiagramNode").default.w + 50
+		self.titleContainer.layout.w = self:getObjectClass("DiagramNode").default.w + 100
 		self.titleContainer:relayout()
 		self.subplanContainer:hide()
 		self.divider:hide()
@@ -78,6 +82,10 @@ function DiagramSubplanContainer:toggleCollapse()
 	self:relayout()
 
 	if w then self:moveRoot(w - self.w, 0) end
+end
+
+function DiagramSubplanContainer:isCollapsed()
+	return not self.subplanContainer:isDrawn()
 end
 
 function DiagramSubplanContainer:generateLines()
@@ -96,9 +104,11 @@ end
 
 function DiagramSubplanContainer:pack(packed)
 	self.subplanContainer:add(packed)
+	self.node = packed
 
 	if packed.name == "DiagramVerticalContainer" then
 		self:toggleCollapse()
+		self.node = packed.master
 	end
 
 	return self
@@ -121,6 +131,11 @@ function DiagramSubplanContainer:masqueradeSubplanContainer()
 	self.subplanContainer.selectRelatives = function (_, ...)
 		return self:selectRelatives(...)
 	end
+
+	---@diagnostic disable-next-line: inject-field
+	self.subplanContainer.isCollapsed = function ()
+		return false
+	end
 end
 
 function DiagramSubplanContainer:new()
@@ -142,7 +157,7 @@ function DiagramSubplanContainer:new()
 		color = COLORS.NODE_BORDER
 	}
 
-	self.subplanContainer = self:createChild "Container" { w = "hug", vertical = "top", padding = 25}
+	self.subplanContainer = self:createChild "Container" { w = "hug", vertical = "top", padding = {50, 25}}
 
 	self:masqueradeSubplanContainer()
 end

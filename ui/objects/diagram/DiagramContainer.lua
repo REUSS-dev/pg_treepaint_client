@@ -5,6 +5,10 @@
 local HOVER_RADIUS = 5
 local HOVER_MULTIPLIER = 2
 
+-- static
+
+local currentSelect	---@type DiagramNode?
+
 -- class
 
 ---@class DiagramContainer : CompositeObject
@@ -43,6 +47,13 @@ function DiagramContainer:checkHover(x, y)
 
 	if hover_object then
 		return hover_object
+	end
+
+	if currentSelect then
+		local hl = currentSelect:checkHover(x, y)
+		if hl then
+			return hl
+		end
 	end
 
 	local lines = self:getLines()
@@ -106,6 +117,10 @@ function DiagramContainer:getConnectionHl()
 	return self.hl
 end
 
+function DiagramContainer:isCollapsed()
+	return false
+end
+
 function DiagramContainer:selectRelatives(_)
 	local relatives = self.parent:selectRelatives(self)
 
@@ -119,6 +134,10 @@ function DiagramContainer:resetSelect()
 	self.selectMode = nil
 end
 
+function DiagramContainer.setCurrentSelect(node)
+	currentSelect = node
+end
+
 function DiagramContainer:moveRoot(...)
 	self.parent:moveRoot(...)
 end
@@ -129,6 +148,7 @@ end
 
 function DiagramContainer:new()
 	self.border_flag = false
+	self.selectTrail = false
 end
 
 return DiagramContainer

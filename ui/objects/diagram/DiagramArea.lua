@@ -31,7 +31,7 @@ local DiagramArea = {
 
 -- consts
 
-local MOVE_MAX = 100
+local MOVE_MAX = 200
 
 -- diagram fnc
 
@@ -112,9 +112,23 @@ function DiagramArea:moveRoot(x, y)
 	self:redraw()
 end
 
-function DiagramArea:renderNodeInfo(node)
+function DiagramArea:renderNodeInfo(node, refocus)
 	if self.nodeInfoObject then
 		self.nodeInfoObject:displayNode(node)
+
+		if not refocus then
+			return
+		end
+
+		local parent = node.parent
+
+		while parent.name ~= "DiagramArea" do
+			if parent:isCollapsed() then
+				parent:toggleCollapse()
+			end
+
+			parent = parent.parent
+		end
 	end
 end
 

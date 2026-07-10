@@ -82,6 +82,10 @@ function DiagramVerticalContainer:getCollapseObject()
 	return self.collapseEllipsis
 end
 
+function DiagramVerticalContainer:isCollapsed()
+	return self.collapseEllipsis and self.collapseEllipsis:isDrawn() or false
+end
+
 function DiagramVerticalContainer:getConnectionHl()
 	return self.hl or (self.slave.name == "DiagramHorizontalContainer" and self.slave.hl) or (self.objects[3] and self.objects[3].draw and self.objects[3].hl)
 end
