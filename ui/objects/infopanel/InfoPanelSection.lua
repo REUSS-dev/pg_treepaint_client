@@ -25,6 +25,7 @@ local InfoPanelSection = {
 		r = 10,
 		padding = {10, 8},
 		color = COLORS.INFO_PANEL_ELEMENT,
+		textColor = COLORS.INFO_PANEL_TITLE
 	},
 
 	sectionStates = {
@@ -97,7 +98,8 @@ function InfoPanelSection:new()
 		text = self.title,
 		font = fontM,
 		w = "fill",
-		horizontal = "left"
+		horizontal = "left",
+		textColor = self.palette.text
 	}
 
 	self.collapseButton = top_container:createChild "InfoPanelSectionCollapse" {

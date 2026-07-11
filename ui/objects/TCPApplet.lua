@@ -33,7 +33,7 @@ local TCPApplet = {
 	},
 	default = {
 		w = 150, h = "fill",
-		text_color = {1, 1, 1, 1},
+		text_color = COLORS.TCP_TEXT,
 		font = love.graphics.getFont()
 	}
 }
@@ -85,7 +85,8 @@ function TCPApplet:new()
 
 	self.label = self:createChild "Label" {
 		font = self.font,
-		horizontal = "center"
+		horizontal = "center",
+		textColor = self.palette.text
 	}
 end
 

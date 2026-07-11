@@ -13,8 +13,6 @@ UI_THEME = "dark"
 
 BUFFER_SIZE = 8192
 
-require("themes")
-
 function love.conf(t)
 	t.window.title = "Treepaint"
     t.window.width = 1280
@@ -45,3 +43,5 @@ function love.conf(t)
     t.modules.video = false
     t.modules.window = true
 end
+
+require("themes")

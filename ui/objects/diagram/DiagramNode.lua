@@ -1,7 +1,7 @@
 -- node
 
 local GLOW_INTENSITY = 0.2
-local GLOW_RANGE = 3
+local GLOW_RANGE = COLORS.NODE_GLOW and 3 or 0
 
 local HATCH_INTERVAL = 4
 

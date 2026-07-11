@@ -26,7 +26,8 @@ function InfoPanelSectionCollapse:new()
 	self.objects = {}
 
 	self.icon = self:createChild "Icon" {
-		style = "ChevronDown"
+		style = "ChevronDown",
+		color = COLORS.COLOR_ACCENT_1
 	}
 end
 

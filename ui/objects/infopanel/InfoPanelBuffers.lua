@@ -271,7 +271,8 @@ function InfoPanelBuffers:new()
 			text = "No buffers utilized.",
 			font = font,
 			w = "fill",
-			horizontal = "left"
+			horizontal = "left",
+			textColor = COLORS.INFO_BUFFERS_TEXT
 		}
 
 		self.r = 10

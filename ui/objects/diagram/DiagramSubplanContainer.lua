@@ -22,6 +22,7 @@ local DiagramSubplanContainer = {
 		r = 15,
 		growth = "vertical",
 		additionalColor = COLORS.CONNECTION,
+		textColor = COLORS.NODE_TEXT,
 		borderSize = 1
 	},
 
@@ -148,7 +149,8 @@ function DiagramSubplanContainer:new()
 				text = self.title,
 				font = self.font,
 				w = "fill",
-				horizontal = "center"
+				horizontal = "center",
+				textColor = self.palette.text
 			}
 
 	self.divider = self:createChild "Container" {
