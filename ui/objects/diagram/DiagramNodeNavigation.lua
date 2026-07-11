@@ -1,6 +1,7 @@
 -- DiagramNodeNavigation
 
 ---@class DiagramNodeNavigation : Button
+---@field parent DiagramNode
 ---@field compact boolean
 ---@field style "Up"|"Down"|"Left"|"Right"
 ---@field pointer DiagramNode
@@ -30,12 +31,12 @@ local DiagramNodeNavigation = {
 }
 
 function DiagramNodeNavigation:action()
-	self.parent.parent:renderNodeInfo(self.pointer, true)
+	self.parent.diagram:renderNodeInfo(self.pointer, true)
 
 	local tx, ty = self.parent:getTranslation()
 	local ntx, nty = self.pointer:getTranslation()
 
-	self.parent.parent:moveRoot(tx - ntx, ty - nty)
+	self.parent.diagram:moveRoot(tx - ntx, ty - nty)
 end
 
 function DiagramNodeNavigation:createLabel()

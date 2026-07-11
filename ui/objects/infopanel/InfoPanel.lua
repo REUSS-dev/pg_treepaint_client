@@ -40,6 +40,7 @@ function InfoPanel:hide()
 	self:nodeDeselect()
 end
 
+---@param node DiagramNode
 function InfoPanel:nodeSelect(node)
 	self:nodeDeselect()
 

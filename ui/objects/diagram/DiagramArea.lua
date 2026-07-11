@@ -83,6 +83,8 @@ function DiagramArea:wheel(x, y)
 	self:moveRoot(x * -20, y * 20)
 end
 
+---@param x pixels
+---@param y pixels
 function DiagramArea:moveRoot(x, y)
 	if not self.root then
 		return
@@ -112,6 +114,8 @@ function DiagramArea:moveRoot(x, y)
 	self:redraw()
 end
 
+---@param node DiagramNode
+---@param refocus boolean?
 function DiagramArea:renderNodeInfo(node, refocus)
 	if self.nodeInfoObject then
 		self.nodeInfoObject:displayNode(node)
@@ -122,8 +126,9 @@ function DiagramArea:renderNodeInfo(node, refocus)
 
 		local parent = node.parent
 
-		while parent.name ~= "DiagramArea" do
+		while parent.name ~= "DiagramArea" do ---@cast parent DiagramContainer
 			if parent:isCollapsed() then
+				---@cast parent DiagramVerticalContainer|DiagramSubplanContainer
 				parent:toggleCollapse()
 			end
 
@@ -132,6 +137,7 @@ function DiagramArea:renderNodeInfo(node, refocus)
 	end
 end
 
+---@param data string
 function DiagramArea:plot(data)
 	local object_tree = self.parser:parse(data)
 
@@ -153,13 +159,13 @@ function DiagramArea:plot(data)
 end
 
 ---@param node_list DumpedNode[]
----@return CompositeObject
 function DiagramArea:packNodeList(node_list)
 	if #node_list == 1 then
 		return self:packChild(node_list[1])
 	end
 
-	local horizontal_container = self:create "DiagramHorizontalContainer" {}
+	---@type DiagramHorizontalContainer
+	local horizontal_container  = self:create "DiagramHorizontalContainer" { diagram = self }
 
 	for _, node in ipairs(node_list) do
 		local node_object = self:packChild(node)
@@ -170,13 +176,13 @@ function DiagramArea:packNodeList(node_list)
 end
 
 ---@param node DumpedNode
----@return CompositeObject
 ---@protected
 function DiagramArea:packChild(node)
 	local packed = self:packNode(node)
 
-	if node.subplan then
-		local subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, font = self.font }
+	if node.relationship == "InitPlan" then
+		---@type DiagramSubplanContainer
+		local subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, font = self.font, diagram = self }
 			:pack(packed)
 
 		return subplan_container
@@ -186,14 +192,14 @@ function DiagramArea:packChild(node)
 end
 
 ---@param node DumpedNode
----@return CompositeObject
 ---@protected
 function DiagramArea:packNode(node)
 	if not node.children then
 		return self:makeNodeObject(node)
 	end
 
-	local vetical_container = self:create "DiagramVerticalContainer" {}
+	---@type DiagramVerticalContainer
+	local vetical_container = self:create "DiagramVerticalContainer" { diagram = self }
 
 	local node_object = self:makeNodeObject(node)
 	vetical_container:add(node_object)
@@ -210,15 +216,15 @@ end
 function DiagramArea:makeNodeObject(node)
 	local node_type_no_space = string.gsub(node.type, " ", "")
 
-	local specific_node_descriptor = self:getObjectClass("DiagramNode" .. node_type_no_space)
+	local specific_node_descriptor = self:getObjectClass("DiagramNode" .. node_type_no_space) or self:getObjectClass("DiagramNode")
 
-	if specific_node_descriptor then
-		return specific_node_descriptor{node}
-	end
-
-	return self:create "DiagramNode" {node}
+	return specific_node_descriptor {
+		node,
+		diagram = self
+	}
 end
 
+---@param node_info_object InfoPanel
 function DiagramArea:registerNodeInfo(node_info_object)
 	self.nodeInfoObject = node_info_object
 end

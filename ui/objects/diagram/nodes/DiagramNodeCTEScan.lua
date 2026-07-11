@@ -25,13 +25,7 @@ end
 -- node fnc
 
 function DiagramNodeCTEScan:new()
-	self.titleContainer:createChild "Label" {
-		w = "fill",
-		font = self.desc_font,
-		horizontal = "left",
-		text = "on CTE " .. self.node.raw["CTE Name"] .. (self.node.raw["Alias"] and (" (" .. self.node.raw["Alias"] .. ")") or ""),
-		textColor = self.text_color_desc
-	}
+	self.titleContainer:addDescProtected("on CTE ", self.node.raw["CTE Name"] and (self.node.raw["CTE Name"] .. (self.node.raw["Alias"] and (" (" .. self.node.raw["Alias"] .. ")") or "")), true)
 end
 
 return DiagramNodeCTEScan

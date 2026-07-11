@@ -14,6 +14,7 @@ local currentSelect	---@type DiagramNode?
 ---@class DiagramContainer : CompositeObject
 ---@field CompositeObject CompositeObject
 ---@field parent DiagramArea|DiagramContainer
+---@field diagram DiagramArea
 ---@field objects (DiagramNode|DiagramContainer)[]
 ---@field hoverMultiplier number
 ---@field hoverRadius integer
@@ -24,7 +25,8 @@ local DiagramContainer = {
 	name = "DiagramContainer",
 	extends = "CompositeObject",
 	rules = {
-		{{"line_size", "lineSize"}, "lineSize"}
+		{{"line_size", "lineSize"}, "lineSize"},
+		{{"diagram"}, "diagram"}
 	},
 	default = {
 		gap = 50,
@@ -121,6 +123,8 @@ function DiagramContainer:isCollapsed()
 	return false
 end
 
+---@param _ DiagramContainer|DiagramNode
+---@return DiagramContainer[]
 function DiagramContainer:selectRelatives(_)
 	local relatives = self.parent:selectRelatives(self)
 
@@ -134,16 +138,9 @@ function DiagramContainer:resetSelect()
 	self.selectMode = nil
 end
 
+---@param node DiagramNode
 function DiagramContainer.setCurrentSelect(node)
 	currentSelect = node
-end
-
-function DiagramContainer:moveRoot(...)
-	self.parent:moveRoot(...)
-end
-
-function DiagramContainer:renderNodeInfo(...)
-	self.parent:renderNodeInfo(...)
 end
 
 function DiagramContainer:new()

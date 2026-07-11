@@ -42,6 +42,7 @@ function PasteApplet:action()
 	self.diagram:plot(clipboard)
 end
 
+---@param obj DiagramArea
 function PasteApplet:registerDiagramObject(obj)
 	self.diagram = obj
 end

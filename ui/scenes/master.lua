@@ -1,3 +1,4 @@
+---@diagnostic disable-next-line: different-requires
 local gui = require("libs.stellargui")
 
 -- graphics

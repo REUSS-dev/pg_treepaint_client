@@ -82,7 +82,7 @@ function DiagramSubplanContainer:toggleCollapse()
 
 	self:relayout()
 
-	if w then self:moveRoot(w - self.w, 0) end
+	if w then self.diagram:moveRoot(w - self.w, 0) end
 end
 
 function DiagramSubplanContainer:isCollapsed()
@@ -118,16 +118,6 @@ end
 function DiagramSubplanContainer:masqueradeSubplanContainer()
 	self.subplanContainer.name = "DiagramSubplanContainer"
 
-	---@diagnostic disable-next-line: inject-field
-	self.subplanContainer.renderNodeInfo = function (_, ...)
-		return self:renderNodeInfo(...)
-	end
-	
-	---@diagnostic disable-next-line: inject-field
-	self.subplanContainer.moveRoot = function (_, ...)
-		return self:moveRoot(...)
-	end
-	
 	---@diagnostic disable-next-line: inject-field
 	self.subplanContainer.selectRelatives = function (_, ...)
 		return self:selectRelatives(...)

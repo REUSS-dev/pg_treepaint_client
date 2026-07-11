@@ -132,16 +132,7 @@ setmetatable(theme_light, { __index = theme_dark })
 
 themes["light"] = theme_light
 
----@class Colors
----@field BACKGROUND ColorEntry Diagram background color
----@field TOP_PANEL ColorEntry Main color of top panel
----@field LABEL_TREEPAINT ColorEntry Color of "TreePaint" logo label on the top panel
----@field LABEL_TREEMOTTO ColorEntry Color of "A PostgreSQL Tree Visualization Tool" label under the logo label
----@field NODE_FILL ColorEntry Default color of node inside fill
----@field NODE_BORDER ColorEntry Default color of node border
----@field NODE_TEXT ColorEntry Default node text color
----@field NODE_TEXT_DESC ColorEntry Default node text secondary color
----@field CONNECTION ColorEntry Color of connections between nodes on a diagram
+---@type table<string, ColorTable>
 COLORS = setmetatable({}, { __index = function (self, color)
 	local theme_color = themes[UI_THEME][color]
 

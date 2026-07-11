@@ -39,26 +39,9 @@ end
 -- node fnc
 
 function DiagramNodeSort:new()
-	if self.node.sort_method then
-		self.titleContainer:createChild "Label" {
-			w = "fill",
-			font = self.desc_font,
-			horizontal = "left",
-			text = self.node.sort_method,
-			textColor = self.text_color_desc
-		}
-	end
+	self.titleContainer:addDescProtected("", self.node.sort_method, true)
 
-	if self.node.columns then
-		self.contentsContainer:createChild "Label" {
-			w = "fill",
-			font = self.font,
-			horizontal = "left",
-			text = "by " .. table.concat(self.node.columns, ", "),
-			textColor = self.text_color,
-			width = "fill"
-		}
-	end
+	self.contentsContainer:addTextProtected("by ", self.node.columns and (self.node.columns[1] .. (#self.node.columns > 1 and (", (+" .. (#self.node.columns - 1) .. ")") or "")))
 end
 
 return DiagramNodeSort

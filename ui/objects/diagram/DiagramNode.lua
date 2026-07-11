@@ -9,10 +9,11 @@ local NAVIGATION_OFFSET = 8
 
 ---@class DiagramNode : CompositeObject
 ---@field CompositeObject CompositeObject
----@field parent DiagramArea|DiagramHorizontalContainer|DiagramVerticalContainer
----@field titleContainer CompositeObject
----@field contentsContainer CompositeObject
----@field footerContainer CompositeObject
+---@field parent DiagramArea|DiagramContainer
+---@field diagram DiagramArea
+---@field titleContainer DiagramNodeContainer
+---@field contentsContainer DiagramNodeContainer
+---@field footerContainer DiagramNodeContainer
 ---@field font love.Font
 ---@field select (DiagramHorizontalContainer|DiagramVerticalContainer)[]|false
 ---@field desc_font love.Font
@@ -30,6 +31,7 @@ local DiagramNode = {
 		{{"font"}, "font"},
 		{{"desc_font", "font_s"}, "desc_font"},
 		{{"hoverColor"}, "hoverColor"},
+		{{"diagram"}, "diagram"},
 	},
 	default = {
 		w = 280, h = "hug",
@@ -150,7 +152,7 @@ end
 
 function DiagramNode:click(_, _, but)
 	if but == 1 then
-		self.parent:renderNodeInfo(self)
+		self.diagram:renderNodeInfo(self)
 	end
 end
 
@@ -397,6 +399,8 @@ function DiagramNode:getParentNode()
 	end
 
 	if self.parent.name == "DiagramHorizontalContainer" then
+		---@cast self +{parent: DiagramHorizontalContainer}
+
 		if self.parent.parent.name == "DiagramVerticalContainer" then
 			return self.parent.parent.master
 		end
@@ -412,6 +416,8 @@ function DiagramNode:getParentNode()
 		return nil
 	end
 
+	---@cast self +{parent: DiagramVerticalContainer}
+
 	if self.parent.objects[2] == self then
 		return self.parent.master
 	end
@@ -420,12 +426,14 @@ function DiagramNode:getParentNode()
 		return self.getParentNode(self.parent.parent.parent)
 	end
 
-	if self.parent.parent.name == "DiagramVerticalContainer" then
+	if self.parent.parent.name == "DiagramVerticalContainer" then ---@cast self +{parent: {parent: DiagramVerticalContainer}}
+
 		return self.parent.parent.master
 	end
 
-	if self.parent.parent.parent.name == "DiagramVerticalContainer" then
-		return self.parent.parent.parent.master --[[@as DiagramNode]]
+	if self.parent.parent.parent.name == "DiagramVerticalContainer" then ---@cast self +{parent: {parent: {parent: DiagramVerticalContainer}}}
+
+		return self.parent.parent.parent.master
 	end
 
 	return nil
@@ -437,6 +445,8 @@ function DiagramNode:getChildrenNodes()
 		return {}
 	end
 
+	---@cast self +{parent: DiagramVerticalContainer}
+
 	if self.parent.master ~= self then
 		return {}
 	end
@@ -445,18 +455,20 @@ function DiagramNode:getChildrenNodes()
 		return self:processChildren(self.parent.slave.objects)
 	end
 
-	if self.parent.slave.name == "DiagramVerticalContainer" then
-		return self:processChildren({self.parent.slave.master --[[@as DiagramNode]]})
+	if self.parent.slave.name == "DiagramVerticalContainer" then ---@cast self +{parent: {slave: DiagramVerticalContainer}}
+		return self:processChildren({self.parent.slave.master})
 	end
 
 	return self:processChildren({self.parent.slave})
 end
 
+---@param objects (DiagramNode|DiagramContainer)[]
+---@return DiagramNode[]
 function DiagramNode:processChildren(objects)
 	local children = {}
 
 	for i, child in ipairs(objects) do
-		if child.name == "DiagramVerticalContainer" then
+		if child.name == "DiagramVerticalContainer" then ---@cast child DiagramVerticalContainer
 			children[i] = child.master
 		elseif child.name == "DiagramSubplanContainer" then
 			children[i] = child.node
@@ -497,7 +509,7 @@ function DiagramNode:new()
 
 	-- Children
 
-	self.titleContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
+	self.titleContainer = self:createChild "DiagramNodeContainer" { font = self.font, desc_font = self.desc_font }
 	self.titleContainer:createChild "Label" {
 		font = self.font,
 		horizontal = "left",
@@ -507,9 +519,8 @@ function DiagramNode:new()
 
 	self.contentsSeparator = self:createChild "Container" { color = {0.5, 0.5, 0.5, 1}, w = "fill", h = 1 }
 
-	self.contentsContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
-
-	self.footerContainer = self:createChild "Container" { gap = 2, horizontal = "left", w = "fill" }
+	self.contentsContainer = self:createChild "DiagramNodeContainer" { font = self.font, desc_font = self.desc_font }
+	self.footerContainer = self:createChild "DiagramNodeContainer" { font = self.font, desc_font = self.desc_font }
 
 	if node_data.timing then
 		self.footerContainer:createChild "Label" {

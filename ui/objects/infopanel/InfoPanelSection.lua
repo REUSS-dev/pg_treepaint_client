@@ -43,6 +43,10 @@ function InfoPanelSection:getContentsContainer()
 	return self.contents
 end
 
+---@param prefix string
+---@param value string?
+---@param greyed boolean?
+---@return InfoPanelSection
 function InfoPanelSection:addTextProtected(prefix, value, greyed)
 	if not value then
 		return self
@@ -51,6 +55,9 @@ function InfoPanelSection:addTextProtected(prefix, value, greyed)
 	return self:addText(prefix .. value, greyed)
 end
 
+---@param text string
+---@param greyed boolean?
+---@return InfoPanelSection
 function InfoPanelSection:addText(text, greyed)
 	self.contents:createChild "Label" {
 		w = "fill",

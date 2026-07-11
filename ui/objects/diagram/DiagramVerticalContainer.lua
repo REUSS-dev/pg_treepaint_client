@@ -5,6 +5,7 @@
 ---@field parent DiagramArea|DiagramContainer
 ---@field master DiagramNode
 ---@field slave DiagramNode|DiagramContainer
+---@field collapseEllipsis DiagramEllipsis
 local DiagramVerticalContainer = {
 	name = "DiagramVerticalContainer",
 	extends = "DiagramContainer",
@@ -67,7 +68,7 @@ function DiagramVerticalContainer:toggleCollapse()
 
 	local new_tx, new_ty = self.master:getTranslation()
 
-	self:moveRoot(tx - new_tx, ty - new_ty)
+	self.diagram:moveRoot(tx - new_tx, ty - new_ty)
 end
 
 function DiagramVerticalContainer:getCollapseObject()
@@ -119,12 +120,12 @@ function DiagramVerticalContainer:selectRelatives(node)
 	self.selectMode = "child"
 
 	if self.slave.name == "DiagramHorizontalContainer" then
-		relatives[#relatives+1] = self.slave
+		relatives[#relatives+1] = self.slave --[[@as DiagramHorizontalContainer]]
 		self.slave.selectMode = "child"
 
 		for _, child in ipairs(self.slave.objects) do
 			if child.name == "DiagramSubplanContainer" then
-				relatives[#relatives+1] = child
+				relatives[#relatives+1] = child --[[@as DiagramSubplanContainer]]
 				child.selectMode = "child"
 			end
 		end

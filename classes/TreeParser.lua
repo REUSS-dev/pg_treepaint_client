@@ -18,9 +18,10 @@ local TextParser = require("classes.TextParser")
 ---@class DumpedNode
 ---@field raw PlanNode
 ---@field type NodeType
+---@field relationship string
 ---@field children DumpedNode[]?
----@field startup_cost string
----@field total_cost string
+---@field startup_cost string?
+---@field total_cost string?
 ---@field timing TimingTable?
 ---@field buffers BufferTable?
 ---@field subplan string Subplans: Subplan name
@@ -82,6 +83,7 @@ function dump_node(node)
 	local node_type = node["Node Type"]
 	local new_node = {
 		type = node_type,
+		relationship = node["Parent Relationship"],
 		subplan = node["Subplan Name"],
 		raw = node
 	}
@@ -246,7 +248,7 @@ function dump_buffers(node_data, sink)
 	end
 
 	if temp_read ~= 0 or temp_written ~= 0 then
-		buffers.Temp = {read = temp_read, written = temp_written, total = temp_read + temp_written}
+		buffers.Temp = {hit = 0, read = temp_read, dirtied = 0, written = temp_written, total = temp_read + temp_written}
 		buffers.Total = buffers.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
 
 		buffers.Total.read = buffers.Total.read + temp_read

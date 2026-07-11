@@ -72,6 +72,7 @@ function TCPApplet:tick(dt)
 	end
 end
 
+---@param obj DiagramArea
 function TCPApplet:registerDiagramObject(obj)
 	self.diagram = obj
 end

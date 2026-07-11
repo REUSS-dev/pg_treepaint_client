@@ -61,10 +61,49 @@ function InfoPanelHead:setChildren(node)
 	if #children == 1 then
 		self.childrenLabel:setText("Child: " .. children[1].nodeType)
 	else
-		self.childrenLabel:setText("Children: " .. #children)
+		self:fitChildren(children)
 	end
 
 	self.childrenLabel:show()
+end
+
+---Fits multiple children into a children label
+---@param children DiagramNode[]
+function InfoPanelHead:fitChildren(children)
+	local children_names = {}
+	local same_names = true
+
+	for i, child in ipairs(children) do
+		if child.node.relationship == "InitPlan" then
+			children_names[i] = "CTE"
+		else
+			children_names[i] = child.nodeType
+		end
+
+		if i > 1 and same_names then
+			if children_names[i] ~= children_names[i - 1] then
+				same_names = false
+			end
+		end
+	end
+
+	if same_names then
+		local children_text = "Children (" .. #children .. "): " .. children_names[1] .. " (x" .. #children_names .. ")"
+
+		if self.childrenLabel.font:getWidth(children_text) <= self.childrenLabel.w then
+			self.childrenLabel:setText(children_text)
+			return
+		end
+	end
+
+	local children_text = "Children (" .. #children .. "): " .. table.concat(children_names, ", ")
+
+	if self.childrenLabel.font:getWidth(children_text) <= self.childrenLabel.w then
+		self.childrenLabel:setText(children_text)
+		return
+	end
+
+	self.childrenLabel:setText("Children: " .. #children)
 end
 
 function InfoPanelHead:new()

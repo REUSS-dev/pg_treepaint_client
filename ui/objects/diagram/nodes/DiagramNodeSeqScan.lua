@@ -33,15 +33,7 @@ end
 -- node fnc
 
 function DiagramNodeSeqScan:new()
-	if self.node.table then
-		self.titleContainer:createChild "Label" {
-			w = "fill",
-			font = self.desc_font,
-			horizontal = "left",
-			text = "on " .. self.node.table,
-			textColor = self.text_color_desc
-		}
-	end
+	self.titleContainer:addDescProtected("on ", self.node.table, true)
 end
 
 return DiagramNodeSeqScan

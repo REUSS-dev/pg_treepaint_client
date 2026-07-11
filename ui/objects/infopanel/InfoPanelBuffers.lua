@@ -91,89 +91,69 @@ function InfoPanelBuffers:resolveView()
 end
 
 function InfoPanelBuffers:populatePage()
-	if self.shared_row then
-		self.shared_row.objects[2]:setText(self.buffers.Shared.hit ~= 0 and tostring(self.buffers.Shared.hit) or "")
-		self.shared_row.objects[3]:setText(self.buffers.Shared.read ~= 0 and tostring(self.buffers.Shared.read) or "")
-		self.shared_row.objects[4]:setText(self.buffers.Shared.dirtied ~= 0 and tostring(self.buffers.Shared.dirtied) or "")
-		self.shared_row.objects[5]:setText(self.buffers.Shared.written ~= 0 and tostring(self.buffers.Shared.written) or "")
-	end
+	self:populatePageRow(self.shared_row, self.buffers.Shared)
+	self:populatePageRow(self.local_row, self.buffers.Local)
+	self:populatePageRow(self.temp_row, self.buffers.Temp)
+	self:populatePageRow(self.total_row, self.buffers.Total)
+end
 
-	if self.local_row then
-		self.local_row.objects[2]:setText(self.buffers.Local.hit ~= 0 and tostring(self.buffers.Local.hit) or "")
-		self.local_row.objects[3]:setText(self.buffers.Local.read ~= 0 and tostring(self.buffers.Local.read) or "")
-		self.local_row.objects[4]:setText(self.buffers.Local.dirtied ~= 0 and tostring(self.buffers.Local.dirtied) or "")
-		self.local_row.objects[5]:setText(self.buffers.Local.written ~= 0 and tostring(self.buffers.Local.written) or "")
-	end
-
-	if self.temp_row then
-		self.temp_row.objects[3]:setText(self.buffers.Temp.read ~= 0 and tostring(self.buffers.Temp.read) or "")
-		self.temp_row.objects[5]:setText(self.buffers.Temp.written ~= 0 and tostring(self.buffers.Temp.written) or "")
-	end
-
-	if self.total_row then
-		self.total_row.objects[2]:setText(self.buffers.Total.hit ~= 0 and tostring(self.buffers.Total.hit) or "")
-		self.total_row.objects[3]:setText(self.buffers.Total.read ~= 0 and tostring(self.buffers.Total.read) or "")
-		self.total_row.objects[4]:setText(self.buffers.Total.dirtied ~= 0 and tostring(self.buffers.Total.dirtied) or "")
-		self.total_row.objects[5]:setText(self.buffers.Total.written ~= 0 and tostring(self.buffers.Total.written) or "")
+function InfoPanelBuffers:populatePageRow(row, buffer_values)
+	if row then
+		row.objects[2]:setText(buffer_values.hit ~= 0 and tostring(buffer_values.hit) or "")
+		row.objects[3]:setText(buffer_values.read ~= 0 and tostring(buffer_values.read) or "")
+		row.objects[4]:setText(buffer_values.dirtied ~= 0 and tostring(buffer_values.dirtied) or "")
+		row.objects[5]:setText(buffer_values.written ~= 0 and tostring(buffer_values.written) or "")
 	end
 end
 
 function InfoPanelBuffers:populatePercent()
-	if self.shared_row then
-		self.shared_row.objects[2]:setText(self:getFitPercent(self.buffers.Shared.hit / self.buffers.Shared.total, self.shared_row.objects[2].w))
-		self.shared_row.objects[3]:setText(self:getFitPercent(self.buffers.Shared.read / self.buffers.Shared.total, self.shared_row.objects[3].w))
-		self.shared_row.objects[4]:setText(self:getFitPercent(self.buffers.Shared.dirtied / self.buffers.Shared.total, self.shared_row.objects[4].w))
-		self.shared_row.objects[5]:setText(self:getFitPercent(self.buffers.Shared.written / self.buffers.Shared.total, self.shared_row.objects[5].w))
+	self:populatePercentRow(self.shared_row, self.buffers.Shared)
+	self:populatePercentRow(self.local_row, self.buffers.Local)
+	self:populatePercentRow(self.temp_row, self.buffers.Temp)
+	self:populatePercentRow(self.total_row, self.buffers.Total)
+end
+
+function InfoPanelBuffers:populatePercentRow(row, buffer_values)
+	if row then
+		row.objects[2]:setText(self:getFitPercent(buffer_values.hit / buffer_values.total, row.objects[2].w))
+		row.objects[3]:setText(self:getFitPercent(buffer_values.read / buffer_values.total, row.objects[3].w))
+		row.objects[4]:setText(self:getFitPercent(buffer_values.dirtied / buffer_values.total, row.objects[4].w))
+		row.objects[5]:setText(self:getFitPercent(buffer_values.written / buffer_values.total, row.objects[5].w))
+	end
+end
+
+---@param value number
+---@param width integer
+---@return string
+function InfoPanelBuffers:getFitPercent(value, width)
+	if value < EPS then
+		return ""
 	end
 
-	if self.local_row then
-		self.local_row.objects[2]:setText(self:getFitPercent(self.buffers.Local.hit / self.buffers.Local.total, self.local_row.objects[2].w))
-		self.local_row.objects[3]:setText(self:getFitPercent(self.buffers.Local.read / self.buffers.Local.total, self.local_row.objects[3].w))
-		self.local_row.objects[4]:setText(self:getFitPercent(self.buffers.Local.dirtied / self.buffers.Local.total, self.local_row.objects[4].w))
-		self.local_row.objects[5]:setText(self:getFitPercent(self.buffers.Local.written / self.buffers.Local.total, self.local_row.objects[5].w))
-	end
+	value = value * 100
 
-	if self.temp_row then
-		self.temp_row.objects[3]:setText(self:getFitPercent(self.buffers.Temp.read / self.buffers.Temp.total, self.temp_row.objects[3].w))
-		self.temp_row.objects[5]:setText(self:getFitPercent(self.buffers.Temp.written / self.buffers.Temp.total, self.temp_row.objects[5].w))
-	end
-
-	if self.total_row then
-		self.total_row.objects[2]:setText(self:getFitPercent(self.buffers.Total.hit / self.buffers.Total.total, self.total_row.objects[2].w))
-		self.total_row.objects[3]:setText(self:getFitPercent(self.buffers.Total.read / self.buffers.Total.total, self.total_row.objects[3].w))
-		self.total_row.objects[4]:setText(self:getFitPercent(self.buffers.Total.dirtied / self.buffers.Total.total, self.total_row.objects[4].w))
-		self.total_row.objects[5]:setText(self:getFitPercent(self.buffers.Total.written / self.buffers.Total.total, self.total_row.objects[5].w))
-	end
+	return self:fitNumber(value, "%", width) or "?"
 end
 
 function InfoPanelBuffers:populateBytes()
-	if self.shared_row then
-		self.shared_row.objects[2]:setText(self:getFitBytes(self.buffers.Shared.hit, self.shared_row.objects[2].w))
-		self.shared_row.objects[3]:setText(self:getFitBytes(self.buffers.Shared.read, self.shared_row.objects[3].w))
-		self.shared_row.objects[4]:setText(self:getFitBytes(self.buffers.Shared.dirtied, self.shared_row.objects[4].w))
-		self.shared_row.objects[5]:setText(self:getFitBytes(self.buffers.Shared.written, self.shared_row.objects[5].w))
-	end
+	self:populateBytesRow(self.shared_row, self.buffers.Shared)
+	self:populateBytesRow(self.local_row, self.buffers.Local)
+	self:populateBytesRow(self.temp_row, self.buffers.Temp)
+	self:populateBytesRow(self.total_row, self.buffers.Total)
+end
 
-	if self.local_row then
-		self.local_row.objects[2]:setText(self:getFitBytes(self.buffers.Local.hit, self.local_row.objects[2].w))
-		self.local_row.objects[3]:setText(self:getFitBytes(self.buffers.Local.read, self.local_row.objects[3].w))
-		self.local_row.objects[4]:setText(self:getFitBytes(self.buffers.Local.dirtied, self.local_row.objects[4].w))
-		self.local_row.objects[5]:setText(self:getFitBytes(self.buffers.Local.written, self.local_row.objects[5].w))
-	end
-
-	if self.temp_row then
-		self.temp_row.objects[3]:setText(self:getFitBytes(self.buffers.Temp.read, self.temp_row.objects[3].w))
-		self.temp_row.objects[5]:setText(self:getFitBytes(self.buffers.Temp.written, self.temp_row.objects[5].w))
-	end
-
-	if self.total_row then
-		self.total_row.objects[2]:setText(self:getFitBytes(self.buffers.Total.hit, self.total_row.objects[2].w))
-		self.total_row.objects[3]:setText(self:getFitBytes(self.buffers.Total.read, self.total_row.objects[3].w))
-		self.total_row.objects[4]:setText(self:getFitBytes(self.buffers.Total.dirtied, self.total_row.objects[4].w))
-		self.total_row.objects[5]:setText(self:getFitBytes(self.buffers.Total.written, self.total_row.objects[5].w))
+function InfoPanelBuffers:populateBytesRow(row, buffer_values)
+	if row then
+		row.objects[2]:setText(self:getFitBytes(buffer_values.hit, row.objects[2].w))
+		row.objects[3]:setText(self:getFitBytes(buffer_values.read, row.objects[3].w))
+		row.objects[4]:setText(self:getFitBytes(buffer_values.dirtied, row.objects[4].w))
+		row.objects[5]:setText(self:getFitBytes(buffer_values.written, row.objects[5].w))
 	end
 end
 
+---@param bufer_count integer
+---@param width integer
+---@return string
 function InfoPanelBuffers:getFitBytes(bufer_count, width)
 	if bufer_count == 0 then
 		return ""
@@ -194,16 +174,10 @@ function InfoPanelBuffers:getFitBytes(bufer_count, width)
 	return string.format("%.1e GB", bufer_count * BUFFER_SIZE / 1024 / 1024)
 end
 
-function InfoPanelBuffers:getFitPercent(value, width)
-	if value < EPS then
-		return ""
-	end
-
-	value = value * 100
-
-	return self:fitNumber(value, "%", width) or "?"
-end
-
+---@param value number
+---@param postfix string
+---@param width integer
+---@return string?
 function InfoPanelBuffers:fitNumber(value, postfix, width)
 	width = width - 2
 
@@ -219,6 +193,9 @@ function InfoPanelBuffers:fitNumber(value, postfix, width)
 	return nil
 end
 
+---@param title string
+---@param isTotal boolean?
+---@return CompositeObject
 function InfoPanelBuffers:createRow(title, isTotal)
 	self:createDivider(isTotal)
 
@@ -255,6 +232,7 @@ function InfoPanelBuffers:createRow(title, isTotal)
 	return new_row
 end
 
+---@param isTotal boolean?
 function InfoPanelBuffers:createDivider(isTotal)
 	self:createChild "Container" {
 		w = "fill",

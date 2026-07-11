@@ -14,13 +14,7 @@ local DiagramNodeHashJoin = {
 -- node fnc
 
 function DiagramNodeHashJoin:new()
-	self.titleContainer:createChild "Label" {
-		w = "fill",
-		font = self.desc_font,
-		horizontal = "left",
-		text = "on " .. self.node.join_on,
-		textColor = self.text_color_desc
-	}
+	self.titleContainer:addDescProtected("on ", self.node.join_on, true)
 end
 
 return DiagramNodeHashJoin
