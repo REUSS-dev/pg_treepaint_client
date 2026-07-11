@@ -2,6 +2,7 @@
 
 local json = require("libs.json")
 
+local TreeNormalizer = require("classes.TreeNormalizer")
 local NodeStringParser = require("classes.NodeStringParser")
 local TextParser = require("classes.TextParser")
 
@@ -316,7 +317,7 @@ setmetatable(dumpers, {__index = function(self) return self[NodeType.Unknown] en
 --#endregion
 
 local function fix_data(data)
-	if data:sub(-1, -1) == "]" then
+	if data:sub(1, 1) ~= "[" or data:sub(-1, -1) == "]" then
 		return data
 	end
 
@@ -332,22 +333,15 @@ local TreeParser = {}
 TreeParser.__index = TreeParser
 
 function TreeParser:parse(tree)
-	tree = self:sanitizeData(tree)
+	tree = self.normalizer:normalize(tree)
 
 	local _, _, nonspace = string.find(tree, "(%S)")
 
-	if nonspace == "[" then
+	if nonspace == "[" or nonspace == "{" then
 		return self:parseJSON(tree)
 	end
 
 	return self:parseText(tree)
-end
-
-function TreeParser:sanitizeData(data)
-	data = string.gsub(data, "%s*%+\n", "\n")
-	data = string.gsub(data, "\r", "")
-
-	return data
 end
 
 function TreeParser:parseJSON(json_string)
@@ -356,7 +350,7 @@ function TreeParser:parseJSON(json_string)
 	json_string = json_string:gsub("\n(%S)", "%1")
 
 	local tree = json.decode(fix_data(json_string))
-	local root = tree[1]["Plan"]
+	local root = (tree[1] or tree)["Plan"]
 
 	parsed.root = dump_node(root)
 
@@ -387,8 +381,8 @@ function TreeParser:new()
 
 	setmetatable(new_parser, TreeParser)
 
+	self.normalizer = TreeNormalizer()
 	self.queryParser = NodeStringParser()
-
 	self.textParser = TextParser()
 
 	return new_parser

@@ -188,6 +188,18 @@ function TextParser:parseCosts(sink)
 end
 
 function TextParser:parseAnalyze(sink)
+	local never = self:parsePattern("%s*%(never%s*executed%)")
+
+	if never then
+		sink["Actual Startup Time"] = 0
+		sink["Actual Total Time"] = 0
+		sink["Actual Rows"] = 0
+		sink["Actual Loops"] = 0
+
+		self:advancePosition(1) -- skip ")"
+		return
+	end
+
 	local analyze = self:parsePattern("%s*%(actual%s*time=")
 
 	if not analyze then
