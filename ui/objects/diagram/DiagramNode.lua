@@ -51,7 +51,9 @@ local DiagramNode = {
 		hover = true
 	},
 
-	defaultCursor = "hand"
+	defaultCursor = "hand",
+
+	NAV_OFFSET = NAVIGATION_OFFSET
 }
 
 function DiagramNode:checkHover(x, y)
@@ -182,13 +184,13 @@ end
 
 function DiagramNode:getNavigationObjects()
 	if not self.navigation then
-		self:createNavigationObjects()
+		self:generateNavigationObjects()
 	end
 
 	return self.navigation
 end
 
-function DiagramNode:createNavigationObjects()
+function DiagramNode:generateNavigationObjects()
 	self.navigation = {
 		left = {},
 		right = {}
@@ -204,7 +206,7 @@ function DiagramNode:createNavigationObjects()
 		}
 		parent_navigation:hide()
 
-		parent_navigation.x = self.w + NAVIGATION_OFFSET
+		parent_navigation.x = self.w + self.NAV_OFFSET
 		parent_navigation.y = -self.bsize * 2
 
 		self.navigation.parent = parent_navigation
@@ -227,7 +229,7 @@ function DiagramNode:createNavigationObjects()
 		}
 		child_navigation:hide()
 
-		child_navigation.x = self.w + NAVIGATION_OFFSET
+		child_navigation.x = self.w + self.NAV_OFFSET
 		child_navigation.y = self.h - child_navigation.h + self.bsize
 
 		self.navigation.right[#self.navigation.right+1] = child_navigation
@@ -243,7 +245,6 @@ function DiagramNode:createNavigationObjects()
 			local child_navigation = self:createChild "DiagramNodeNavigation" {
 				pointer = child,
 				style = "Left",
-				ignore = true
 			}
 			child_navigation:hide()
 
@@ -254,7 +255,7 @@ function DiagramNode:createNavigationObjects()
 		for i = #self.navigation.left, 1, -1 do
 			local obj = self.navigation.left[i]
 
-			obj.x = -NAVIGATION_OFFSET - (self.navigation.left[i + 1] and self.navigation.left[i + 1].x or 0) - obj.w
+			obj.x = -self.NAV_OFFSET - (self.navigation.left[i + 1] and self.navigation.left[i + 1].x or 0) - obj.w
 			obj.y = self.h - obj.h + self.bsize
 		end
 
@@ -264,7 +265,6 @@ function DiagramNode:createNavigationObjects()
 			local child_navigation = self:createChild "DiagramNodeNavigation" {
 				pointer = child,
 				style = "Right",
-				ignore = true
 			}
 			child_navigation:hide()
 
@@ -275,7 +275,7 @@ function DiagramNode:createNavigationObjects()
 		for i = 1, #self.navigation.right do
 			local obj = self.navigation.right[i]
 
-			obj.x = NAVIGATION_OFFSET + (self.navigation.right[i - 1] and (self.navigation.right[i - 1].x + self.navigation.right[i - 1].w + obj.w) or self.w)
+			obj.x = self.NAV_OFFSET + (self.navigation.right[i - 1] and (self.navigation.right[i - 1].x + self.navigation.right[i - 1].w) or self.w)
 			obj.y = self.h - obj.h + self.bsize
 		end
 
@@ -289,7 +289,6 @@ function DiagramNode:createNavigationObjects()
 			local child_navigation = self:createChild "DiagramNodeNavigation" {
 				pointer = child,
 				style = "Left",
-				ignore = true
 			}
 			child_navigation:hide()
 
@@ -300,7 +299,7 @@ function DiagramNode:createNavigationObjects()
 		for i = #self.navigation.left, 1, -1 do
 			local obj = self.navigation.left[i]
 
-			obj.x = -NAVIGATION_OFFSET - (self.navigation.left[i + 1] and self.navigation.left[i + 1].x or 0) - obj.w
+			obj.x = -self.NAV_OFFSET + (self.navigation.left[i + 1] and self.navigation.left[i + 1].x or 0) - obj.w
 			obj.y = self.h - obj.h + self.bsize
 		end
 
@@ -310,12 +309,8 @@ function DiagramNode:createNavigationObjects()
 			local child_navigation = self:createChild "DiagramNodeNavigation" {
 				pointer = child,
 				style = "Down",
-				ignore = true
 			}
 			child_navigation:hide()
-
-			child_navigation.x = self.w + NAVIGATION_OFFSET
-			child_navigation.y = self.h - child_navigation.h + self.bsize
 
 			self.navigation.right[#self.navigation.right+1] = child_navigation
 			self.navigation[#self.navigation+1] = child_navigation
@@ -327,7 +322,6 @@ function DiagramNode:createNavigationObjects()
 			local child_navigation = self:createChild "DiagramNodeNavigation" {
 				pointer = child,
 				style = "Right",
-				ignore = true
 			}
 			child_navigation:hide()
 
@@ -338,7 +332,7 @@ function DiagramNode:createNavigationObjects()
 		for i = 1, #self.navigation.right do
 			local obj = self.navigation.right[i]
 
-			obj.x = NAVIGATION_OFFSET + (self.navigation.right[i - 1] and (self.navigation.right[i - 1].x + self.navigation.right[i - 1].w) or 0) + obj.w
+			obj.x = self.NAV_OFFSET + (self.navigation.right[i - 1] and (self.navigation.right[i - 1].x + self.navigation.right[i - 1].w) or self.w)
 			obj.y = self.h - obj.h + self.bsize
 		end
 

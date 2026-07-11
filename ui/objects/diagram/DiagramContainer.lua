@@ -51,7 +51,7 @@ function DiagramContainer:checkHover(x, y)
 		return hover_object
 	end
 
-	if currentSelect then
+	if currentSelect and currentSelect.parent:isInteractible() then
 		local hl = currentSelect:checkHover(x, y)
 		if hl then
 			return hl

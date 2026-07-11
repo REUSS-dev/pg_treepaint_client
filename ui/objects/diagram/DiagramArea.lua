@@ -12,6 +12,7 @@ local TreeParser = require("classes.TreeParser")
 ---@field root CompositeObject?
 ---@field mouse_held {[1]: integer, [2]: integer}?
 ---@field mouse_held_origin {[1]: integer, [2]: integer}?
+---@field cte_list table<string, DiagramNode>
 local DiagramArea = {
 	name = "DiagramArea",
 	extends = "CompositeObject",
@@ -185,6 +186,12 @@ function DiagramArea:packChild(node)
 		local subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, font = self.font, diagram = self }
 			:pack(packed)
 
+		if packed.name == "DiagramVerticalContainer" then
+			self.cte_list[node.subplan] = packed.master
+		else ---@cast packed DiagramNode
+			self.cte_list[node.subplan] = packed
+		end
+
 		return subplan_container
 	end
 
@@ -240,6 +247,7 @@ end
 function DiagramArea:new()
 	self:setGrowth("horizontal")
 
+	self.cte_list = {}
 	self.parser = TreeParser()
 end
 

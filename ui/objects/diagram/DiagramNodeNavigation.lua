@@ -12,6 +12,7 @@ local DiagramNodeNavigation = {
 		{{"compact"}, "compact"},
 		{{"style"}, "style"},
 		{{"pointer"}, "pointer"},
+		{{"invert"}, "invert"},
 	},
 	default = {
 		w = "hug",
@@ -25,6 +26,7 @@ local DiagramNodeNavigation = {
 
 		compact = false,
 		style = "Up",
+		invert = false
 	},
 
 	defaultCursor = "hand"
@@ -52,6 +54,14 @@ function DiagramNodeNavigation:createLabel()
 		r = 5
 	} : createChild "Label" {
 		text = self.pointer.nodeType,
+		font = self.pointer.desc_font,
+		textColor = COLORS.NODE_TEXT
+	}
+end
+
+function DiagramNodeNavigation:createText(text)
+	self:createChild "Label" {
+		text = text,
 		font = self.pointer.desc_font,
 		textColor = COLORS.NODE_TEXT
 	}
@@ -85,14 +95,16 @@ function DiagramNodeNavigation:new()
 	end
 
 	if self.style == "Left" then
-		self:createLabel()
-		self:createArrow()
-
-		return
+		self.invert = not self.invert
 	end
 
-	self:createArrow()
-	self:createLabel()
+	if self.invert then
+		self:createLabel()
+		self:createArrow()
+	else
+		self:createArrow()
+		self:createLabel()
+	end
 end
 
 return DiagramNodeNavigation
