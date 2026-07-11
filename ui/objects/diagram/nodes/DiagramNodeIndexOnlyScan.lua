@@ -36,7 +36,7 @@ end
 -- node fnc
 
 function DiagramNodeIndexOnlyScan:new()
-	self.contentsContainer:addTextProtected("Loops: ", self.node.loop_count)
+	self.contentsContainer:addTextProtected("Loops: ", self.node.loop_count and (self.node.loop_count > 1) and self.node.loop_count or nil)
 end
 
 return DiagramNodeIndexOnlyScan

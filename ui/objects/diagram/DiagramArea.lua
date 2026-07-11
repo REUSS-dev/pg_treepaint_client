@@ -13,6 +13,7 @@ local TreeParser = require("classes.TreeParser")
 ---@field mouse_held {[1]: integer, [2]: integer}?
 ---@field mouse_held_origin {[1]: integer, [2]: integer}?
 ---@field cte_list table<string, DiagramNode>
+---@field subquery_counter integer
 local DiagramArea = {
 	name = "DiagramArea",
 	extends = "CompositeObject",
@@ -147,6 +148,8 @@ function DiagramArea:plot(data)
 	end
 
 	self.objects = {}
+	self.cte_list = {}
+	self.subquery_counter = 0
 
 	self.root = self:packChild(object_tree.root)
 
@@ -191,6 +194,24 @@ function DiagramArea:packChild(node)
 		else ---@cast packed DiagramNode
 			self.cte_list[node.subplan] = packed
 		end
+
+		return subplan_container
+	end
+
+	if node.relationship == "Subquery" then
+		self.subquery_counter = self.subquery_counter + 1
+
+		---@type DiagramSubplanContainer
+		local subplan_container = self:create "DiagramSubplanContainer" { title = "Subquery " .. self.subquery_counter, font = self.font, diagram = self }
+			:pack(packed)
+
+		return subplan_container
+	end
+
+	if node.relationship == "SubPlan" then
+		---@type DiagramSubplanContainer
+		local subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, font = self.font, diagram = self }
+			:pack(packed)
 
 		return subplan_container
 	end
@@ -248,6 +269,7 @@ function DiagramArea:new()
 	self:setGrowth("horizontal")
 
 	self.cte_list = {}
+	self.subquery_counter = 0
 	self.parser = TreeParser()
 end
 

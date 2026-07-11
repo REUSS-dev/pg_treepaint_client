@@ -162,13 +162,15 @@ function InfoPanel:createAnalyze(node, covered)
 	local loops = node.node.raw["Actual Loops"]
 
 	local section = self.contentsContainer:createChild "InfoPanelSection" { title = "Timing Info" }
-		:addText("Loops: " .. loops)
-		:addTextProtected("Rows: ", tonumber(node.node.raw["Actual Rows"] or ""))
 
 	if loops == 0 then
-		section:addText("Did not execute a single time")
+		section:addText("Never executed")
 		return
 	end
+
+	section
+		:addText("Loops: " .. loops)
+		:addTextProtected("Rows: ", tonumber(node.node.raw["Actual Rows"] or ""))
 
 	section
 		:addTextProtected("Node (total): ", loops ~= 1 and (node.node.timing.node.total[1] .. ".." .. node.node.timing.node.total[2] .. "ms") or nil)

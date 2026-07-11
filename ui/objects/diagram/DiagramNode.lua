@@ -255,7 +255,7 @@ function DiagramNode:generateNavigationObjects()
 		for i = #self.navigation.left, 1, -1 do
 			local obj = self.navigation.left[i]
 
-			obj.x = -self.NAV_OFFSET - (self.navigation.left[i + 1] and self.navigation.left[i + 1].x or 0) - obj.w
+			obj.x = -self.NAV_OFFSET + (self.navigation.left[i + 1] and self.navigation.left[i + 1].x or 0) - obj.w
 			obj.y = self.h - obj.h + self.bsize
 		end
 
@@ -474,6 +474,8 @@ function DiagramNode:processChildren(objects)
 	return children
 end
 
+---@param _ table<string, boolean>
+---@return InfoPanelSection
 function DiagramNode:populateInfo(_)
 	return {}
 end
