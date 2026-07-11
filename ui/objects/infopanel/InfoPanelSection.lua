@@ -44,7 +44,7 @@ function InfoPanelSection:getContentsContainer()
 end
 
 ---@param prefix string
----@param value string?
+---@param value (string|integer)?
 ---@param greyed boolean?
 ---@return InfoPanelSection
 function InfoPanelSection:addTextProtected(prefix, value, greyed)

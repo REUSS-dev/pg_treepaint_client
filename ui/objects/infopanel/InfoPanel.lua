@@ -98,6 +98,7 @@ function InfoPanel:createContents(node)
 	self:createAnalyze(node, coverage)
 	self:createBuffers(node, coverage)
 	self:createWAL(node, coverage)
+	self:createOutput(node, coverage)
 
 	self:createUnknown(node, coverage)
 
@@ -243,6 +244,24 @@ function InfoPanel:createWAL(node, covered)
 	end
 
 	wal:addTextProtected("Buffers Full: ", node.node.raw["WAL Buffers Full"])
+end
+
+---@param node DiagramNode
+---@param covered table<string, boolean>
+function InfoPanel:createOutput(node, covered)
+	if not node.node.raw["Output"] then
+		return
+	end
+
+	covered["Output"] = true
+
+	local wal = self.contentsContainer:createChild "InfoPanelSection" { title = "Output Info" }
+		:addText("Output count: " .. #node.node.raw["Output"])
+		:addTextProtected("", #node.node.raw["Output"] > 0 and "")
+
+	for _, value in ipairs(node.node.raw["Output"]) do
+		wal:addText(value)
+	end
 end
 
 ---@param node DiagramNode

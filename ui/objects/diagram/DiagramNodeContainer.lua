@@ -26,7 +26,7 @@ local DiagramNodeContainer = {
 }
 
 ---@param prefix string
----@param value string?
+---@param value (string|integer)?
 ---@param greyed boolean?
 ---@return DiagramNodeContainer
 function DiagramNodeContainer:addTextProtected(prefix, value, greyed)
@@ -53,7 +53,7 @@ function DiagramNodeContainer:addText(text, greyed)
 end
 
 ---@param prefix string
----@param value string?
+---@param value (string|integer)?
 ---@param greyed boolean?
 ---@return DiagramNodeContainer
 function DiagramNodeContainer:addDescProtected(prefix, value, greyed)

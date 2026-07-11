@@ -149,7 +149,7 @@ function DiagramSubplanContainer:new()
 		color = COLORS.NODE_BORDER
 	}
 
-	self.subplanContainer = self:createChild "Container" { w = "hug", vertical = "top", padding = {50, 25}}
+	self.subplanContainer = self:createChild "Container" { w = "hug", vertical = "top", padding = {50, 25, 50, 50}}
 
 	self:masqueradeSubplanContainer()
 end
