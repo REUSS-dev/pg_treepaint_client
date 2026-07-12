@@ -5,7 +5,6 @@
 ---@class DiagramSubplanContainer : DiagramContainer
 ---@field DiagramContainer DiagramContainer
 ---@field title string
----@field font love.Font
 ---@field titleContainer CompositeObject
 ---@field divider CompositeObject
 ---@field subplanContainer CompositeObject
@@ -14,15 +13,17 @@ local DiagramSubplanContainer = {
 	name = "DiagramSubplanContainer",
 	extends = "DiagramContainer",
 	rules = {
-		{{"title"}, "title"},
-		{{"font"}, "font"},
+		{{"title"}, "title"}
 	},
 	default = {
 		gap = 0,
 		r = 15,
 		growth = "vertical",
+
 		additionalColor = COLORS.CONNECTION,
 		textColor = COLORS.NODE_TEXT,
+		font = "default 18",
+
 		borderSize = 1
 	},
 

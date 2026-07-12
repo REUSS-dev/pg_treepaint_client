@@ -6,7 +6,7 @@ local CACHE_SIZE = 5
 
 ---@class InfoPanel : CompositeObject
 ---@field CompositeObject CompositeObject
----@field font string
+---@field font {L: love.Font, S: love.Font}
 ---@field titleContainer CompositeObject
 ---@field contentsContainer CompositeObject
 ---@field footerContainer CompositeObject
@@ -19,7 +19,6 @@ local InfoPanel = {
 	name = "InfoPanel",
 	extends = "CompositeObject",
 	rules = {
-		{{"font"}, "font"}
 	},
 	default = {
 		w = 400,
@@ -29,7 +28,8 @@ local InfoPanel = {
 		padding = 15,
 		gap = 10,
 
-		color = COLORS.INFO_PANEL
+		color = COLORS.INFO_PANEL,
+		font = {L = "default 24", S = "default 16"}
 	},
 
 	opaque = true
@@ -177,7 +177,11 @@ function InfoPanel:createAnalyze(node, covered)
 		:addTextProtected("Node (single time): ", loops ~= 1 and (node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "ms") or nil)
 		:addTextProtected("Node: ", loops == 1 and (node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "ms") or nil)
 
-	if node.parent.name == "DiagramVerticalContainer" and node.parent.objects[1] == node then
+	if node.parent.name ~= "DiagramVerticalContainer" then
+		return
+	end ---@cast node +{parent: DiagramVerticalContainer}
+
+	if node.parent.master == node then
 		section
 			:addTextProtected("Tree (total): ", loops ~= 1 and (node.node.timing.tree.total[1] .. ".." .. node.node.timing.tree.total[2] .. "ms") or nil, true)
 			:addTextProtected("Tree (single time): ", loops ~= 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "ms") or nil, true)
@@ -207,7 +211,7 @@ function InfoPanel:createBuffers(node, covered)
 		:getContentsContainer()
 			:createChild "InfoPanelBuffers" {
 				buffers = node.node.buffers,
-				font = self.font
+				font = self.font.S
 			}
 end
 
@@ -285,11 +289,9 @@ function InfoPanel:new()
 	self.cacheBuckets = {}
 	self.cacheCounter = 0
 
-	self:getObjectClass("InfoPanelSection").font = self.font
-
 	-- Head
 	self.head = self:createChild "InfoPanelHead" {
-		font = self.font
+		font = {title = self.font.L, text = self.font.S}
 	}
 
 	self.contentsContainer = self:createChild "Container" { gap = 10, horizontal = "left", vertical = "top", w = "fill", h = "fill", shear = true, scroll = true, hover = true }

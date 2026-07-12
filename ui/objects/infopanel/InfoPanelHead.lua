@@ -5,12 +5,11 @@
 ---@field nameLabel Label
 ---@field parentLabel Label
 ---@field childrenLabel Label
----@field font string
+---@field font {title: love.Font, text: love.Font}
 local InfoPanelHead = {
 	name = "InfoPanelHead",
 	extends = "CompositeObject",
 	rules = {
-		{{"font"}, "font"}
 	},
 	default = {
 		w = "fill",
@@ -18,7 +17,9 @@ local InfoPanelHead = {
 		growth = "horizontal",
 		gap = 10,
 		horizontal = "left",
-		vertical = "top"
+		vertical = "top",
+
+		font = {title = "default 24", text = "default 16"}
 	},
 }
 
@@ -107,9 +108,6 @@ function InfoPanelHead:fitChildren(children)
 end
 
 function InfoPanelHead:new()
-	local fontS = love.graphics.newFont(self.font, 16)
-	local fontL = love.graphics.newFont(self.font, 24)
-
 	self.picture = self:createChild "InfoPanelPicture" {
 		w = 80,
 		h = 80,
@@ -128,7 +126,7 @@ function InfoPanelHead:new()
 	self.nameLabel = text_container:createChild "Label" {
 		w = "fill",
 		h = "hug",
-		font = fontL,
+		font = self.font.title,
 		textColor = COLORS.NODE_TEXT,
 		text = "Node Type"
 	}
@@ -136,7 +134,7 @@ function InfoPanelHead:new()
 	self.parentLabel = text_container:createChild "Label" {
 		w = "fill",
 		h = "hug",
-		font = fontS,
+		font = self.font.text,
 		textColor = COLORS.NODE_TEXT_DESC,
 		text = "Parent: "
 	}
@@ -145,7 +143,7 @@ function InfoPanelHead:new()
 	self.childrenLabel = text_container:createChild "Label" {
 		w = "fill",
 		h = "hug",
-		font = fontS,
+		font = self.font.text,
 		textColor = COLORS.NODE_TEXT_DESC,
 		text = "Children: "
 	}

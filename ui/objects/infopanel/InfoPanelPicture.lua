@@ -4,7 +4,6 @@ local angelic = require("libs.angeliclove")
 
 ---@class InfoPanelPicture : CompositeObject
 ---@field angelicLabel Label
----@field font love.Font
 ---@field type string
 local InfoPanelPicture = {
 	name = "InfoPanelPicture",

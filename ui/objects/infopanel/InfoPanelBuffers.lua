@@ -17,8 +17,6 @@ local DEFAULT_VIEW_STATE = ViewStates.PAGE
 ---@class InfoPanelBuffers : CompositeObject
 ---@field CompositeObject CompositeObject
 ---@field buffers BufferTable
----@field font string
----@field fontS love.Font
 ---@field shared_row {objects: Label[]}?
 ---@field local_row {objects: Label[]}?
 ---@field temp_row {objects: Label[]}?
@@ -28,7 +26,6 @@ local InfoPanelBuffers = {
 	name = "InfoPanelBuffers",
 	extends = "CompositeObject",
 	rules = {
-		{{"font"}, "font"},
 		{{"buffers"}, "buffers"},
 	},
 	default = {
@@ -40,7 +37,9 @@ local InfoPanelBuffers = {
 		vertical = "top",
 		r = 15,
 		padding = {10, 2},
+
 		color = COLORS.INFO_BUFFERS,
+		font = "default 16"
 	},
 
 	currentView = {DEFAULT_VIEW_STATE}
@@ -185,7 +184,7 @@ function InfoPanelBuffers:fitNumber(value, postfix, width)
 		local num = string.format("%." .. i .. "f", value):gsub("(%d+[,.]%d-)0*$", "%1"):gsub("[,.]$", "")
 		local test = num .. postfix
 
-		if self.fontS:getWidth(test) <= width then
+		if self.font:getWidth(test) <= width then
 			return test
 		end
 	end
@@ -214,7 +213,7 @@ function InfoPanelBuffers:createRow(title, isTotal)
 		h = "hug",
 		horizontal = "center",
 		text = title,
-		font = self.fontS,
+		font = self.font,
 		textColor = COLORS.INFO_BUFFERS_TEXT
 	}
 
@@ -224,7 +223,7 @@ function InfoPanelBuffers:createRow(title, isTotal)
 			h = "hug",
 			horizontal = "right",
 			text = "",
-			font = self.fontS,
+			font = self.font,
 			textColor = COLORS.INFO_BUFFERS_TEXT
 		}
 	end
@@ -243,11 +242,9 @@ end
 
 function InfoPanelBuffers:new()
 	if not self.buffers.Total then
-		local font = love.graphics.newFont(self.font, 17)
-
 		self:createChild "Label" {
 			text = "No buffers utilized.",
-			font = font,
+			font = self.font,
 			w = "fill",
 			horizontal = "left",
 			textColor = COLORS.INFO_BUFFERS_TEXT
@@ -257,8 +254,6 @@ function InfoPanelBuffers:new()
 
 		return
 	end
-
-	self.fontS = love.graphics.newFont(self.font, 16)
 
 	do
 		local header = self:createChild "Container" {
@@ -279,7 +274,7 @@ function InfoPanelBuffers:new()
 			w = "fill",
 			h = "fill",
 			text = self.currentView[1],
-			font = self.fontS,
+			font = self.font,
 			color = COLORS.INFO_BUFFERS_BUTTON_FILL,
 			additionalColor = COLORS.INFO_BUFFERS_BUTTON_BORDER,
 			textColor = COLORS.INFO_BUFFERS_BUTTON_TEXT,
@@ -293,7 +288,7 @@ function InfoPanelBuffers:new()
 			h = "hug",
 			horizontal = "right",
 			text = "Hit",
-			font = self.fontS,
+			font = self.font,
 			textColor = COLORS.INFO_BUFFERS_TEXT
 		}
 		header:createChild "Label" {
@@ -301,7 +296,7 @@ function InfoPanelBuffers:new()
 			h = "hug",
 			horizontal = "right",
 			text = "Read",
-			font = self.fontS,
+			font = self.font,
 			textColor = COLORS.INFO_BUFFERS_TEXT
 		}
 		header:createChild "Label" {
@@ -309,7 +304,7 @@ function InfoPanelBuffers:new()
 			h = "hug",
 			horizontal = "right",
 			text = "Dirtied",
-			font = self.fontS,
+			font = self.font,
 			textColor = COLORS.INFO_BUFFERS_TEXT
 		}
 		header:createChild "Label" {
@@ -317,7 +312,7 @@ function InfoPanelBuffers:new()
 			h = "hug",
 			horizontal = "right",
 			text = "Written",
-			font = self.fontS,
+			font = self.font,
 			textColor = COLORS.INFO_BUFFERS_TEXT
 		}
 

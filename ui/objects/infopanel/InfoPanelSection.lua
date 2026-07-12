@@ -5,14 +5,12 @@
 ---@field divider CompositeObject
 ---@field contents CompositeObject
 ---@field collapseButton InfoPanelSectionCollapse
----@field font string
----@field fontS love.Font
+---@field font {title: love.Font, text: love.Font}
 ---@field title string
 local InfoPanelSection = {
 	name = "InfoPanelSection",
 	extends = "CompositeObject",
 	rules = {
-		{{"font"}, "font"},
 		{{"title"}, "title"},
 	},
 	default = {
@@ -24,8 +22,10 @@ local InfoPanelSection = {
 		vertical = "top",
 		r = 10,
 		padding = {10, 8},
+
 		color = COLORS.INFO_PANEL_ELEMENT,
-		textColor = COLORS.INFO_PANEL_TITLE
+		textColor = COLORS.INFO_PANEL_TITLE,
+		font = {title = "default 20", text = "default 17"}
 	},
 
 	sectionStates = {
@@ -64,7 +64,7 @@ function InfoPanelSection:addText(text, greyed)
 		h = "hug",
 		horizontal = "left",
 		text = text,
-		font = self.fontS,
+		font = self.font.text,
 		textColor = greyed and COLORS.NODE_TEXT_GREYED or COLORS.NODE_TEXT
 	}
 
@@ -89,9 +89,6 @@ function InfoPanelSection:resolveState()
 end
 
 function InfoPanelSection:new()
-	local fontM = love.graphics.newFont(self.font, 20)
-	self.fontS = love.graphics.newFont(self.font, 17)
-
 	if self.sectionStates[self.title] == nil then
 		self.sectionStates[self.title] = false
 	end
@@ -103,7 +100,7 @@ function InfoPanelSection:new()
 
 	top_container:createChild "Label" {
 		text = self.title,
-		font = fontM,
+		font = self.font.title,
 		w = "fill",
 		horizontal = "left",
 		textColor = self.palette.text

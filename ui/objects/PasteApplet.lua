@@ -4,7 +4,6 @@
 
 ---@class PasteApplet : Button
 ---@field r number Radius of round corner
----@field font love.Font
 ---@field label Label
 ---@field diagram DiagramArea?
 local PasteApplet = {

@@ -21,8 +21,10 @@ local DiagramNodeNavigation = {
 		gap = 5,
 		padding = {8, 5},
 		r = 16,
-		color = COLORS.NODE_NAVIGATION,
 		static = true,
+
+		color = COLORS.NODE_NAVIGATION,
+		font = "default 16",
 
 		compact = false,
 		style = "Up",
@@ -54,7 +56,7 @@ function DiagramNodeNavigation:createLabel()
 		r = 5
 	} : createChild "Label" {
 		text = self.pointer.nodeType,
-		font = self.pointer.desc_font,
+		font = self.font,
 		textColor = COLORS.NODE_TEXT
 	}
 end
@@ -62,7 +64,7 @@ end
 function DiagramNodeNavigation:createText(text)
 	self:createChild "Label" {
 		text = text,
-		font = self.pointer.desc_font,
+		font = self.font,
 		textColor = COLORS.NODE_TEXT
 	}
 end

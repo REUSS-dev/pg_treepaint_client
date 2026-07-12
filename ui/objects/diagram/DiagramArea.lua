@@ -7,7 +7,6 @@ local TreeParser = require("classes.TreeParser")
 ---@class DiagramArea : CompositeObject
 ---@field CompositeObject CompositeObject
 ---@field nodeInfoObject InfoPanel
----@field font love.Font
 ---@field parser TreeParser
 ---@field root CompositeObject?
 ---@field mouse_held {[1]: integer, [2]: integer}?
@@ -17,13 +16,10 @@ local TreeParser = require("classes.TreeParser")
 local DiagramArea = {
 	name = "DiagramArea",
 	extends = "CompositeObject",
-	rules = {
-		{{"font"}, "font"},
-	},
+	rules = {},
 	default = {
 		w = "fill", h = "fill",
 		text_color = {1, 1, 1, 1},
-		font = love.graphics.getFont(),
 		vertical = "top",
 		padding = {0, 50, 0, 0},
 		hoverSelf = true,
@@ -186,7 +182,7 @@ function DiagramArea:packChild(node)
 
 	if node.relationship == "InitPlan" then
 		---@type DiagramSubplanContainer
-		local subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, font = self.font, diagram = self }
+		local subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, diagram = self }
 			:pack(packed)
 
 		if packed.name == "DiagramVerticalContainer" then
@@ -202,7 +198,7 @@ function DiagramArea:packChild(node)
 		self.subquery_counter = self.subquery_counter + 1
 
 		---@type DiagramSubplanContainer
-		local subplan_container = self:create "DiagramSubplanContainer" { title = "Subquery " .. self.subquery_counter, font = self.font, diagram = self }
+		local subplan_container = self:create "DiagramSubplanContainer" { title = "Subquery " .. self.subquery_counter, diagram = self }
 			:pack(packed)
 
 		return subplan_container
@@ -210,7 +206,7 @@ function DiagramArea:packChild(node)
 
 	if node.relationship == "SubPlan" then
 		---@type DiagramSubplanContainer
-		local subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, font = self.font, diagram = self }
+		local subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, diagram = self }
 			:pack(packed)
 
 		return subplan_container

@@ -14,9 +14,8 @@ local NAVIGATION_OFFSET = 8
 ---@field titleContainer DiagramNodeContainer
 ---@field contentsContainer DiagramNodeContainer
 ---@field footerContainer DiagramNodeContainer
----@field font love.Font
+---@field font {M: love.Font, S: love.Font}
 ---@field select (DiagramHorizontalContainer|DiagramVerticalContainer)[]|false
----@field desc_font love.Font
 ---@field text_color ColorTable
 ---@field text_color_desc ColorTable
 ---@field hoverColor ColorTable
@@ -28,8 +27,6 @@ local DiagramNode = {
 	extends = "CompositeObject",
 	rules = {
 		{{1, "node"}, "node"},
-		{{"font"}, "font"},
-		{{"desc_font", "font_s"}, "desc_font"},
 		{{"hoverColor"}, "hoverColor"},
 		{{"diagram"}, "diagram"},
 	},
@@ -45,6 +42,10 @@ local DiagramNode = {
 			text = COLORS.NODE_TEXT
 		},
 		hoverColor = COLORS.NODE_HOVER,
+		font = {
+			M = "default 18",
+			S = "default 16",
+		},
 
 		borderSize = 2,
 		r = 10,
@@ -202,7 +203,8 @@ function DiagramNode:generateNavigationObjects()
 		local parent_navigation = self:createChild "DiagramNodeNavigation" {
 			compact = true,
 			pointer = parent,
-			style = "Up"
+			style = "Up",
+			font = self.font.S
 		}
 		parent_navigation:hide()
 
@@ -225,7 +227,8 @@ function DiagramNode:generateNavigationObjects()
 		local child_navigation = self:createChild "DiagramNodeNavigation" {
 			compact = true,
 			pointer = child,
-			style = "Down"
+			style = "Down",
+			font = self.font.S
 		}
 		child_navigation:hide()
 
@@ -245,6 +248,7 @@ function DiagramNode:generateNavigationObjects()
 			local child_navigation = self:createChild "DiagramNodeNavigation" {
 				pointer = child,
 				style = "Left",
+				font = self.font.S
 			}
 			child_navigation:hide()
 
@@ -265,6 +269,7 @@ function DiagramNode:generateNavigationObjects()
 			local child_navigation = self:createChild "DiagramNodeNavigation" {
 				pointer = child,
 				style = "Right",
+				font = self.font.S
 			}
 			child_navigation:hide()
 
@@ -289,6 +294,7 @@ function DiagramNode:generateNavigationObjects()
 			local child_navigation = self:createChild "DiagramNodeNavigation" {
 				pointer = child,
 				style = "Left",
+				font = self.font.S
 			}
 			child_navigation:hide()
 
@@ -309,6 +315,7 @@ function DiagramNode:generateNavigationObjects()
 			local child_navigation = self:createChild "DiagramNodeNavigation" {
 				pointer = child,
 				style = "Down",
+				font = self.font.S
 			}
 			child_navigation:hide()
 
@@ -322,6 +329,7 @@ function DiagramNode:generateNavigationObjects()
 			local child_navigation = self:createChild "DiagramNodeNavigation" {
 				pointer = child,
 				style = "Right",
+				font = self.font.S
 			}
 			child_navigation:hide()
 
@@ -505,9 +513,9 @@ function DiagramNode:new()
 
 	-- Children
 
-	self.titleContainer = self:createChild "DiagramNodeContainer" { font = self.font, desc_font = self.desc_font }
+	self.titleContainer = self:createChild "DiagramNodeContainer" { font = self.font }
 	self.titleContainer:createChild "Label" {
-		font = self.font,
+		font = self.font.M,
 		horizontal = "left",
 		text = node_data.type,
 		textColor = self.text_color
@@ -515,13 +523,13 @@ function DiagramNode:new()
 
 	self.contentsSeparator = self:createChild "Container" { color = {0.5, 0.5, 0.5, 1}, w = "fill", h = 1 }
 
-	self.contentsContainer = self:createChild "DiagramNodeContainer" { font = self.font, desc_font = self.desc_font }
-	self.footerContainer = self:createChild "DiagramNodeContainer" { font = self.font, desc_font = self.desc_font }
+	self.contentsContainer = self:createChild "DiagramNodeContainer" { font = self.font }
+	self.footerContainer = self:createChild "DiagramNodeContainer" { font = self.font }
 
 	if node_data.timing then
 		self.footerContainer:createChild "Label" {
 			w = "fill",
-			font = self.desc_font,
+			font = self.font.S,
 			horizontal = "right",
 			textColor = self.text_color_desc,
 			text = "Time: " .. node_data.timing.node.total[2] .. "ms",
@@ -529,7 +537,7 @@ function DiagramNode:new()
 	elseif node_data.startup_cost then
 		self.footerContainer:createChild "Label" {
 			w = "fill",
-			font = self.desc_font,
+			font = self.font.S,
 			horizontal = "right",
 			textColor = self.text_color_desc,
 			text = "Cost: " .. node_data.startup_cost .. ".." .. node_data.total_cost,

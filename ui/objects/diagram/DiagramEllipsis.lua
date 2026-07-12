@@ -12,7 +12,9 @@ local DiagramEllipsis = {
 		additionalColor = COLORS.CONNECTION,
 		padding = {10, 5},
 		r = 5,
-		hover = true
+		hover = true,
+
+		font = "default 18"
 	},
 
 	defaultCursor = "hand",
@@ -40,7 +42,7 @@ end
 function DiagramEllipsis:new()
 	self:createChild "Label" {
 		text = "...",
-		font = self:getObjectClass("DiagramNode").font
+		font = self.font
 	}
 
 	self.normalColor = self.palette[3]

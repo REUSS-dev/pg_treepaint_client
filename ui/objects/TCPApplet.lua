@@ -19,7 +19,6 @@ end
 ---@class TCPApplet : CompositeObject
 ---@field CompositeObject CompositeObject
 ---@field r number Radius of round corner
----@field font love.Font
 ---@field status TCPListenerStatus
 ---@field tcp TCPListener
 ---@field label Label
@@ -28,13 +27,12 @@ local TCPApplet = {
 	name = "TCPApplet",
 	extends = "CompositeObject",
 	rules = {
-		{{"tcp", "tcp_listener", "tcp_client"}, "tcp"},
-		{{"font"}, "font"},
+		{{"tcp", "tcp_listener", "tcp_client"}, "tcp"}
 	},
 	default = {
 		w = 150, h = "fill",
 		text_color = COLORS.TCP_TEXT,
-		font = love.graphics.getFont()
+		font = "default 18"
 	}
 }
 
