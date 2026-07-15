@@ -163,6 +163,8 @@ function DiagramNode:selectOn()
 	self.select = self.parent:selectRelatives(self)
 	self:showNavigationObjects()
 	self:getObjectClass("DiagramContainer").setCurrentSelect(self)
+
+	self.diagram:refreshMinimap()
 end
 
 function DiagramNode:selectOff()
@@ -179,6 +181,8 @@ function DiagramNode:selectOff()
 	self:hideNavigationObjects()
 
 	self:getObjectClass("DiagramContainer").setCurrentSelect(nil)
+
+	self.diagram:refreshMinimap()
 end
 
 --#region Navigation objects

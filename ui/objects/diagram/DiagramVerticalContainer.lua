@@ -69,6 +69,8 @@ function DiagramVerticalContainer:toggleCollapse()
 	local new_tx, new_ty = self.master:getTranslation()
 
 	self.diagram:moveRoot(tx - new_tx, ty - new_ty)
+
+	self.diagram:refreshMinimap()
 end
 
 function DiagramVerticalContainer:getCollapseObject()

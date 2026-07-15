@@ -84,6 +84,8 @@ function DiagramSubplanContainer:toggleCollapse()
 	self:relayout()
 
 	if w then self.diagram:moveRoot(w - self.w, 0) end
+
+	self.diagram:refreshMinimap()
 end
 
 function DiagramSubplanContainer:isCollapsed()
@@ -108,12 +110,14 @@ function DiagramSubplanContainer:pack(packed)
 	self.subplanContainer:add(packed)
 	self.node = packed
 
-	if packed.name == "DiagramVerticalContainer" then
-		self:toggleCollapse()
-		self.node = packed.master
-	end
-
 	return self
+end
+
+function DiagramSubplanContainer:maybeCollapse()
+	if self.node.name == "DiagramVerticalContainer" then ---@cast self +{node: DiagramVerticalContainer}
+		self:toggleCollapse()
+		self.node = self.node.master
+	end
 end
 
 function DiagramSubplanContainer:masqueradeSubplanContainer()
@@ -150,7 +154,7 @@ function DiagramSubplanContainer:new()
 		color = COLORS.NODE_BORDER
 	}
 
-	self.subplanContainer = self:createChild "Container" { w = "hug", vertical = "top", padding = {50, 25, 50, 50}}
+	self.subplanContainer = self:createChild "Container" { w = "hug", vertical = "top", padding = {50, 25, 50, 50}, gap = 50}
 
 	self:masqueradeSubplanContainer()
 end

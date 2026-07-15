@@ -9,10 +9,13 @@ local TreeParser = require("classes.TreeParser")
 ---@field nodeInfoObject InfoPanel
 ---@field parser TreeParser
 ---@field root CompositeObject?
+---@field minimap MinimapApplet
 ---@field mouse_held {[1]: integer, [2]: integer}?
 ---@field mouse_held_origin {[1]: integer, [2]: integer}?
 ---@field cte_list table<string, DiagramNode>
 ---@field subquery_counter integer
+---@field subplanContainers DiagramSubplanContainer[]
+---@field diagramFullSize integer[]
 local DiagramArea = {
 	name = "DiagramArea",
 	extends = "CompositeObject",
@@ -29,6 +32,7 @@ local DiagramArea = {
 
 -- consts
 
+local MINIMAP_MARGIN = 15
 local MOVE_MAX = 200
 
 -- diagram fnc
@@ -64,6 +68,19 @@ function DiagramArea:tick(dt)
 			self.mouse_held[2] = my
 		end
 	end
+end
+
+function DiagramArea:autolayout(...)
+	self.CompositeObject.autolayout(self, ...)
+
+	if not self.minimap then
+		return
+	end
+
+	self.minimap.x = self.w - self.minimap.w - MINIMAP_MARGIN
+	self.minimap.y = MINIMAP_MARGIN
+
+	self.minimap:refreshMinimap()
 end
 
 function DiagramArea:resize(new_w, new_h, relayout)
@@ -145,13 +162,17 @@ function DiagramArea:plot(data)
 
 	self.objects = {}
 	self.cte_list = {}
+	self.subplanContainers = {}
 	self.subquery_counter = 0
 
 	self.root = self:packChild(object_tree.root)
 
 	self:add(self.root)
+	self.diagramFullSize = {self.root.w, self.root.h}
+	self:createMinimap(self.root)
 
 	self.root.layout.ignore = true
+	self:collapseSubplans()
 	self:moveRoot(0, 0)
 	self.nodeInfoObject:hide()
 
@@ -180,9 +201,14 @@ end
 function DiagramArea:packChild(node)
 	local packed = self:packNode(node)
 
+	if node.relationship ~= "InitPlan" and node.relationship ~= "Subquery" and node.relationship ~= "SubPlan" then
+		return packed
+	end
+
+	local subplan_container
+
 	if node.relationship == "InitPlan" then
-		---@type DiagramSubplanContainer
-		local subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, diagram = self }
+		subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, diagram = self }
 			:pack(packed)
 
 		if packed.name == "DiagramVerticalContainer" then
@@ -190,29 +216,23 @@ function DiagramArea:packChild(node)
 		else ---@cast packed DiagramNode
 			self.cte_list[node.subplan] = packed
 		end
-
-		return subplan_container
 	end
 
 	if node.relationship == "Subquery" then
 		self.subquery_counter = self.subquery_counter + 1
 
-		---@type DiagramSubplanContainer
-		local subplan_container = self:create "DiagramSubplanContainer" { title = "Subquery " .. self.subquery_counter, diagram = self }
+		subplan_container = self:create "DiagramSubplanContainer" { title = "Subquery " .. self.subquery_counter, diagram = self }
 			:pack(packed)
-
-		return subplan_container
 	end
 
 	if node.relationship == "SubPlan" then
-		---@type DiagramSubplanContainer
-		local subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, diagram = self }
+		subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, diagram = self }
 			:pack(packed)
-
-		return subplan_container
 	end
 
-	return packed
+	self.subplanContainers[#self.subplanContainers+1] = subplan_container
+
+	return subplan_container
 end
 
 ---@param node DumpedNode
@@ -248,6 +268,23 @@ function DiagramArea:makeNodeObject(node)
 	}
 end
 
+function DiagramArea:createMinimap(node)
+	self.minimap = self:createChild "MinimapApplet" {node}
+
+	self.minimap.x = self.w - self.minimap.w - MINIMAP_MARGIN
+	self.minimap.y = MINIMAP_MARGIN
+end
+
+function DiagramArea:refreshMinimap()
+	self.minimap:refreshMinimap()
+end
+
+function DiagramArea:collapseSubplans()
+	for _, subplan in ipairs(self.subplanContainers) do
+		subplan:maybeCollapse()
+	end
+end
+
 ---@param node_info_object InfoPanel
 function DiagramArea:registerNodeInfo(node_info_object)
 	self.nodeInfoObject = node_info_object
@@ -266,6 +303,8 @@ function DiagramArea:new()
 
 	self.cte_list = {}
 	self.subquery_counter = 0
+	self.subplanContainers = {}
+
 	self.parser = TreeParser()
 end
 

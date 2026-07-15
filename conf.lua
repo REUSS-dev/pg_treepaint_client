@@ -11,6 +11,8 @@ CLIENT_PORT = 4523
 
 UI_THEME = "dark"
 
+MINIMAP_DIMENSIONS = {300, 200}
+
 BUFFER_SIZE = 8192
 
 function love.conf(t)
