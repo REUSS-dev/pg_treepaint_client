@@ -1,11 +1,10 @@
 -- node
 
----@class DiagramNodeCTEScan : DiagramNodeSeqScan
----@field DiagramNodeSeqScan DiagramNodeSeqScan
+---@class DiagramNodeCTEScan : DiagramNode
 ---@field DiagramNode DiagramNode
 local DiagramNodeCTEScan = {
 	name = "DiagramNodeCTEScan",
-	extends = "DiagramNodeSeqScan",
+	extends = "DiagramNode",
 	default = {
 		colors = {
 			border = COLORS.NODE_CTE_SCAN
@@ -14,11 +13,18 @@ local DiagramNodeCTEScan = {
 }
 
 function DiagramNodeCTEScan:populateInfo(covered)
-	local sections = self.DiagramNodeSeqScan.populateInfo(self, covered)
+	local sections = {}
 
 	covered["CTE Name"] = true
+	covered["Alias"] = true
+	covered["Rows Removed by Filter"] = true
+	covered["Filter"] = true
 
-	sections[1]:addTextProtected("CTE Name: ", self.node.raw["CTE Name"])
+	sections[1] = self:create "InfoPanelSection" { title = "Scan Info" }
+		:addTextProtected("CTE Name: ", self.node.raw["CTE Name"])
+		:addTextProtected("Alias: ", self.node.raw["Alias"])
+		:addTextProtected("Rows Removed by Filter: ", self.node.raw["Rows Removed by Filter"])
+		:addTextProtected("Filter: ", self.node.raw["Filter"])
 
 	return sections
 end
@@ -55,7 +61,7 @@ end
 -- node fnc
 
 function DiagramNodeCTEScan:new()
-	self.titleContainer:addDescProtected("on CTE ", self.node.raw["CTE Name"] and (self.node.raw["CTE Name"] .. (self.node.raw["Alias"] and (" (" .. self.node.raw["Alias"] .. ")") or "")), true)
+	self.titleContainer:addDescProtected("on CTE ", self.node.raw["CTE Name"] and (self.node.raw["CTE Name"] .. (self.node.raw["Alias"] and self.node.raw["Alias"] ~= self.node.raw["CTE Name"] and (" (" .. self.node.raw["Alias"] .. ")") or "")), true)
 end
 
 return DiagramNodeCTEScan

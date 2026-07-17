@@ -531,13 +531,23 @@ function DiagramNode:new()
 	self.footerContainer = self:createChild "DiagramNodeContainer" { font = self.font }
 
 	if node_data.timing then
-		self.footerContainer:createChild "Label" {
-			w = "fill",
-			font = self.font.S,
-			horizontal = "right",
-			textColor = self.text_color_desc,
-			text = "Time: " .. node_data.timing.node.total[2] .. "ms",
-		}
+		if node_data.raw["Actual Loops"] == 0 then
+			self.footerContainer:createChild "Label" {
+				w = "fill",
+				font = self.font.S,
+				horizontal = "right",
+				textColor = self.text_color_desc,
+				text = "Never executed",
+			}
+		else
+			self.footerContainer:createChild "Label" {
+				w = "fill",
+				font = self.font.S,
+				horizontal = "right",
+				textColor = self.text_color_desc,
+				text = "Time: " .. node_data.timing.node.total[2] .. "ms",
+			}
+		end
 	elseif node_data.startup_cost then
 		self.footerContainer:createChild "Label" {
 			w = "fill",

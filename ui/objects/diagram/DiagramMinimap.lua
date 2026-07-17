@@ -26,7 +26,7 @@ local DiagramMinimap = {
 		padding = 15,
 
 		color = {1, 1, 1, 0.75},
-		additionalColor = {0, 0, 0, 1},
+		additionalColor = COLORS.MINIMAP_PACKGROUND,
 
 		scale = 0.075
 	},
@@ -205,10 +205,10 @@ function DiagramMinimap:renderVerticalContainer(object)
 	love.graphics.setColor(COLORS.CONNECTION)
 
 	local tx, ty = object.master:getTranslation()
-	tx, ty = math.floor(tx * self.scale + self.globalOffset[1] + .5), math.floor(ty * self.scale + self.globalOffset[2] + .5)
-	local w, h = math.floor(object.master.w * self.scale + .5), math.floor(object.master.h * self.scale + .5)
+	tx, ty = tx * self.scale + self.globalOffset[1], math.floor(ty * self.scale + self.globalOffset[2] + .5)
+	local w, h = object.master.w * self.scale, math.floor(object.master.h * self.scale + .5)
 
-	local conn_x1 = tx + math.floor(w/2 + .5)
+	local conn_x1 = tx + w/2
 	local conn_y1 = ty + h
 	local conn_x2 = conn_x1
 	local conn_y2 = math.max(conn_y1 + 1, conn_y1 + object.layout.gap/2 * self.scale)
@@ -249,14 +249,15 @@ function DiagramMinimap:renderSubplanContainer(object)
 	love.graphics.setColor((COLORS.CONNECTION[1] + 0.5)/2, (COLORS.CONNECTION[2] + 0.5)/2, (COLORS.CONNECTION[3] + 0.5)/2, COLORS.CONNECTION[4])
 
 	local tx, ty = object:getTranslation()
-	tx, ty = math.floor(tx * self.scale + self.globalOffset[1] + .5), math.floor(ty * self.scale + self.globalOffset[2] + .5) + 1
+	tx, ty = tx * self.scale + self.globalOffset[1], math.floor(ty * self.scale + self.globalOffset[2] + .5) + 1
+	local w, h = object.w * self.scale, object.h * self.scale
 
-	love.graphics.rectangle("line", tx, ty, math.floor(object.w * self.scale + .5), math.floor(object.h * self.scale + .5))
+	love.graphics.rectangle("line", math.floor(tx + .5), ty, math.floor(w + .5), math.floor(h + .5))
 
 	if object:isCollapsed() then
 		love.graphics.setColor(COLORS.CONNECTION)
 
-		local conn_x1 = tx + math.floor(object.w/2 * self.scale + .5)
+		local conn_x1 = tx + w/2
 		local conn_y1 = ty - 1
 		local conn_x2 = conn_x1
 		local conn_y2 = conn_y1 - object.parent.layout.gap/2 * self.scale
@@ -269,9 +270,9 @@ function DiagramMinimap:renderSubplanContainer(object)
 	love.graphics.setColor(COLORS.CONNECTION)
 
 	tx = object:getTranslation()
-	tx = tx * self.scale + self.globalOffset[1] + .5
+	tx = tx * self.scale + self.globalOffset[1]
 
-	local conn_x1 = tx + object.w/2 * self.scale
+	local conn_x1 = tx + w/2
 	local conn_y1 = ty - object.parent.layout.gap/2 * self.scale
 	local conn_x2 = conn_x1
 	local conn_y2 = ty + object.parent.layout.gap*2 * self.scale
@@ -303,7 +304,7 @@ function DiagramMinimap:renderNode(object)
 
 	love.graphics.setColor(COLORS.CONNECTION)
 
-	local conn_x1 = tx + w/2
+	local conn_x1 = tx + object.w/2 * self.scale
 	local conn_y1 = ty
 	local conn_x2 = conn_x1
 	local conn_y2 = ty - object.parent.layout.gap/2 * self.scale
