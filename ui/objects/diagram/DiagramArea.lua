@@ -7,9 +7,12 @@ local TreeParser = require("classes.TreeParser")
 ---@class DiagramArea : CompositeObject
 ---@field CompositeObject CompositeObject
 ---@field nodeInfoObject InfoPanel
----@field parser TreeParser
----@field root CompositeObject?
 ---@field minimap MinimapApplet
+---@field summaryObject SummaryDock
+---@field summaryToggle Button
+---@field parser TreeParser
+---@field plan DumpedPlan
+---@field root CompositeObject?
 ---@field mouse_held {[1]: integer, [2]: integer}?
 ---@field mouse_held_origin {[1]: integer, [2]: integer}?
 ---@field cte_list table<string, DiagramNode>
@@ -165,6 +168,7 @@ function DiagramArea:plot(data)
 	self.subplanContainers = {}
 	self.subquery_counter = 0
 
+	self.plan = object_tree
 	self.root = self:packChild(object_tree.root)
 
 	self:add(self.root)
@@ -175,6 +179,11 @@ function DiagramArea:plot(data)
 	self:collapseSubplans()
 	self:moveRoot(0, 0)
 	self.nodeInfoObject:hide()
+
+	if self.summaryObject then
+		self.summaryObject:applyPlan(object_tree)
+		self:createSummaryToggle()
+	end
 
 	collectgarbage("collect")
 end
@@ -283,6 +292,23 @@ function DiagramArea:collapseSubplans()
 	for _, subplan in ipairs(self.subplanContainers) do
 		subplan:maybeCollapse()
 	end
+end
+
+function DiagramArea:createSummaryToggle()
+	if not self.summaryObject then
+		return
+	end
+
+	self.summaryToggle = self:createChild "SummaryToggle" {
+		summary = self.summaryObject
+	}
+	self.summaryToggle.x = 0
+	self.summaryToggle.y = 50
+end
+
+---@param summary_object SummaryDock
+function DiagramArea:registerSummary(summary_object)
+	self.summaryObject = summary_object
 end
 
 ---@param node_info_object InfoPanel

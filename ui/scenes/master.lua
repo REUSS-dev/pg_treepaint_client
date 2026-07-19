@@ -86,29 +86,10 @@ top_panel:add(tcp)
 
 --#region
 
-local main_panel = gui.Container{
-	w = "fill",
-	h = "fill",
-	growth = "horizontal",
-	gap = 0
-}
-canvas:add(main_panel)
+local main_panel = canvas:createChild "MainPanel" {}
 
-local diagram_draw = gui.DiagramArea{
-	w = "fill",
-	h = "fill",
-	color = COLORS.BACKGROUND
-}
-main_panel:add(diagram_draw)
-tcp:registerDiagramObject(diagram_draw)
-paste:registerDiagramObject(diagram_draw)
-
-local node_info = gui.InfoPanel{
-	color = COLORS.INFO_PANEL
-}
-main_panel:add(node_info)
-
-diagram_draw:registerNodeInfo(node_info)
+main_panel:registerDiagramObject(tcp)
+main_panel:registerDiagramObject(paste)
 
 --#endregion
 

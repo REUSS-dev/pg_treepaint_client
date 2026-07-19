@@ -28,7 +28,7 @@ function NodeStringParser:parseValue()
 		if self:parseTrue() then
 			return true
 		end
-		
+
 		return self:parseIdentifier()
 	elseif char == "f" then
 		if self:parseFalse() then

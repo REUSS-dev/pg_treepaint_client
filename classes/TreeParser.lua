@@ -16,6 +16,9 @@ local TextParser = require("classes.TextParser")
 ---@alias BufferStats {hit: integer, read: integer, dirtied: integer, written: integer, total: integer}
 ---@alias BufferTable {Local: BufferStats?, Shared: BufferStats?, Temp: BufferStats?, Total: BufferStats?}
 
+---@class DumpedPlan
+---@field root DumpedNode
+
 ---@class DumpedNode
 ---@field raw PlanNode
 ---@field type NodeType
@@ -332,6 +335,8 @@ end
 local TreeParser = {}
 TreeParser.__index = TreeParser
 
+---@param tree string
+---@return DumpedPlan?
 function TreeParser:parse(tree)
 	tree = self.normalizer:normalize(tree)
 
@@ -344,6 +349,8 @@ function TreeParser:parse(tree)
 	return self:parseText(tree)
 end
 
+---@param json_string string
+---@return DumpedPlan
 function TreeParser:parseJSON(json_string)
 	local parsed = {}
 
@@ -357,6 +364,8 @@ function TreeParser:parseJSON(json_string)
 	return parsed
 end
 
+---@param text string
+---@return DumpedPlan?
 function TreeParser:parseText(text)
 	local parsed = {}
 
