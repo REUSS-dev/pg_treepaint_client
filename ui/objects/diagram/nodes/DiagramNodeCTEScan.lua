@@ -20,7 +20,7 @@ function DiagramNodeCTEScan:populateInfo(covered)
 	covered["Rows Removed by Filter"] = true
 	covered["Filter"] = true
 
-	sections[1] = self:create "InfoPanelSection" { title = "Scan Info" }
+	sections[1] = self:create "SectionContainer" { title = "Scan Info" }
 		:addTextProtected("CTE Name: ", self.node.raw["CTE Name"])
 		:addTextProtected("Alias: ", self.node.raw["Alias"])
 		:addTextProtected("Rows Removed by Filter: ", self.node.raw["Rows Removed by Filter"])

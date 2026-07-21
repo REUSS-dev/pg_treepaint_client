@@ -40,22 +40,18 @@ local MOVE_MAX = 200
 
 -- diagram fnc
 
-function DiagramArea:click(x, y, but)
-	if but == 1 then
-		self.mouse_held = {x, y}
-		self.mouse_held_origin = {x, y}
-	end
+function DiagramArea:click_left(x, y)
+	self.mouse_held = {x, y}
+	self.mouse_held_origin = {x, y}
 end
 
-function DiagramArea:clickRelease(x, y, but)
-	if but == 1 then
-		if x == self.mouse_held_origin[1] and y == self.mouse_held_origin[2] then
-			self.nodeInfoObject:hide()
-		end
-
-		self.mouse_held = nil
-		self.mouse_held_origin = nil
+function DiagramArea:clickRelease_left(x, y)
+	if x == self.mouse_held_origin[1] and y == self.mouse_held_origin[2] then
+		self.nodeInfoObject:hide()
 	end
+
+	self.mouse_held = nil
+	self.mouse_held_origin = nil
 end
 
 function DiagramArea:tick(dt)

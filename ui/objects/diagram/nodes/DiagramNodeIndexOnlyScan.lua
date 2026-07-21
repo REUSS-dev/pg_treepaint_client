@@ -22,7 +22,7 @@ function DiagramNodeIndexOnlyScan:populateInfo(covered)
 	covered["Rows Removed by Index Recheck"] = true
 	covered["Index Cond"] = true
 
-	sections[#sections+1] = self:create "InfoPanelSection" { title = "Index Info" }
+	sections[#sections+1] = self:create "SectionContainer" { title = "Index Info" }
 		:addTextProtected("Index: ", self.node.raw["Index Name"])
 		:addTextProtected("Scan Direction: ", self.node.raw["Scan Direction"])
 		:addTextProtected("Index Searches: ", self.node.raw["Index Searches"])

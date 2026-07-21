@@ -20,7 +20,7 @@ function DiagramNodeSeqScan:populateInfo(covered)
 	covered["Rows Removed by Filter"] = true
 	covered["Filter"] = true
 
-	sections[1] = self:create "InfoPanelSection" { title = "Scan Info" }
+	sections[1] = self:create "SectionContainer" { title = "Scan Info" }
 		:addTextProtected("Schema: ", self.node.raw["Schema"])
 		:addTextProtected("Relation: ", self.node.raw["Relation Name"])
 		:addTextProtected("Alias: ", self.node.raw["Alias"])

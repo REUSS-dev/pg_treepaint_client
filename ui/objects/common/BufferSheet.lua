@@ -1,4 +1,4 @@
--- InfoPanelBuffers
+-- BufferSheet
 
 local EPS = 0.0000000000001
 local BUFFER_SIZE = BUFFER_SIZE / 1024
@@ -14,19 +14,21 @@ local InformationUnits = {"kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", 
 
 local DEFAULT_VIEW_STATE = ViewStates.PAGE
 
----@class InfoPanelBuffers : CompositeObject
+---@class BufferSheet : CompositeObject
 ---@field CompositeObject CompositeObject
----@field buffers BufferTable
+---@field buffers BufferSheet
 ---@field shared_row {objects: Label[]}?
 ---@field local_row {objects: Label[]}?
 ---@field temp_row {objects: Label[]}?
 ---@field total_row {objects: Label[]}?
 ---@field populatedView ViewStates?
-local InfoPanelBuffers = {
-	name = "InfoPanelBuffers",
+---@field group string
+local BufferSheet = {
+	name = "BufferSheet",
 	extends = "CompositeObject",
 	rules = {
 		{{"buffers"}, "buffers"},
+		{{"group"}, "group"},
 	},
 	default = {
 		w = "fill",
@@ -38,38 +40,40 @@ local InfoPanelBuffers = {
 		r = 15,
 		padding = {10, 2},
 
-		color = COLORS.INFO_BUFFERS,
-		font = "default 16"
+		color = COLORS.BUFFER_TABLE,
+		font = "default 16",
+
+		group = "default"
 	},
 
-	currentView = {DEFAULT_VIEW_STATE}
+	currentView = {}
 }
 
-function InfoPanelBuffers:paint(...)
+function BufferSheet:paint(...)
 	self:resolveView()
 	self.CompositeObject.paint(self)
 end
 
-function InfoPanelBuffers:toggleView()
-	local current_view = self.currentView[1]
+function BufferSheet:toggleView()
+	local current_view = self.currentView[self.group]
 
 	if current_view == ViewStates.PAGE then
-		self.currentView[1] = ViewStates.PERCENT
+		self.currentView[self.group] = ViewStates.PERCENT
 	elseif current_view == ViewStates.PERCENT then
-		self.currentView[1] = ViewStates.BYTES
+		self.currentView[self.group] = ViewStates.BYTES
 	elseif current_view == ViewStates.BYTES then
-		self.currentView[1] = ViewStates.PAGE
+		self.currentView[self.group] = ViewStates.PAGE
 	end
 
 	self:redraw()
 end
 
-function InfoPanelBuffers:resolveView()
+function BufferSheet:resolveView()
 	if not self.header then
 		return
 	end
 
-	local current_view = self.currentView[1]
+	local current_view = self.currentView[self.group]
 
 	if current_view == self.populatedView then
 		return
@@ -89,14 +93,14 @@ function InfoPanelBuffers:resolveView()
 	self.populatedView = current_view
 end
 
-function InfoPanelBuffers:populatePage()
+function BufferSheet:populatePage()
 	self:populatePageRow(self.shared_row, self.buffers.Shared)
 	self:populatePageRow(self.local_row, self.buffers.Local)
 	self:populatePageRow(self.temp_row, self.buffers.Temp)
 	self:populatePageRow(self.total_row, self.buffers.Total)
 end
 
-function InfoPanelBuffers:populatePageRow(row, buffer_values)
+function BufferSheet:populatePageRow(row, buffer_values)
 	if row then
 		row.objects[2]:setText(buffer_values.hit ~= 0 and tostring(buffer_values.hit) or "")
 		row.objects[3]:setText(buffer_values.read ~= 0 and tostring(buffer_values.read) or "")
@@ -105,14 +109,14 @@ function InfoPanelBuffers:populatePageRow(row, buffer_values)
 	end
 end
 
-function InfoPanelBuffers:populatePercent()
+function BufferSheet:populatePercent()
 	self:populatePercentRow(self.shared_row, self.buffers.Shared)
 	self:populatePercentRow(self.local_row, self.buffers.Local)
 	self:populatePercentRow(self.temp_row, self.buffers.Temp)
 	self:populatePercentRow(self.total_row, self.buffers.Total)
 end
 
-function InfoPanelBuffers:populatePercentRow(row, buffer_values)
+function BufferSheet:populatePercentRow(row, buffer_values)
 	if row then
 		row.objects[2]:setText(self:getFitPercent(buffer_values.hit / buffer_values.total, row.objects[2].w))
 		row.objects[3]:setText(self:getFitPercent(buffer_values.read / buffer_values.total, row.objects[3].w))
@@ -124,7 +128,7 @@ end
 ---@param value number
 ---@param width integer
 ---@return string
-function InfoPanelBuffers:getFitPercent(value, width)
+function BufferSheet:getFitPercent(value, width)
 	if value < EPS then
 		return ""
 	end
@@ -134,14 +138,14 @@ function InfoPanelBuffers:getFitPercent(value, width)
 	return self:fitNumber(value, "%", width) or "?"
 end
 
-function InfoPanelBuffers:populateBytes()
+function BufferSheet:populateBytes()
 	self:populateBytesRow(self.shared_row, self.buffers.Shared)
 	self:populateBytesRow(self.local_row, self.buffers.Local)
 	self:populateBytesRow(self.temp_row, self.buffers.Temp)
 	self:populateBytesRow(self.total_row, self.buffers.Total)
 end
 
-function InfoPanelBuffers:populateBytesRow(row, buffer_values)
+function BufferSheet:populateBytesRow(row, buffer_values)
 	if row then
 		row.objects[2]:setText(self:getFitBytes(buffer_values.hit, row.objects[2].w))
 		row.objects[3]:setText(self:getFitBytes(buffer_values.read, row.objects[3].w))
@@ -153,7 +157,7 @@ end
 ---@param bufer_count integer
 ---@param width integer
 ---@return string
-function InfoPanelBuffers:getFitBytes(bufer_count, width)
+function BufferSheet:getFitBytes(bufer_count, width)
 	if bufer_count == 0 then
 		return ""
 	end
@@ -177,7 +181,7 @@ end
 ---@param postfix string
 ---@param width integer
 ---@return string?
-function InfoPanelBuffers:fitNumber(value, postfix, width)
+function BufferSheet:fitNumber(value, postfix, width)
 	width = width - 2
 
 	for i = 2, 0, -1 do
@@ -195,7 +199,7 @@ end
 ---@param title string
 ---@param isTotal boolean?
 ---@return CompositeObject
-function InfoPanelBuffers:createRow(title, isTotal)
+function BufferSheet:createRow(title, isTotal)
 	self:createDivider(isTotal)
 
 	local new_row = self:createChild "Container" {
@@ -214,7 +218,7 @@ function InfoPanelBuffers:createRow(title, isTotal)
 		horizontal = "center",
 		text = title,
 		font = self.font,
-		textColor = COLORS.INFO_BUFFERS_TEXT
+		textColor = COLORS.BUFFER_TEXT
 	}
 
 	for _ = 1, 4 do
@@ -224,7 +228,7 @@ function InfoPanelBuffers:createRow(title, isTotal)
 			horizontal = "right",
 			text = "",
 			font = self.font,
-			textColor = COLORS.INFO_BUFFERS_TEXT
+			textColor = COLORS.BUFFER_TEXT
 		}
 	end
 
@@ -232,22 +236,24 @@ function InfoPanelBuffers:createRow(title, isTotal)
 end
 
 ---@param isTotal boolean?
-function InfoPanelBuffers:createDivider(isTotal)
+function BufferSheet:createDivider(isTotal)
 	self:createChild "Container" {
 		w = "fill",
 		h = 1,
-		color = isTotal and COLORS.INFO_BUFFERS_DIVIDER_SUMUP or COLORS.INFO_BUFFERS_DIVIDER
+		color = isTotal and COLORS.BUFFER_DIVIDER_SUMUP or COLORS.BUFFER_DIVIDER
 	}
 end
 
-function InfoPanelBuffers:new()
+function BufferSheet:new()
+	self.currentView[self.group] = DEFAULT_VIEW_STATE
+
 	if not self.buffers.Total then
 		self:createChild "Label" {
 			text = "No buffers utilized.",
 			font = self.font,
 			w = "fill",
 			horizontal = "left",
-			textColor = COLORS.INFO_BUFFERS_TEXT
+			textColor = COLORS.BUFFER_TEXT
 		}
 
 		self.r = 10
@@ -275,9 +281,9 @@ function InfoPanelBuffers:new()
 			h = "fill",
 			text = self.currentView[1],
 			font = self.font,
-			color = COLORS.INFO_BUFFERS_BUTTON_FILL,
-			additionalColor = COLORS.INFO_BUFFERS_BUTTON_BORDER,
-			textColor = COLORS.INFO_BUFFERS_BUTTON_TEXT,
+			color = COLORS.BUFFER_BUTTON_FILL,
+			additionalColor = COLORS.BUFFER_BUTTON_BORDER,
+			textColor = COLORS.BUFFER_BUTTON_TEXT,
 			action = function ()
 				self:toggleView()
 			end
@@ -289,7 +295,7 @@ function InfoPanelBuffers:new()
 			horizontal = "right",
 			text = "Hit",
 			font = self.font,
-			textColor = COLORS.INFO_BUFFERS_TEXT
+			textColor = COLORS.BUFFER_TEXT
 		}
 		header:createChild "Label" {
 			w = "fill",
@@ -297,7 +303,7 @@ function InfoPanelBuffers:new()
 			horizontal = "right",
 			text = "Read",
 			font = self.font,
-			textColor = COLORS.INFO_BUFFERS_TEXT
+			textColor = COLORS.BUFFER_TEXT
 		}
 		header:createChild "Label" {
 			w = "fill",
@@ -305,7 +311,7 @@ function InfoPanelBuffers:new()
 			horizontal = "right",
 			text = "Dirtied",
 			font = self.font,
-			textColor = COLORS.INFO_BUFFERS_TEXT
+			textColor = COLORS.BUFFER_TEXT
 		}
 		header:createChild "Label" {
 			w = "fill",
@@ -313,7 +319,7 @@ function InfoPanelBuffers:new()
 			horizontal = "right",
 			text = "Written",
 			font = self.font,
-			textColor = COLORS.INFO_BUFFERS_TEXT
+			textColor = COLORS.BUFFER_TEXT
 		}
 
 		self.header = header
@@ -336,4 +342,4 @@ function InfoPanelBuffers:new()
 	end
 end
 
-return InfoPanelBuffers
+return BufferSheet

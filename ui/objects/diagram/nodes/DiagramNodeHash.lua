@@ -32,7 +32,7 @@ function DiagramNodeHash:populateInfo(covered)
 		return {}
 	end
 
-	local hash = self:create "InfoPanelSection" { title = "Hash Info" }
+	local hash = self:create "SectionContainer" { title = "Hash Info" }
 		:addTextProtected("Batches: ", batches and (batches_o and batches~=batches_o and (batches .. " (Original: " .. batches_o .. ")") or batches))
 		:addTextProtected("Buckets: ", buckets and (buckets_o and buckets~=buckets_o and (buckets .. " (Original: " .. buckets_o .. ")") or buckets))
 		:addTextProtected("Peak memory usage: ", peak and (peak .. "kB"))

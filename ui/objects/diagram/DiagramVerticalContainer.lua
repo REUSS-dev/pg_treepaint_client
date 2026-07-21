@@ -25,10 +25,8 @@ function DiagramVerticalContainer:add(...)
 	end
 end
 
-function DiagramVerticalContainer:click(_, _, but)
-	if but == 1 then
-		self:toggleCollapse()
-	end
+function DiagramVerticalContainer:click_left()
+	self:toggleCollapse()
 end
 
 function DiagramVerticalContainer:generateLines()

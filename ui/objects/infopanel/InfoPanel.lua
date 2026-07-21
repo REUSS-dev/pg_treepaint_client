@@ -137,7 +137,7 @@ function InfoPanel:createCosts(node, covered)
 	covered["Plan Rows"] = true
 	covered["Plan Width"] = true
 
-	local costs = self.contentsContainer:createChild "InfoPanelSection" { title = "Costs Info" }
+	local costs = self.contentsContainer:createChild "SectionContainer" { title = "Costs Info" }
 		:addText("Plan Width: " .. node.node.raw["Plan Width"] .. " bytes")
 		:addText("Plan Rows: " .. node.node.raw["Plan Rows"])
 		:addText("Cost: " .. node.node.startup_cost .. ".." .. node.node.total_cost)
@@ -161,7 +161,7 @@ function InfoPanel:createAnalyze(node, covered)
 
 	local loops = node.node.raw["Actual Loops"]
 
-	local section = self.contentsContainer:createChild "InfoPanelSection" { title = "Timing Info" }
+	local section = self.contentsContainer:createChild "SectionContainer" { title = "Timing Info" }
 
 	if loops == 0 then
 		section:addText("Never executed")
@@ -207,11 +207,12 @@ function InfoPanel:createBuffers(node, covered)
 	covered["Temp Read Blocks"] = true
 	covered["Temp Written Blocks"] = true
 
-	self.contentsContainer:createChild "InfoPanelSection" { title = "Buffers Info" }
+	self.contentsContainer:createChild "SectionContainer" { title = "Buffers Info" }
 		:getContentsContainer()
-			:createChild "InfoPanelBuffers" {
+			:createChild "BufferSheet" {
 				buffers = node.node.buffers,
-				font = self.font.S
+				font = self.font.S,
+				group = "infopanel"
 			}
 end
 
@@ -229,13 +230,13 @@ function InfoPanel:createWAL(node, covered)
 	covered["WAL Buffers Full"] = true
 
 	if node.node.raw["WAL Records"] == 0 then
-		self.contentsContainer:createChild "InfoPanelSection" { title = "WAL Info" }
+		self.contentsContainer:createChild "SectionContainer" { title = "WAL Info" }
 			:addText("No WAL Records created.")
 
 		return
 	end
 
-	local wal = self.contentsContainer:createChild "InfoPanelSection" { title = "WAL Info" }
+	local wal = self.contentsContainer:createChild "SectionContainer" { title = "WAL Info" }
 
 	if node.node.raw["WAL Bytes"] and node.node.raw["WAL Bytes"] > 0 then
 		wal:addText("Records: " .. node.node.raw["WAL Records"] .. " (" .. node.node.raw["WAL Bytes"] .. " bytes)")
@@ -261,9 +262,9 @@ function InfoPanel:createOutput(node, covered)
 
 	covered["Output"] = true
 
-	local wal = self.contentsContainer:createChild "InfoPanelSection" { title = "Output Info" }
+	local wal = self.contentsContainer:createChild "SectionContainer" { title = "Output Info" }
 		:addText("Output count: " .. #node.node.raw["Output"])
-		:addTextProtected("", #node.node.raw["Output"] > 0 and "")
+		:addTextProtected("", #node.node.raw["Output"] > 0 and "" or nil)
 
 	for _, value in ipairs(node.node.raw["Output"]) do
 		wal:addText(value)
@@ -277,7 +278,7 @@ function InfoPanel:createUnknown(node, covered)
 
 	for k, v in pairs(node.node.raw) do
 		if not covered[k] then
-			unknown = unknown or self.contentsContainer:createChild "InfoPanelSection" { title = "Other" }
+			unknown = unknown or self.contentsContainer:createChild "SectionContainer" { title = "Other" }
 
 			unknown:addText(k .. ": " .. tostring(v))
 		end

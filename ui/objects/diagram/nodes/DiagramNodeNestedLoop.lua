@@ -18,7 +18,7 @@ function DiagramNodeNestedLoop:populateInfo(covered)
 	covered["Filter"] = true
 
 	if self.node.raw["Filter"] or self.node.raw["Rows Removed by Filter"] then
-		local filter = self:create "InfoPanelSection" { title = "Filter Info" }
+		local filter = self:create "SectionContainer" { title = "Filter Info" }
 			:addTextProtected("Rows Removed by Filter: ", self.node.raw["Rows Removed by Filter"])
 			:addTextProtected("Filter: ", self.node.raw["Filter"])
 
@@ -30,7 +30,7 @@ function DiagramNodeNestedLoop:populateInfo(covered)
 	covered["Rows Removed by Join Filter"] = true
 	covered["Join Filter"] = true
 
-	local join_info = self:create "InfoPanelSection" { title = "Join Info" }
+	local join_info = self:create "SectionContainer" { title = "Join Info" }
 		:addTextProtected("Type: ", self.node.raw["Join Type"])
 		:addTextProtected("Inner Unique: ", self.node.raw["Inner Unique"] ~= nil and tostring(self.node.raw["Inner Unique"]) )
 		:addTextProtected("Join Relation: ", self.node.table)

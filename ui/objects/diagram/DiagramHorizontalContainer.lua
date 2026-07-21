@@ -45,8 +45,8 @@ function DiagramHorizontalContainer:paintLines()
 	end
 end
 
-function DiagramHorizontalContainer:click(_, _, but)
-	if but == 1 and self.parent.name == "DiagramVerticalContainer" then
+function DiagramHorizontalContainer:click_left()
+	if self.parent.name == "DiagramVerticalContainer" then
 		self.parent:toggleCollapse()
 	end
 end

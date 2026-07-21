@@ -19,7 +19,7 @@ function DiagramNodeSort:populateInfo(covered)
 	covered["Sort Space Type"] = true
 	covered["Sort Key"] = true
 
-	sections[1] = self:create "InfoPanelSection" { title = "Sort Info" }
+	sections[1] = self:create "SectionContainer" { title = "Sort Info" }
 		:addTextProtected("Method: ", self.node.sort_method)
 		:addTextProtected("Space Used: ", self.node.raw["Sort Space Used"] and (self.node.raw["Sort Space Used"] .. " kB (" .. self.node.raw["Sort Space Type"] .. ")") or nil)
 

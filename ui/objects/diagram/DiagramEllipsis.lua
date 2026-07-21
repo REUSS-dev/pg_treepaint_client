@@ -21,10 +21,8 @@ local DiagramEllipsis = {
 	hoverColor = COLORS.CONNECTION_HOVER,
 }
 
-function DiagramEllipsis:click(_, _, but)
-	if but == 1 then
-		self.parent:toggleCollapse()
-	end
+function DiagramEllipsis:click_left()
+	self.parent:toggleCollapse()
 end
 
 function DiagramEllipsis:hoverOn(x, y)

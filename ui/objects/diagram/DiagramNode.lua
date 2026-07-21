@@ -487,7 +487,7 @@ function DiagramNode:processChildren(objects)
 end
 
 ---@param _ table<string, boolean>
----@return InfoPanelSection
+---@return SectionContainer
 function DiagramNode:populateInfo(_)
 	return {}
 end

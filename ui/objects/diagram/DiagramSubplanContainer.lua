@@ -58,10 +58,8 @@ function DiagramSubplanContainer:hoverOff(...)
 	return self.DiagramContainer.hoverOff(self, ...)
 end
 
-function DiagramSubplanContainer:click(_, _, but)
-	if but == 1 then
-		self:toggleCollapse()
-	end
+function DiagramSubplanContainer:click()
+	self:toggleCollapse()
 end
 
 function DiagramSubplanContainer:toggleCollapse()
