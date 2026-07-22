@@ -1,5 +1,7 @@
 -- BufferSheet
 
+local gui = require("stellargui")
+
 local EPS = 0.0000000000001
 local BUFFER_SIZE = BUFFER_SIZE / 1024
 
@@ -14,9 +16,13 @@ local InformationUnits = {"kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", 
 
 local DEFAULT_VIEW_STATE = ViewStates.PAGE
 
+local FONT_STEP = 1
+local FONT_MIN_SIZE = 12
+
 ---@class BufferSheet : CompositeObject
 ---@field CompositeObject CompositeObject
----@field buffers BufferSheet
+---@field buffers BufferTable
+---@field header CompositeObject
 ---@field shared_row {objects: Label[]}?
 ---@field local_row {objects: Label[]}?
 ---@field temp_row {objects: Label[]}?
@@ -71,7 +77,7 @@ end
 function BufferSheet:resolveView()
 	if not self.header then
 		return
-	end
+	end ---@cast self +{header:{objects: {objects: {objects: {[1]: Label}}[]}[]}}
 
 	local current_view = self.currentView[self.group]
 
@@ -102,11 +108,43 @@ end
 
 function BufferSheet:populatePageRow(row, buffer_values)
 	if row then
-		row.objects[2]:setText(buffer_values.hit ~= 0 and tostring(buffer_values.hit) or "")
-		row.objects[3]:setText(buffer_values.read ~= 0 and tostring(buffer_values.read) or "")
-		row.objects[4]:setText(buffer_values.dirtied ~= 0 and tostring(buffer_values.dirtied) or "")
-		row.objects[5]:setText(buffer_values.written ~= 0 and tostring(buffer_values.written) or "")
+		row.objects[2]:setText(self:getFitPage(buffer_values.hit, row.objects[2]))
+		row.objects[3]:setText(self:getFitPage(buffer_values.read, row.objects[3]))
+		row.objects[4]:setText(self:getFitPage(buffer_values.dirtied, row.objects[4]))
+		row.objects[5]:setText(self:getFitPage(buffer_values.written, row.objects[5]))
 	end
+end
+
+---@param value integer
+---@param object Label
+---@return string
+function BufferSheet:getFitPage(value, object)
+	if value == 0 then
+		return ""
+	end
+
+	if self.font:getWidth(value) <= object.w then
+		return tostring(value)
+	end
+
+	local storage = gui.getFontStorage()
+	local name, size = string.match(self.default.font, "(.-).(%d+)$")
+
+	size = tonumber(size) - FONT_STEP
+	local new_font = storage:getFont(name, size)
+
+	while size >= FONT_MIN_SIZE do
+		print("try", size, "get", new_font:getWidth(value), "limit", object.w)
+		if new_font:getWidth(value) <= object.w then
+			break
+		end
+
+		size = size - FONT_STEP
+		new_font = storage:getFont(name, size)
+	end
+
+	object.font = new_font
+	return tostring(value)
 end
 
 function BufferSheet:populatePercent()
@@ -334,7 +372,7 @@ function BufferSheet:new()
 	end
 
 	if self.buffers.Temp then
-		self.temp_row = self:createRow("Local")
+		self.temp_row = self:createRow("Temp")
 	end
 
 	if #self.objects > 3 then
