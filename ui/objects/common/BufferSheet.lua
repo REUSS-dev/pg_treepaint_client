@@ -134,7 +134,6 @@ function BufferSheet:getFitPage(value, object)
 	local new_font = storage:getFont(name, size)
 
 	while size >= FONT_MIN_SIZE do
-		print("try", size, "get", new_font:getWidth(value), "limit", object.w)
 		if new_font:getWidth(value) <= object.w then
 			break
 		end
@@ -156,24 +155,24 @@ end
 
 function BufferSheet:populatePercentRow(row, buffer_values)
 	if row then
-		row.objects[2]:setText(self:getFitPercent(buffer_values.hit / buffer_values.total, row.objects[2].w))
-		row.objects[3]:setText(self:getFitPercent(buffer_values.read / buffer_values.total, row.objects[3].w))
-		row.objects[4]:setText(self:getFitPercent(buffer_values.dirtied / buffer_values.total, row.objects[4].w))
-		row.objects[5]:setText(self:getFitPercent(buffer_values.written / buffer_values.total, row.objects[5].w))
+		row.objects[2]:setText(self:getFitPercent(buffer_values.hit / buffer_values.total, row.objects[2]))
+		row.objects[3]:setText(self:getFitPercent(buffer_values.read / buffer_values.total, row.objects[3]))
+		row.objects[4]:setText(self:getFitPercent(buffer_values.dirtied / buffer_values.total, row.objects[4]))
+		row.objects[5]:setText(self:getFitPercent(buffer_values.written / buffer_values.total, row.objects[5]))
 	end
 end
 
 ---@param value number
----@param width integer
+---@param label Label
 ---@return string
-function BufferSheet:getFitPercent(value, width)
+function BufferSheet:getFitPercent(value, label)
 	if value < EPS then
 		return ""
 	end
 
 	value = value * 100
 
-	return self:fitNumber(value, "%", width) or "?"
+	return self:fitNumber(value, "%", label) or "?"
 end
 
 function BufferSheet:populateBytes()
@@ -185,17 +184,17 @@ end
 
 function BufferSheet:populateBytesRow(row, buffer_values)
 	if row then
-		row.objects[2]:setText(self:getFitBytes(buffer_values.hit, row.objects[2].w))
-		row.objects[3]:setText(self:getFitBytes(buffer_values.read, row.objects[3].w))
-		row.objects[4]:setText(self:getFitBytes(buffer_values.dirtied, row.objects[4].w))
-		row.objects[5]:setText(self:getFitBytes(buffer_values.written, row.objects[5].w))
+		row.objects[2]:setText(self:getFitBytes(buffer_values.hit, row.objects[2]))
+		row.objects[3]:setText(self:getFitBytes(buffer_values.read, row.objects[3]))
+		row.objects[4]:setText(self:getFitBytes(buffer_values.dirtied, row.objects[4]))
+		row.objects[5]:setText(self:getFitBytes(buffer_values.written, row.objects[5]))
 	end
 end
 
 ---@param bufer_count integer
----@param width integer
+---@param label Label
 ---@return string
-function BufferSheet:getFitBytes(bufer_count, width)
+function BufferSheet:getFitBytes(bufer_count, label)
 	if bufer_count == 0 then
 		return ""
 	end
@@ -203,7 +202,7 @@ function BufferSheet:getFitBytes(bufer_count, width)
 	local data_amount = bufer_count * BUFFER_SIZE
 
 	for _, unit in ipairs(InformationUnits) do
-		local bytes = self:fitNumber(data_amount, " " .. unit, width)
+		local bytes = self:fitNumber(data_amount, " " .. unit, label)
 
 		if bytes then
 			return bytes
@@ -217,10 +216,14 @@ end
 
 ---@param value number
 ---@param postfix string
----@param width integer
+---@param label Label
 ---@return string?
-function BufferSheet:fitNumber(value, postfix, width)
-	width = width - 2
+function BufferSheet:fitNumber(value, postfix, label)
+	if label.font ~= self.font then
+		label.font = self.font
+	end
+
+	local width = label.w - 2
 
 	for i = 2, 0, -1 do
 		local num = string.format("%." .. i .. "f", value):gsub("(%d+[,.]%d-)0*$", "%1"):gsub("[,.]$", "")

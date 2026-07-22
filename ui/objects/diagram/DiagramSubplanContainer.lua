@@ -81,7 +81,7 @@ function DiagramSubplanContainer:toggleCollapse()
 
 	self:relayout()
 
-	if w then self.diagram:moveRoot(w - self.w, 0) end
+	if w then self.diagram:moveRoot((w - self.w)/2, 0) end
 
 	self.diagram:refreshMinimap()
 end
