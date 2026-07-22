@@ -32,6 +32,7 @@ local TextParser = require("classes.TextParser")
 ---@field children DumpedNode[]?
 ---@field startup_cost string?
 ---@field total_cost string?
+---@field rows integer?
 ---@field timing TimingTable?
 ---@field buffers BufferTable?
 ---@field subplan string Subplans: Subplan name
@@ -75,13 +76,10 @@ local dumpers = {}
 ---Dumps costs information about Sort node, that has specific relationship between its startup_cost and total_cost of its children
 ---@param node_data PlanNode
 ---@param sink DumpedNode
-local function dump_costs_sort(node_data, sink)
+local function sort_dump_indicators(node_data, sink)
 	local cost_startup, cost_total = node_data["Startup Cost"], node_data["Total Cost"]
 
-	if not cost_startup then
-		return
-	end
-
+	if cost_startup then
 	if node_data.Plans then
 		for _, child in ipairs(node_data.Plans) do
 			cost_startup = cost_startup - child["Total Cost"]
@@ -94,6 +92,25 @@ local function dump_costs_sort(node_data, sink)
 
 	sink.startup_cost = string.format("%.2f", cost_startup)
 	sink.total_cost = string.format("%.2f", cost_total)
+	end
+
+	if sink.timing then
+		local node_total_startup, node_total_total = sink.timing.tree.total[1], sink.timing.tree.total[2]
+
+		for _, child in ipairs(sink.children) do
+			if not child.subplan then
+				node_total_startup = node_total_startup - (child.timing.tree or child.timing.node).total[2]
+				node_total_total = node_total_total - (child.timing.tree or child.timing.node).total[2]
+			end
+		end
+
+		local loops = sink.loop_count
+
+		sink.timing.node = {
+			single = {string.format("%.3f", node_total_startup / loops), string.format("%.3f", node_total_total / loops)},
+			total = {string.format("%.3f", node_total_startup), string.format("%.3f", node_total_total)}
+		}
+	end
 end
 
 local function scan(node_data, sink)
@@ -134,7 +151,7 @@ dumpers[NodeType.SeqScan] = function (node_data, sink)
 end
 
 dumpers[NodeType.Sort] = function(node_data, sink)
-	dump_costs_sort(node_data, sink)
+	sort_dump_indicators(node_data, sink)
 
 	if node_data["Sort Method"] then
 		sink.sort_method = SortMethod[node_data["Sort Method"]] or node_data["Sort Method"]
@@ -326,13 +343,15 @@ function TreeParser:dumpTiming(node_data, sink)
 		return
 	end
 
+	sink.rows = math.floor(node_data["Actual Rows"] * loops + .5)
+
 	local real_startup, real_total = node_data["Actual Startup Time"] * loops, node_data["Actual Total Time"] * loops
 
 	local timing = {}
 
 	if node_data.Plans then
 		timing.tree = {
-			single = { string.format("%.3f", node_data["Actual Startup Time"]), string.format("%.3f", node_data["Actual Total Time"]) },
+			single = {string.format("%.3f", node_data["Actual Startup Time"]), string.format("%.3f", node_data["Actual Total Time"])},
 			total = {string.format("%.3f", real_startup), string.format("%.3f", real_total)}
 		}
 

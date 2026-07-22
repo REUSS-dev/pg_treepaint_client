@@ -286,7 +286,9 @@ function BufferSheet:createDivider(isTotal)
 end
 
 function BufferSheet:new()
-	self.currentView[self.group] = DEFAULT_VIEW_STATE
+	if not self.currentView[self.group] then
+		self.currentView[self.group] = DEFAULT_VIEW_STATE
+	end
 
 	if not self.buffers.Total then
 		self:createChild "Label" {

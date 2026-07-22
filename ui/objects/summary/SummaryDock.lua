@@ -150,7 +150,7 @@ function SummaryDock:generateInfo()
 		end
 
 		if plan.timing.planning then
-			local plan = self:create "Label" {
+			local planning = self:create "Label" {
 				w = "fill",
 				horizontal = "right",
 
@@ -158,7 +158,7 @@ function SummaryDock:generateInfo()
 				font = "default 18",
 				textColor = COLORS.SUMMARY_TEXT,
 			}
-			timings:addObject(plan)
+			timings:addObject(planning)
 		end
 
 		if plan.timing.execution and plan.timing.planning then
