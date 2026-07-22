@@ -48,6 +48,10 @@ function SummaryFoldController:populate(folds)
 	end
 end
 
+function SummaryFoldController:triggerDefault()
+	self:trigger(1)
+end
+
 ---@public
 function SummaryFoldController:trigger(id)
 	id = id or self.current

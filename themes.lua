@@ -73,6 +73,11 @@ local theme_dark = {
 	INFO_PANEL = "COLOR_PRIMARY_1",
 	INFO_PANEL_ELEMENT = "COLOR_PRIMARY_2",
 
+	QUERY_SELECT = {0, 1, 1, 1},
+	QUERY_INSERT = {0, 1, 0, 1},
+	QUERY_UPDATE = {1, 1, 0, 1},
+	QUERY_DELETE = {1, 0, 0, 1},
+
 	NODE_AGGREGATE = {0.75, 0.5, 0, 1},
 	NODE_BITMAP_HEAP_SCAN = {0.25, 1, 1, 1},
 	NODE_BITMAPAND = {1, 0.2, 0.2, 1},

@@ -163,10 +163,6 @@ function SectionContainer:new()
 		end
 	end
 
-	if self.title then
-		
-	end
-
 	self.contents = self:createChild "Container" {
 		w = "fill",
 		gap = 2

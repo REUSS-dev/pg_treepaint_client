@@ -18,6 +18,12 @@ local TextParser = require("classes.TextParser")
 
 ---@class DumpedPlan
 ---@field root DumpedNode
+---@field type string
+---@field nodeCount integer
+---@field subplanCount integer
+---@field timing {planning: number?, execution: number?}?
+---@field buffers {planning: BufferTable?, total: BufferTable}?
+---@field identifier string
 
 ---@class DumpedNode
 ---@field raw PlanNode
@@ -59,81 +65,17 @@ local SortMethod = {
 	["top-N heapsort"] = "Top-N Heapsort",
 }
 
--- fnc
-
-local dump_node, dump_node_list
-local dump_costs, dump_costs_sort, dump_timing, dump_buffers
+-- declarations
 
 ---@type table<NodeType, NodeDumper>
 local dumpers = {}
 
----Converts list of PlanNode objects of arbitrary types into list of DumpedNode objects
----@param node_list PlanNode[]
----@return DumpedNode[]
-function dump_node_list(node_list)
-	local dumped_nodes = {}
-
-	for i, node in ipairs(node_list) do
-		dumped_nodes[i] = dump_node(node)
-	end
-
-	return dumped_nodes
-end
-
----Converts PlanNode of arbitrary type into DumpedNode
----@param node PlanNode
----@return DumpedNode
-function dump_node(node)
-	local node_type = node["Node Type"]
-	local new_node = {
-		type = node_type,
-		relationship = node["Parent Relationship"],
-		subplan = node["Subplan Name"],
-		raw = node
-	}
-
-	dump_costs(node, new_node)
-
-	if node.Plans then
-		new_node.children = dump_node_list(node.Plans)
-	end
-
-	dump_timing(node, new_node)
-	dump_buffers(node, new_node)
-
-	dumpers[node_type](node, new_node)
-
-	return new_node
-end
-
----Dumps costs information about node
----@param node_data PlanNode
----@param sink DumpedNode
-function dump_costs(node_data, sink)
-	local cost_startup, cost_total = node_data["Startup Cost"], node_data["Total Cost"]
-
-	if not cost_startup then
-		return
-	end
-
-	if node_data.Plans then
-		for _, child in ipairs(node_data.Plans) do
-			cost_startup = cost_startup - child["Startup Cost"]
-			cost_total = cost_total - child["Total Cost"]
-		end
-
-		cost_startup = math.max(0, cost_startup)
-		cost_total = math.max(cost_startup, cost_total)
-	end
-
-	sink.startup_cost = string.format("%.2f", cost_startup)
-	sink.total_cost = string.format("%.2f", cost_total)
-end
+--#region node type dumpers
 
 ---Dumps costs information about Sort node, that has specific relationship between its startup_cost and total_cost of its children
 ---@param node_data PlanNode
 ---@param sink DumpedNode
-function dump_costs_sort(node_data, sink)
+local function dump_costs_sort(node_data, sink)
 	local cost_startup, cost_total = node_data["Startup Cost"], node_data["Total Cost"]
 
 	if not cost_startup then
@@ -153,117 +95,6 @@ function dump_costs_sort(node_data, sink)
 	sink.startup_cost = string.format("%.2f", cost_startup)
 	sink.total_cost = string.format("%.2f", cost_total)
 end
-
----Dumps analyze timing information about node
----@param node_data PlanNode
----@param sink DumpedNode
-function dump_timing(node_data, sink)
-	local loops = node_data["Actual Loops"]
-
-	if not loops then
-		return
-	end
-
-	local real_startup, real_total = node_data["Actual Startup Time"] * loops, node_data["Actual Total Time"] * loops
-
-	local timing = {}
-
-	if node_data.Plans then
-		timing.tree = {
-			single = { string.format("%.3f", node_data["Actual Startup Time"]), string.format("%.3f", node_data["Actual Total Time"]) },
-			total = {string.format("%.3f", real_startup), string.format("%.3f", real_total)}
-		}
-
-		for _, child in ipairs(node_data.Plans) do
-			if not child["Subplan Name"] then
-				real_startup = real_startup - child["Actual Startup Time"] * child["Actual Loops"]
-				real_total = real_total - child["Actual Total Time"] * child["Actual Loops"]
-			end
-		end
-
-		real_startup = math.max(0, real_startup)
-		real_startup = math.min(real_startup, real_total)
-	end
-
-	timing.node = {
-		single = {string.format("%.3f", real_startup / loops), string.format("%.3f", real_total / loops)},
-		total = {string.format("%.3f", real_startup), string.format("%.3f", real_total)},
-	}
-
-	sink.timing = timing
-end
-
-function dump_buffers(node_data, sink)
-	if not node_data["Shared Hit Blocks"] then
-		return
-	end
-
-	local buffers = {}
-
-	local shared_hit, shared_read, shared_dirtied, shared_written =
-		node_data["Shared Hit Blocks"],
-		node_data["Shared Read Blocks"],
-		node_data["Shared Dirtied Blocks"],
-		node_data["Shared Written Blocks"]
-
-	local local_hit, local_read, local_dirtied, local_written =
-		node_data["Local Hit Blocks"],
-		node_data["Local Read Blocks"],
-		node_data["Local Dirtied Blocks"],
-		node_data["Local Written Blocks"]
-
-	local temp_read, temp_written =
-		node_data["Local Read Blocks"],
-		node_data["Local Written Blocks"]
-
-	if node_data.Plans then
-		for _, child in ipairs(node_data.Plans) do
-			if not child["Subplan Name"] then
-				shared_hit = shared_hit - child["Shared Hit Blocks"]
-				shared_read = shared_read - child["Shared Read Blocks"]
-				shared_dirtied = shared_dirtied - child["Shared Dirtied Blocks"]
-				shared_written = shared_written - child["Shared Written Blocks"]
-
-				local_hit = local_hit - child["Local Hit Blocks"]
-				local_read = local_read - child["Local Read Blocks"]
-				local_dirtied = local_dirtied - child["Local Dirtied Blocks"]
-				local_written = local_written - child["Local Written Blocks"]
-
-				temp_read = temp_read - child["Temp Read Blocks"]
-				temp_written = temp_written - child["Temp Written Blocks"]
-			end
-		end
-	end
-
-	if shared_hit ~= 0 or shared_read ~= 0 or shared_dirtied ~= 0 or shared_written ~= 0 then
-		buffers.Shared = {hit = shared_hit, read = shared_read, dirtied = shared_dirtied, written = shared_written, total = shared_hit + shared_read + shared_dirtied + shared_written}
-		buffers.Total = {hit = shared_hit, read = shared_read, dirtied = shared_dirtied, written = shared_written, total = shared_hit + shared_read + shared_dirtied + shared_written}
-	end
-
-	if local_hit ~= 0 or local_read ~= 0 or local_dirtied ~= 0 or local_written ~= 0 then
-		buffers.Local = {hit = local_hit, read = local_read, dirtied = local_dirtied, written = local_written, total = local_hit + local_read + local_dirtied + local_written}
-		buffers.Total = buffers.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
-
-		buffers.Total.hit = buffers.Total.hit + local_hit
-		buffers.Total.read = buffers.Total.read + local_read
-		buffers.Total.dirtied = buffers.Total.dirtied + local_dirtied
-		buffers.Total.written = buffers.Total.written + local_written
-		buffers.Total.total = buffers.Total.total + buffers.Local.total
-	end
-
-	if temp_read ~= 0 or temp_written ~= 0 then
-		buffers.Temp = {hit = 0, read = temp_read, dirtied = 0, written = temp_written, total = temp_read + temp_written}
-		buffers.Total = buffers.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
-
-		buffers.Total.read = buffers.Total.read + temp_read
-		buffers.Total.written = buffers.Total.written + temp_written
-		buffers.Total.total = buffers.Total.total + buffers.Temp.total
-	end
-
-	sink.buffers = buffers
-end
-
---#region node type dumpers
 
 local function scan(node_data, sink)
 	sink.table = node_data["Relation Name"]
@@ -332,43 +163,334 @@ end
 ---@class TreeParser
 ---@field textParser TextParser
 ---@field queryParser NodeStringParser
+---@field dump DumpedPlan
 local TreeParser = {}
 TreeParser.__index = TreeParser
 
 ---@param tree string
 ---@return DumpedPlan?
 function TreeParser:parse(tree)
+	local plan
+
+	---@diagnostic disable-next-line: missing-fields
+	self.dump = {
+		type = "SELECT",
+		nodeCount = 0,
+		subplanCount = 0,
+	}
+
 	tree = self.normalizer:normalize(tree)
 
 	local _, _, nonspace = string.find(tree, "(%S)")
 
 	if nonspace == "[" or nonspace == "{" then
-		return self:parseJSON(tree)
+		plan = self:parseJSON(tree)
+	else
+		plan = self:parseText(tree)
 	end
 
-	return self:parseText(tree)
+	if not plan then
+		return nil
+	end
+
+	plan = plan[1] or plan
+
+	self.dump.root = self:dumpNode(plan["Plan"])
+
+	-- Query type
+
+	if self.dump.root.type == "Insert" then
+		self.dump.type = "INSERT"
+	elseif self.dump.root.type == "Update" then
+		self.dump.type = "UPDATE"
+	elseif self.dump.root.type == "Delete" then
+		self.dump.type = "DELETE"
+	end
+
+	-- Plan Summary Timing
+
+	if plan["Execution Time"] or plan["Planning Time"] then
+		self.dump.timing = {
+			planning = plan["Planning Time"],
+			execution = plan["Execution Time"]
+		}
+	end
+
+	-- Plan Summary Buffers
+
+	if not plan["Plan"]["Subplan Name"] then
+		plan["Plan"]["Subplan Name"] = "dummy"
+		local plans = plan["Plan"]["Plans"]
+		plan["Plan"]["Plans"] = nil
+
+		self:dumpBuffers(plan["Plan"], {})
+
+		plan["Plan"]["Subplan Name"] = nil
+		plan["Plan"]["Plans"] = plans
+	end
+
+	if plan["Planning"] then
+		local sink = {}
+		plan["Planning"]["Subplan Name"] = "dummy"
+		self:dumpBuffers(plan["Planning"], sink)
+		plan["Planning"]["Subplan Name"] = nil
+
+		self.dump.buffers.planning = sink.buffers
+	end
+
+	-- Misc
+
+	self.dump.identifier = plan["Query Identifier"]
+
+	return self.dump
 end
+
+--#region Plan processing
+
+---Converts PlanNode of arbitrary type into DumpedNode
+---@param node PlanNode
+---@return DumpedNode
+function TreeParser:dumpNode(node)
+	local node_type = node["Node Type"]
+	local new_node = {
+		type = node_type,
+		relationship = node["Parent Relationship"],
+		subplan = node["Subplan Name"],
+		raw = node
+	}
+
+	self.dump.nodeCount = self.dump.nodeCount + 1
+
+	if new_node.relationship == "InitPlan" or new_node.relationship == "SubPlan" or new_node.relationship == "Subquery" then
+		self.dump.subplanCount = self.dump.subplanCount + 1
+	end
+
+	self:dumpCosts(node, new_node)
+
+	if node.Plans then
+		new_node.children = self:dumpNodeList(node.Plans)
+	end
+
+	self:dumpTiming(node, new_node)
+	self:dumpBuffers(node, new_node)
+
+	dumpers[node_type](node, new_node)
+
+	return new_node
+end
+
+---Converts list of PlanNode objects of arbitrary types into list of DumpedNode objects
+---@param node_list PlanNode[]
+---@return DumpedNode[]
+function TreeParser:dumpNodeList(node_list)
+	local dumped_nodes = {}
+
+	for i, node in ipairs(node_list) do
+		dumped_nodes[i] = self:dumpNode(node)
+	end
+
+	return dumped_nodes
+end
+
+---Dumps costs information about node
+---@param node_data PlanNode
+---@param sink DumpedNode
+function TreeParser:dumpCosts(node_data, sink)
+	local cost_startup, cost_total = node_data["Startup Cost"], node_data["Total Cost"]
+
+	if not cost_startup then
+		return
+	end
+
+	if node_data.Plans then
+		for _, child in ipairs(node_data.Plans) do
+			cost_startup = cost_startup - child["Startup Cost"]
+			cost_total = cost_total - child["Total Cost"]
+		end
+
+		cost_startup = math.max(0, cost_startup)
+		cost_total = math.max(cost_startup, cost_total)
+	end
+
+	sink.startup_cost = string.format("%.2f", cost_startup)
+	sink.total_cost = string.format("%.2f", cost_total)
+end
+
+---Dumps analyze timing information about node
+---@param node_data PlanNode
+---@param sink DumpedNode
+function TreeParser:dumpTiming(node_data, sink)
+	local loops = node_data["Actual Loops"]
+
+	if not loops then
+		return
+	end
+
+	local real_startup, real_total = node_data["Actual Startup Time"] * loops, node_data["Actual Total Time"] * loops
+
+	local timing = {}
+
+	if node_data.Plans then
+		timing.tree = {
+			single = { string.format("%.3f", node_data["Actual Startup Time"]), string.format("%.3f", node_data["Actual Total Time"]) },
+			total = {string.format("%.3f", real_startup), string.format("%.3f", real_total)}
+		}
+
+		for _, child in ipairs(node_data.Plans) do
+			if not child["Subplan Name"] then
+				real_startup = real_startup - child["Actual Startup Time"] * child["Actual Loops"]
+				real_total = real_total - child["Actual Total Time"] * child["Actual Loops"]
+			end
+		end
+
+		real_startup = math.max(0, real_startup)
+		real_startup = math.min(real_startup, real_total)
+	end
+
+	timing.node = {
+		single = {string.format("%.3f", real_startup / loops), string.format("%.3f", real_total / loops)},
+		total = {string.format("%.3f", real_startup), string.format("%.3f", real_total)},
+	}
+
+	sink.timing = timing
+end
+
+function TreeParser:dumpBuffers(node_data, sink)
+	if not node_data["Shared Hit Blocks"] then
+		return
+	end
+
+	local buffers = {}
+
+	local shared_hit, shared_read, shared_dirtied, shared_written =
+		node_data["Shared Hit Blocks"],
+		node_data["Shared Read Blocks"],
+		node_data["Shared Dirtied Blocks"],
+		node_data["Shared Written Blocks"]
+
+	local local_hit, local_read, local_dirtied, local_written =
+		node_data["Local Hit Blocks"],
+		node_data["Local Read Blocks"],
+		node_data["Local Dirtied Blocks"],
+		node_data["Local Written Blocks"]
+
+	local temp_read, temp_written =
+		node_data["Temp Read Blocks"],
+		node_data["Temp Written Blocks"]
+
+	if node_data.Plans then
+		for _, child in ipairs(node_data.Plans) do
+			if not child["Subplan Name"] then
+				shared_hit = shared_hit - child["Shared Hit Blocks"]
+				shared_read = shared_read - child["Shared Read Blocks"]
+				shared_dirtied = shared_dirtied - child["Shared Dirtied Blocks"]
+				shared_written = shared_written - child["Shared Written Blocks"]
+
+				local_hit = local_hit - child["Local Hit Blocks"]
+				local_read = local_read - child["Local Read Blocks"]
+				local_dirtied = local_dirtied - child["Local Dirtied Blocks"]
+				local_written = local_written - child["Local Written Blocks"]
+
+				temp_read = temp_read - child["Temp Read Blocks"]
+				temp_written = temp_written - child["Temp Written Blocks"]
+			end
+		end
+	end
+
+	if shared_hit ~= 0 or shared_read ~= 0 or shared_dirtied ~= 0 or shared_written ~= 0 then
+		buffers.Shared = {hit = shared_hit, read = shared_read, dirtied = shared_dirtied, written = shared_written, total = shared_hit + shared_read + shared_dirtied + shared_written}
+		buffers.Total = {hit = shared_hit, read = shared_read, dirtied = shared_dirtied, written = shared_written, total = shared_hit + shared_read + shared_dirtied + shared_written}
+	end
+
+	if local_hit ~= 0 or local_read ~= 0 or local_dirtied ~= 0 or local_written ~= 0 then
+		buffers.Local = {hit = local_hit, read = local_read, dirtied = local_dirtied, written = local_written, total = local_hit + local_read + local_dirtied + local_written}
+		buffers.Total = buffers.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+		buffers.Total.hit = buffers.Total.hit + local_hit
+		buffers.Total.read = buffers.Total.read + local_read
+		buffers.Total.dirtied = buffers.Total.dirtied + local_dirtied
+		buffers.Total.written = buffers.Total.written + local_written
+		buffers.Total.total = buffers.Total.total + buffers.Local.total
+	end
+
+	if temp_read ~= 0 or temp_written ~= 0 then
+		buffers.Temp = {hit = 0, read = temp_read, dirtied = 0, written = temp_written, total = temp_read + temp_written}
+		buffers.Total = buffers.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+		buffers.Total.read = buffers.Total.read + temp_read
+		buffers.Total.written = buffers.Total.written + temp_written
+		buffers.Total.total = buffers.Total.total + buffers.Temp.total
+	end
+
+	if node_data["Subplan Name"] then
+		self.dump.buffers = self.dump.buffers or { total = {} }
+		local total = self.dump.buffers.total
+
+		if buffers.Shared then
+			total.Shared = total.Shared or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+			total.Shared.hit = total.Shared.hit + buffers.Shared.hit
+			total.Shared.read = total.Shared.read + buffers.Shared.read
+			total.Shared.dirtied = total.Shared.dirtied + buffers.Shared.dirtied
+			total.Shared.written = total.Shared.written + buffers.Shared.written
+			total.Shared.total = total.Shared.total + buffers.Shared.total
+		end
+
+		if buffers.Local then
+			total.Local = total.Local or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+			total.Local.hit = total.Local.hit + buffers.Local.hit
+			total.Local.read = total.Local.read + buffers.Local.read
+			total.Local.dirtied = total.Local.dirtied + buffers.Local.dirtied
+			total.Local.written = total.Local.written + buffers.Local.written
+			total.Local.total = total.Local.total + buffers.Local.total
+		end
+
+		if buffers.Temp then
+			total.Temp = total.Temp or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+			total.Temp.read = total.Temp.read + buffers.Temp.read
+			total.Temp.written = total.Temp.written + buffers.Temp.written
+			total.Temp.total = total.Temp.total + buffers.Temp.total
+		end
+
+		if buffers.Total then
+			total.Total = total.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+			total.Total.hit = total.Total.hit + buffers.Total.hit
+			total.Total.read = total.Total.read + buffers.Total.read
+			total.Total.dirtied = total.Total.dirtied + buffers.Total.dirtied
+			total.Total.written = total.Total.written + buffers.Total.written
+			total.Total.total = total.Total.total + buffers.Total.total
+		end
+	end
+
+	sink.buffers = buffers
+end
+
+--#endregion
+
+--#region Explain format parsers
 
 ---@param json_string string
 ---@return DumpedPlan
 function TreeParser:parseJSON(json_string)
-	local parsed = {}
-
 	json_string = json_string:gsub("\n(%S)", "%1")
 
 	local tree = json.decode(fix_data(json_string))
-	local root = (tree[1] or tree)["Plan"]
 
-	parsed.root = dump_node(root)
+	-- 64-bit integer to string
+	local plan = tree[1] or tree
+	if type(plan["Query Identifier"]) == "number" then
+		plan["Query Identifier"] = string.match(json_string, "\"Query Identifier\":%s*(%-?%d+),")
+	end
 
-	return parsed
+	return tree
 end
 
 ---@param text string
 ---@return DumpedPlan?
 function TreeParser:parseText(text)
-	local parsed = {}
-
 	local success, tree = pcall(self.textParser.parse, self.textParser, text)
 
 	if not success then
@@ -376,14 +498,12 @@ function TreeParser:parseText(text)
 		return
 	end
 
-	local root = tree[1]["Plan"]
+	print(json.encode(tree[1]["Plan"]))
 
-	print(json.encode(root))
-
-	parsed.root = dump_node(root)
-
-	return parsed
+	return tree
 end
+
+--#endregion
 
 function TreeParser:new()
 	local new_parser = {}
