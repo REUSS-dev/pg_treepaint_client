@@ -58,15 +58,19 @@ end
 ---Display specific node information on info panel
 ---@param node DiagramNode
 function InfoPanel:displayNode(node)
+	local scroll = -self.contentsContainer.currentScroll
+
 	if not self.cacheStorage[node] then
 		self:createContents(node)
 	end
 
 	self:nodeSelect(node)
-
 	self:setNodeInfo(node)
+
 	self.contentsContainer.objects = self.cacheStorage[node]
 	self.contentsContainer:relayout()
+	self.contentsContainer.currentScroll = 0
+	self.contentsContainer:moveScroll(scroll)
 
 	self:show()
 end
