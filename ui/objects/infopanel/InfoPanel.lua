@@ -103,6 +103,7 @@ function InfoPanel:createContents(node)
 	self:createBuffers(node, coverage)
 	self:createWAL(node, coverage)
 	self:createOutput(node, coverage)
+	self:createWAL(node, coverage)
 
 	self:createUnknown(node, coverage)
 
@@ -272,6 +273,79 @@ function InfoPanel:createOutput(node, covered)
 
 	for _, value in ipairs(node.node.raw["Output"]) do
 		wal:addText(value)
+	end
+end
+
+---@param node DiagramNode
+---@param covered table<string, boolean>
+function InfoPanel:createWAL(node, covered)
+	if not node.node.wal then
+		return
+	end
+
+	covered["WAL Records"] = true
+	covered["WAL Bytes"] = true
+	covered["WAL FPI"] = true
+	covered["WAL FPI Bytes"] = true
+	covered["WAL Buffers Full"] = true
+
+	local wal = self.contentsContainer:createChild "SectionContainer" { title = node.node.wal.node.records == 0 and "WAL Info (None)" or node.node.wal.tree and "WAL Info (Tree)" or "WAL Info (Node)", group = "info_wal" }
+
+	local wal_main = node.node.wal.tree or node.node.wal.node
+
+	if wal_main.records == 0 then
+		wal:addText("No WAL Records created.")
+		return
+	end
+
+	if wal_main.bytes and wal_main.bytes > 0 then
+		wal:addText("Records: " .. wal_main.records .. " (" .. wal_main.bytes .. " bytes)")
+	else
+		wal:addTextProtected("Records: ", wal_main.records)
+	end
+
+	if wal_main.fpi_bytes and wal_main.fpi_bytes > 0 then
+		wal:addText("FPI: " .. wal_main.fpi .. " (" .. wal_main.fpi_bytes .. " bytes)")
+	else
+		wal:addTextProtected("FPI: ", wal_main.fpi)
+	end
+
+	wal:addTextProtected("Buffers Full: ", wal_main.buffers_full)
+
+	if not node.node.wal.tree then
+		return
+	end
+
+	do
+		if node.node.wal.node.records == 0 then
+			wal:addText("\nNo WAL Records created by Node.")
+			return
+		end
+
+		local node_wal = self:create "SectionContainer" {
+			title = "Node",
+			group = "info_wal_node",
+			borderless = true,
+			no_div = true,
+		}
+
+		if node.node.wal.node.bytes and node.node.wal.node.bytes > 0 then
+			node_wal:addText("Records: " .. node.node.wal.node.records .. " (" .. node.node.wal.node.bytes .. " bytes)")
+		else
+			node_wal:addTextProtected("Records: ", node.node.wal.node.records)
+		end
+
+		if node.node.wal.node.fpi_bytes and node.node.wal.node.fpi_bytes > 0 then
+			node_wal:addText("FPI: " .. node.node.wal.node.fpi .. " (" .. node.node.wal.node.fpi_bytes .. " bytes)")
+		else
+			node_wal:addTextProtected("FPI: ", node.node.wal.node.fpi)
+		end
+
+		node_wal:addTextProtected("Buffers Full: ", node.node.wal.node.buffers_full)
+
+		wal
+			:addDivider(nil, true)
+			:addObject(node_wal)
 	end
 end
 

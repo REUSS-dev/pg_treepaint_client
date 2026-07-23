@@ -9,6 +9,8 @@
 ---@field title string?
 ---@field group string
 ---@field collapsible boolean
+---@field borderless boolean
+---@field noDiv boolean
 local SectionContainer = {
 	name = "SectionContainer",
 	extends = "CompositeObject",
@@ -16,6 +18,8 @@ local SectionContainer = {
 		{{"title"}, "title"},
 		{{"group"}, "group"},
 		{{"collapse", "collapsible"}, "collapsible"},
+		{{"borderless"}, "borderless"},
+		{{"no_div", "no_divider"}, "noDiv"},
 	},
 	default = {
 		w = "fill",
@@ -31,7 +35,9 @@ local SectionContainer = {
 		textColor = COLORS.SECTION_CONTAINER_TITLE,
 		font = {title = "default 20", text = "default 17"},
 
-		collapsible = true
+		collapsible = true,
+		borderless = false,
+		no_div = false,
 	},
 
 	sectionStates = {
@@ -43,6 +49,11 @@ local SectionContainer = {
 function SectionContainer:paint(...)
 	self:resolveState()
 	self.CompositeObject.paint(self)
+end
+
+function SectionContainer:getLayoutSize(...)
+	self:resolveState()
+	return self.CompositeObject.getLayoutSize(self, ...)
 end
 
 function SectionContainer:getContentsContainer()
@@ -77,8 +88,39 @@ function SectionContainer:addText(text, greyed)
 	return self
 end
 
+---@param text string
+---@param greyed boolean?
+---@return SectionContainer
+function SectionContainer:addTextBig(text, greyed)
+	self.contents:createChild "Label" {
+		w = "fill",
+		h = "hug",
+		horizontal = "left",
+		text = text,
+		font = self.font.title,
+		textColor = greyed and COLORS.NODE_TEXT_GREYED or COLORS.NODE_TEXT
+	}
+
+	return self
+end
+
 function SectionContainer:addObject(obj)
 	self.contents:add(obj)
+
+	return self
+end
+
+function SectionContainer:addDivider(padding, greyed)
+	local divider = self:create "Container" {
+		w = "fill",
+		padding = padding or {0, 5}
+	}
+	divider:createChild "Container" {
+		w = "fill",
+		h = 1,
+		color = greyed and COLORS.COLOR_SECONDARY_0 or COLORS.SECTION_CONTAINER_DIVIDER
+	}
+	self:addObject(divider)
 
 	return self
 end
@@ -113,6 +155,12 @@ end
 function SectionContainer:new()
 	self.group = self.group or self.title
 
+	if self.borderless then
+		self.fill_flag = false
+		self.layout.padding = {0, 0, 0, 0}
+		self.opaque = false
+	end
+
 	if self.collapsible then
 		assert(self.title, "Element \"title\" is required for a collapsible SectionContainer object")
 
@@ -140,7 +188,8 @@ function SectionContainer:new()
 		self.divider = self:createChild "Container" {
 			w = "fill",
 			padding = {0, 0, 25, 0}
-		} : createChild "Container" {
+		}
+		self.divider:createChild "Container" {
 			w = "fill",
 			h = 1,
 			color = COLORS.SECTION_CONTAINER_DIVIDER
@@ -163,10 +212,16 @@ function SectionContainer:new()
 		end
 	end
 
+	if self.noDiv then
+		self:remove(self.divider)
+	end
+
 	self.contents = self:createChild "Container" {
 		w = "fill",
 		gap = 2
 	}
+
+	self:resolveState()
 end
 
 return SectionContainer

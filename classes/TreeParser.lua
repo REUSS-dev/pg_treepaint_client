@@ -13,6 +13,8 @@ local TextParser = require("classes.TextParser")
 ---@alias NodeDumper fun(node_data: PlanNode, sink: DumpedNode)
 ---@alias TimingStats {single: {[1]: string, [2]: string}, total: {[1]: string, [2]: string}}
 ---@alias TimingTable {node: TimingStats, tree: TimingStats?}
+---@alias WALStats {records: integer, bytes: integer?, fpi: integer?, fpi_bytes: integer?, buffers_full: integer?}
+---@alias WALTable {node: WALStats, tree: WALStats}
 ---@alias BufferStats {hit: integer, read: integer, dirtied: integer, written: integer, total: integer}
 ---@alias BufferTable {Local: BufferStats?, Shared: BufferStats?, Temp: BufferStats?, Total: BufferStats?}
 
@@ -34,6 +36,7 @@ local TextParser = require("classes.TextParser")
 ---@field total_cost string?
 ---@field rows integer?
 ---@field timing TimingTable?
+---@field wal WALTable?
 ---@field buffers BufferTable?
 ---@field subplan string Subplans: Subplan name
 ---@field columns string[] Hash: Table columns hash are generated for / Sort: columns, resulted records are sorted against
@@ -372,6 +375,46 @@ function TreeParser:dumpTiming(node_data, sink)
 	}
 
 	sink.timing = timing
+end
+
+function TreeParser:dumpWAL(node_data, sink)
+	if not node_data["WAL Records"] then
+		return
+	end
+
+	local records, bytes, fpi, fpi_bytes, buffers = node_data["WAL Records"], node_data["WAL Bytes"], node_data["WAL FPI"], node_data["WAL FPI Bytes"], node_data["WAL Buffers Full"]
+
+	local wal = {}
+
+	if node_data.Plans then
+		wal.tree = {
+			records = records,
+			bytes = bytes,
+			fpi = fpi,
+			fpi_bytes = fpi_bytes,
+			buffers_full = buffers,
+		}
+
+		for _, child in ipairs(node_data.Plans) do
+			if not child["Subplan Name"] then
+				records = records and (records - (child["WAL Records"] or 0))
+				bytes = bytes and (bytes - (child["WAL Bytes"] or 0))
+				fpi = fpi and (fpi - (child["WAL FPI"] or 0))
+				fpi_bytes = fpi_bytes and (fpi_bytes - (child["WAL FPI Bytes"] or 0))
+				buffers = buffers and (buffers - (child["WAL Buffers Full"] or 0))
+			end
+		end
+	end
+
+	wal.node = {
+		records = records,
+		bytes = bytes,
+		fpi = fpi,
+		fpi_bytes = fpi_bytes,
+		buffers_full = buffers,
+	}
+
+	sink.wal = wal
 end
 
 function TreeParser:dumpBuffers(node_data, sink)
