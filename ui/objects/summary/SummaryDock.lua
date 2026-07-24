@@ -188,10 +188,10 @@ function SummaryDock:generateInfo()
 	if plan.buffers then
 		local buffers = self.contentsContainer:createChild "SectionContainer" {
 			title = "Buffers (total)",
+			gap = 5,
 			collapsible = false,
-			gap = 5
+			no_div = true,
 		}
-		buffers:remove(buffers.divider)
 
 		local buffer_table = self:create "BufferSheet" {
 			buffers = plan.buffers.total,
@@ -200,42 +200,20 @@ function SummaryDock:generateInfo()
 		buffers:addObject(buffer_table)
 
 		if plan.buffers.planning then
-			local divider = buffers:create "Container" {
-				w = "fill",
-				padding = {0, 5, 0, 5}
-			}
-			divider:createChild "Container" {
-				w = "fill",
-				h = 1,
-				color = COLORS.COLOR_SECONDARY_0
-			}
-			buffers:addObject(divider)
+			buffers:addDivider({0, 5, 0, 2}, true)
 
-			local planning_header = self:create "Container" { w = "fill", growth = "horizontal" }
-			planning_header:createChild "Label" {
-				w = "fill",
+			local planning = self:create "SectionContainer" { title = "Buffers (planning)", borderless = true, no_div = true }
 
-				text = "Buffers (planning)",
-				font = "default 20",
-				textColor = COLORS.SUMMARY_TEXT,
-			}
-			buffers:addObject(planning_header)
-
-			local planning = self:create "Container" { w = "fill", gap = 5 }
-
-			planning:createChild "BufferSheet" {
+			planning:addObject(self:create "BufferSheet" {
 				buffers = plan.buffers.planning,
 				group = "summary_planning"
-			}
-			planning:createChild "Label" {
+			})
+
+			planning:addObject(self:create "Label" {
 				text = "Planning buffer usage is included in total",
 				font = "default 16",
 				textColor = COLORS.NODE_TEXT_GREYED
-			}
-
-			planning:hide()
-
-			planning_header:createChild "SectionCollapse" { target = planning }
+			})
 
 			buffers:add(planning)
 		end
@@ -346,7 +324,7 @@ end
 function SummaryDock:new()
 	self.currentContent = 0
 	self.folds = self:createChild "SummaryFoldController" {}
-	self.contentsContainer = self:createChild "Container" { w = "fill", h = "fill", padding = 15, gap = 10, horizontal = "left", vertical = "top", shear = true, scroll = true, hover = true, color = self.palette.main }
+	self.contentsContainer = self:createChild "Container" { w = "fill", h = "fill", padding = 15, gap = 10, horizontal = "left", vertical = "top", shear = true, scroll = true, hover = true }
 
 	self.folds:populate(folds)
 

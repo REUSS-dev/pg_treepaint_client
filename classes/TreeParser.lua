@@ -38,6 +38,8 @@ local TextParser = require("classes.TextParser")
 ---@field timing TimingTable?
 ---@field wal WALTable?
 ---@field buffers BufferTable?
+---@field workers integer? Number of worker instances of this node
+---@field workerDump? DumpedNode[]
 ---@field subplan string Subplans: Subplan name
 ---@field columns string[] Hash: Table columns hash are generated for / Sort: columns, resulted records are sorted against
 ---@field join_on string HashJoin: name of a join target table
@@ -52,6 +54,8 @@ local NodeType = {
 	Aggregate = "Aggregate",
 	BitmapHeapScan = "Bitmap Heap Scan",
 	BitmapIndexScan = "Bitmap Index Scan",
+	Gather = "Gather",
+	GatherMerge = "Gather Merge",
 	Hash = "Hash",
 	HashJoin = "Hash Join",
 	IndexOnlyScan = "Index Only Scan",
@@ -69,12 +73,57 @@ local SortMethod = {
 	["top-N heapsort"] = "Top-N Heapsort",
 }
 
+local WorkerIgnoreFields = {
+	["Actual Loops"] = true,
+	["Actual Startup Time"] = "please",
+	["Actual Total Time"] = "please",
+	["Actual Rows"] = "please",
+
+	["Shared Hit Blocks"] = true,
+	["Shared Read Blocks"] = true,
+	["Shared Dirtied Blocks"] = true,
+	["Shared Written Blocks"] = true,
+	["Local Hit Blocks"] = true,
+	["Local Read Blocks"] = true,
+	["Local Dirtied Blocks"] = true,
+	["Local Written Blocks"] = true,
+	["Temp Read Blocks"] = true,
+	["Temp Written Blocks"] = true,
+
+	["WAL Records"] = true,
+	["WAL Bytes"] = true,
+	["WAL FPI"] = true,
+	["WAL FPI Bytes"] = true,
+	["WAL Buffers Full"] = true,
+}
+
 -- declarations
 
 ---@type table<NodeType, NodeDumper>
 local dumpers = {}
 
 --#region node type dumpers
+
+---@param _ PlanNode
+---@param sink DumpedNode
+local function gather_dump_timing(_, sink)
+	if not sink.timing then
+		return
+	end
+
+	local child = sink.children[1]
+	local node_total_startup, node_total_total = sink.timing.tree.total[1], sink.timing.tree.total[2]
+
+	node_total_startup = node_total_startup - child.timing.tree.total[1]
+	node_total_total = node_total_total - child.timing.tree.total[2]
+
+	local loops = sink.loop_count
+
+	sink.timing.node = {
+		single = {string.format("%.3f", node_total_startup / loops), string.format("%.3f", node_total_total / loops)},
+		total = {string.format("%.3f", node_total_startup), string.format("%.3f", node_total_total)}
+	}
+end
 
 ---Dumps costs information about Sort node, that has specific relationship between its startup_cost and total_cost of its children
 ---@param node_data PlanNode
@@ -83,27 +132,32 @@ local function sort_dump_indicators(node_data, sink)
 	local cost_startup, cost_total = node_data["Startup Cost"], node_data["Total Cost"]
 
 	if cost_startup then
-	if node_data.Plans then
-		for _, child in ipairs(node_data.Plans) do
-			cost_startup = cost_startup - child["Total Cost"]
-			cost_total = cost_total - child["Total Cost"]
+		if node_data.Plans then
+			for _, child in ipairs(node_data.Plans) do
+				cost_startup = cost_startup - child["Total Cost"]
+				cost_total = cost_total - child["Total Cost"]
+			end
+
+			cost_startup = math.max(0, cost_startup)
+			cost_total = math.max(cost_startup, cost_total)
 		end
 
-		cost_startup = math.max(0, cost_startup)
-		cost_total = math.max(cost_startup, cost_total)
-	end
-
-	sink.startup_cost = string.format("%.2f", cost_startup)
-	sink.total_cost = string.format("%.2f", cost_total)
+		sink.startup_cost = string.format("%.2f", cost_startup)
+		sink.total_cost = string.format("%.2f", cost_total)
 	end
 
 	if sink.timing then
 		local node_total_startup, node_total_total = sink.timing.tree.total[1], sink.timing.tree.total[2]
 
-		for _, child in ipairs(sink.children) do
-			if not child.subplan then
-				node_total_startup = node_total_startup - (child.timing.tree or child.timing.node).total[2]
-				node_total_total = node_total_total - (child.timing.tree or child.timing.node).total[2]
+		for _, child in ipairs(node_data.Plans) do
+			if not child["Subplan Name"] then
+				local child_loops = child["Actual Loops"]
+				if sink.workers then
+					child_loops = child_loops / sink.workers
+				end
+
+				node_total_startup = node_total_startup - child["Actual Total Time"] * child_loops
+				node_total_total = node_total_total - child["Actual Total Time"] * child_loops
 			end
 		end
 
@@ -128,12 +182,20 @@ dumpers[NodeType.BitmapHeapScan] = function (node_data, sink)
 	scan(node_data, sink)
 end
 
+dumpers[NodeType.Gather] = function (node_data, sink)
+	gather_dump_timing(node_data, sink)
+end
+
+dumpers[NodeType.GatherMerge] = function (node_data, sink)
+	dumpers[NodeType.Gather](node_data, sink)
+end
+
 dumpers[NodeType.Hash] = function (node_data, sink)
 	sink.columns = node_data["Output"]
 end
 
 dumpers[NodeType.HashJoin] = function (node_data, sink)
-	sink.join_on = string.match(node_data["Hash Cond"], "%((.+)%)") or node_data["Hash Cond"]
+	sink.join_on = string.match(node_data["Hash Cond"] or "", "%((.+)%)") or node_data["Hash Cond"]
 end
 
 dumpers[NodeType.IndexOnlyScan] = function(node_data, sink)
@@ -142,7 +204,6 @@ end
 
 dumpers[NodeType.IndexScan] = function(node_data, sink)
 	scan(node_data, sink)
-	sink.loop_count = node_data["Actual Loops"] -- только с analyze, потом переделать
 end
 
 dumpers[NodeType.NestedLoop] = function(node_data, sink)
@@ -178,12 +239,23 @@ local function fix_data(data)
 	return data .. "}" .. "]"
 end
 
+local function copy_table(src)
+	local new_table = {}
+
+	for key, value in pairs(src) do
+		new_table[key] = value
+	end
+
+	return new_table
+end
+
 -- class
 
 ---@class TreeParser
 ---@field textParser TextParser
 ---@field queryParser NodeStringParser
 ---@field dump DumpedPlan
+---@field workers integer?
 local TreeParser = {}
 TreeParser.__index = TreeParser
 
@@ -276,6 +348,7 @@ function TreeParser:dumpNode(node)
 		type = node_type,
 		relationship = node["Parent Relationship"],
 		subplan = node["Subplan Name"],
+		workers = self.workers,
 		raw = node
 	}
 
@@ -285,14 +358,24 @@ function TreeParser:dumpNode(node)
 		self.dump.subplanCount = self.dump.subplanCount + 1
 	end
 
+	if node["Workers Launched"] then
+		self.workers = node["Workers Launched"] + 1
+	end
+
 	self:dumpCosts(node, new_node)
 
 	if node.Plans then
 		new_node.children = self:dumpNodeList(node.Plans)
 	end
 
+	if node["Workers Launched"] then
+		self.workers = nil
+	end
+
 	self:dumpTiming(node, new_node)
 	self:dumpBuffers(node, new_node)
+	self:dumpWAL(node, new_node)
+	self:dumpWorkers(node, new_node)
 
 	dumpers[node_type](node, new_node)
 
@@ -348,6 +431,11 @@ function TreeParser:dumpTiming(node_data, sink)
 
 	sink.rows = math.floor(node_data["Actual Rows"] * loops + .5)
 
+	if self.workers then
+		loops = loops / self.workers
+	end
+	sink.loop_count = loops
+
 	local real_startup, real_total = node_data["Actual Startup Time"] * loops, node_data["Actual Total Time"] * loops
 
 	local timing = {}
@@ -360,8 +448,13 @@ function TreeParser:dumpTiming(node_data, sink)
 
 		for _, child in ipairs(node_data.Plans) do
 			if not child["Subplan Name"] then
-				real_startup = real_startup - child["Actual Startup Time"] * child["Actual Loops"]
-				real_total = real_total - child["Actual Total Time"] * child["Actual Loops"]
+				local child_loops = child["Actual Loops"]
+				if self.workers then
+					child_loops = child_loops / self.workers
+				end
+
+				real_startup = real_startup - child["Actual Startup Time"] * child_loops
+				real_total = real_total - child["Actual Total Time"] * child_loops
 			end
 		end
 
@@ -528,6 +621,123 @@ function TreeParser:dumpBuffers(node_data, sink)
 	end
 
 	sink.buffers = buffers
+end
+
+function TreeParser:dumpWorkers(node_data, sink)
+	if not node_data["Workers"] or #node_data["Workers"] == 0 then
+		return
+	end
+
+	local workers = {}
+
+	local loops = node_data["Actual Loops"]
+	local pool = {
+		["Actual Loops"] = loops,
+
+		["Actual Startup Time"] = loops and node_data["Actual Startup Time"] * loops,
+		["Actual Total Time"] = loops and node_data["Actual Total Time"] * loops,
+		["Actual Rows"] = loops and node_data["Actual Rows"] * loops,
+
+		["Shared Hit Blocks"] = node_data["Shared Hit Blocks"],
+		["Shared Read Blocks"] = node_data["Shared Read Blocks"],
+		["Shared Dirtied Blocks"] = node_data["Shared Dirtied Blocks"],
+		["Shared Written Blocks"] = node_data["Shared Written Blocks"],
+		["Local Hit Blocks"] = node_data["Local Hit Blocks"],
+		["Local Read Blocks"] = node_data["Local Read Blocks"],
+		["Local Dirtied Blocks"] = node_data["Local Dirtied Blocks"],
+		["Local Written Blocks"] = node_data["Local Written Blocks"],
+		["Temp Read Blocks"] = node_data["Temp Read Blocks"],
+		["Temp Written Blocks"] = node_data["Temp Written Blocks"],
+
+		["WAL Records"] = node_data["WAL Records"],
+		["WAL Bytes"] = node_data["WAL Bytes"],
+		["WAL FPI"] = node_data["WAL FPI"],
+		["WAL FPI Bytes"] = node_data["WAL FPI Bytes"],
+		["WAL Buffers Full"] = node_data["WAL Buffers Full"],
+	}
+
+	local child_indices = {}
+
+	if node_data["Plans"] then
+		pool["Plans"] = {}
+
+		for pi, child in ipairs(node_data["Plans"]) do
+			if not child["Subplan Name"] then
+				local child_i = #pool["Plans"]+1
+
+				child_indices[pi] = child_i
+				pool["Plans"][child_i] = copy_table(child)
+
+				pool["Plans"][child_i]["Actual Startup Time"] = pool["Plans"][child_i]["Actual Startup Time"] and pool["Plans"][child_i]["Actual Startup Time"] * pool["Plans"][child_i]["Actual Loops"]
+				pool["Plans"][child_i]["Actual Total Time"] = pool["Plans"][child_i]["Actual Total Time"] and pool["Plans"][child_i]["Actual Total Time"] * pool["Plans"][child_i]["Actual Loops"]
+				pool["Plans"][child_i]["Actual Rows"] = pool["Plans"][child_i]["Actual Rows"] and pool["Plans"][child_i]["Actual Rows"] * pool["Plans"][child_i]["Actual Loops"]
+			end
+		end
+	end
+
+	local worker_count = self.workers
+	self.workers = nil
+
+	for i, worker in ipairs(node_data["Workers"]) do
+		local worker_sink = {
+			no = worker["Worker Number"]
+		}
+
+		if node_data["Plans"] then
+			worker["Plans"] = {}
+
+			for pi, child in ipairs(node_data["Plans"]) do
+				if not child["Subplan Name"] then
+					worker["Plans"][#worker["Plans"]+1] = child["Workers"][i]
+
+					self:subtractWorker(pool["Plans"][child_indices[pi]], child["Workers"][i])
+				end
+			end
+		end
+
+		self:dumpTiming(worker, worker_sink)
+		self:dumpBuffers(worker, worker_sink)
+		self:dumpWAL(worker, worker_sink)
+		dumpers[node_data["Node Type"]](worker, worker_sink)
+
+		self:subtractWorker(pool, worker)
+
+		if node_data["Plans"] then
+			worker["Plans"] = nil
+		end
+
+		for key, value in pairs(worker) do
+			if not WorkerIgnoreFields[key] and key ~= "Worker Number" then
+				worker_sink.other = worker_sink.other or {}
+				worker_sink.other[key] = value
+			end
+		end
+
+		workers[i] = worker_sink
+	end
+
+	local master_sink = {}
+	self:dumpTiming(pool, master_sink)
+	self:dumpBuffers(pool, master_sink)
+	self:dumpWAL(pool, master_sink)
+	dumpers[node_data["Node Type"]](pool, master_sink)
+	workers[0] = master_sink
+
+	self.workers = worker_count
+
+	sink.workerDump = workers
+end
+
+function TreeParser:subtractWorker(node, worker)
+	for key, please in pairs(WorkerIgnoreFields) do
+		if node[key] and worker[key] then
+			if type(please) == "boolean" then
+				node[key] = node[key] - worker[key]
+			else
+				node[key] = node[key] - worker[key] * worker["Actual Loops"]
+			end
+		end
+	end
 end
 
 --#endregion

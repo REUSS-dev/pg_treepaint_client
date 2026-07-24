@@ -539,6 +539,14 @@ function DiagramNode:new()
 				textColor = self.text_color_desc,
 				text = "Never executed",
 			}
+		elseif node_data.workers then
+			self.footerContainer:createChild "Label" {
+				w = "fill",
+				font = self.font.S,
+				horizontal = "right",
+				textColor = self.text_color_desc,
+				text = "Time: " .. node_data.workers .. " * " .. node_data.timing.node.total[2] .. "ms",
+			}
 		else
 			self.footerContainer:createChild "Label" {
 				w = "fill",

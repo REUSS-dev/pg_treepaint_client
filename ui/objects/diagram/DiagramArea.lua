@@ -89,6 +89,10 @@ function DiagramArea:resize(new_w, new_h, relayout)
 end
 
 function DiagramArea:wheel(x, y)
+	if x == 0 and y == 0 then
+		return
+	end
+
 	if (love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")) and x == 0 then
 		self:moveRoot(y * 20, 0)
 		return
@@ -254,6 +258,18 @@ function DiagramArea:packNode(node)
 	vetical_container:add(node_object)
 
 	local children_object = self:packNodeList(node.children)
+
+	if node_object.nodeType == "Gather" or node_object.nodeType == "Gather Merge" then
+		local worker_count = node_object.node.raw["Workers Launched"] or node_object.node.raw["Workers Planned"]
+		local subplan_container = self:create "DiagramSubplanContainer" { title = worker_count and "Additional Workers: " .. worker_count or "Parallelized", diagram = self, kind = "workers" }
+			:pack(children_object)
+
+		self.subplanContainers[#self.subplanContainers+1] = subplan_container
+
+		vetical_container:add(subplan_container)
+		return vetical_container
+	end
+
 	vetical_container:add(children_object)
 
 	return vetical_container

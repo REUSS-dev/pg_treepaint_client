@@ -101,7 +101,7 @@ function InfoPanel:createContents(node)
 	self:createCosts(node, coverage)
 	self:createAnalyze(node, coverage)
 	self:createBuffers(node, coverage)
-	self:createWAL(node, coverage)
+	self:createWorkers(node, coverage)
 	self:createOutput(node, coverage)
 	self:createWAL(node, coverage)
 
@@ -166,31 +166,77 @@ function InfoPanel:createAnalyze(node, covered)
 
 	local loops = node.node.raw["Actual Loops"]
 
-	local section = self.contentsContainer:createChild "SectionContainer" { title = "Timing Info" }
+	local section = self.contentsContainer:createChild "SectionContainer" { title = loops == 0 and "Timing Info (Never Executed)" or node.node.workers and "Timing Info (Parallel)" or "Timing Info", group = "info_timing" }
 
 	if loops == 0 then
-		section:addText("Never executed")
+		section:addText("Never Executed")
 		return
 	end
 
-	section
-		:addText("Loops: " .. loops)
-		:addTextProtected("Rows: ", tonumber(node.node.raw["Actual Rows"] or ""))
-
-	section
-		:addTextProtected("Node (total): ", loops ~= 1 and (node.node.timing.node.total[1] .. ".." .. node.node.timing.node.total[2] .. "ms") or nil)
-		:addTextProtected("Node (single time): ", loops ~= 1 and (node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "ms") or nil)
-		:addTextProtected("Node: ", loops == 1 and (node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "ms") or nil)
-
-	if node.parent.name ~= "DiagramVerticalContainer" then
-		return
-	end ---@cast node +{parent: DiagramVerticalContainer}
-
-	if node.parent.master == node then
+	if loops == 1 then
 		section
-			:addTextProtected("Tree (total): ", loops ~= 1 and (node.node.timing.tree.total[1] .. ".." .. node.node.timing.tree.total[2] .. "ms") or nil, true)
-			:addTextProtected("Tree (single time): ", loops ~= 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "ms") or nil, true)
-			:addTextProtected("Tree: ", loops == 1 and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "ms") or nil, true)
+			:addText("Loops: " .. loops)
+			:addTextProtected("Rows: ", node.node.rows)
+			:addTextProtected("Node: ", node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "ms")
+			:addTextProtected("Tree: ", node.node.timing.tree and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "ms") or nil, true)
+
+		return
+	end
+
+	do
+		local worker_count = node.node.workers or 1
+
+		local node_start, node_total = string.format("%.3f", node.node.timing.node.total[1] * worker_count), string.format("%.3f", node.node.timing.node.total[2] * worker_count)
+		local tree_start, tree_total
+
+		if node.node.timing.tree then
+			tree_start, tree_total = string.format("%.3f", node.node.timing.tree.total[1] * worker_count), string.format("%.3f", node.node.timing.tree.total[2] * worker_count)
+		end
+
+		section
+			:addTextProtected("Workers: ", node.node.workers)
+			:addText("Loops: " .. loops)
+			:addTextProtected("Rows: ", node.node.rows)
+			:addTextProtected("Node: ", node_start .. ".." .. node_total .. "ms")
+			:addTextProtected("Tree: ", tree_total and (tree_start .. ".." .. tree_total .. "ms") or nil, true)
+
+		section:addDivider(nil, true)
+	end
+
+	if node.node.workers then
+		local worker = self:create "SectionContainer" {
+			title = "Single Worker",
+			group = "info_timing_worker",
+			borderless = true,
+			no_div = true,
+			collapser_pos = "left",
+		}
+
+		worker
+			:addText("Loops: " .. string.format("%g", loops / node.node.workers))
+			:addTextProtected("Rows: ", math.floor(node.node.rows / node.node.workers + .5))
+			:addTextProtected("Node: ", node.node.timing.node.total[1] .. ".." .. node.node.timing.node.total[2] .. "ms")
+			:addTextProtected("Tree: ", node.node.timing.tree and (node.node.timing.tree.total[1] .. ".." .. node.node.timing.tree.total[2] .. "ms") or nil, true)
+
+		section:addObject(worker)
+			:addDivider(nil, true)
+	end
+
+	do
+		local single = self:create "SectionContainer" {
+			title = "Single Time",
+			group = "info_timing_single",
+			borderless = true,
+			no_div = true,
+			collapser_pos = "left",
+		}
+
+		single
+			:addTextProtected("Rows: ", node.node.raw["Actual Rows"])
+			:addTextProtected("Node: ", node.node.timing.node.single[1] .. ".." .. node.node.timing.node.single[2] .. "ms")
+			:addTextProtected("Tree: ", node.node.timing.tree and (node.node.timing.tree.single[1] .. ".." .. node.node.timing.tree.single[2] .. "ms") or nil, true)
+
+		section:addObject(single)
 	end
 end
 
@@ -223,39 +269,105 @@ end
 
 ---@param node DiagramNode
 ---@param covered table<string, boolean>
-function InfoPanel:createWAL(node, covered)
-	if not node.node.raw["WAL Records"] then
+function InfoPanel:createWorkers(node, covered)
+	if not node.node.workerDump then
 		return
 	end
 
-	covered["WAL Records"] = true
-	covered["WAL Bytes"] = true
-	covered["WAL FPI"] = true
-	covered["WAL FPI Bytes"] = true
-	covered["WAL Buffers Full"] = true
+	covered["Workers"] = true
 
-	if node.node.raw["WAL Records"] == 0 then
-		self.contentsContainer:createChild "SectionContainer" { title = "WAL Info" }
-			:addText("No WAL Records created.")
+	local workers = self.contentsContainer:createChild "SectionContainer" { title = "Workers (" .. (node.node.workers - 1) .. ")", group = "info_workers" }
+		:addText("Additional workers: " .. (node.node.workers - 1))
+		:addDivider(nil, true)
 
+	local master = workers:create "SectionContainer" { title = "Master process", group = "info_workers_master", borderless = true }
+	self:createWorker(node.node.workerDump[0], master)
+	workers:addObject(master)
+
+	for _, worker in ipairs(node.node.workerDump) do ---@cast worker +{no: integer}
+		workers:addDivider(nil, true)
+		local new_worker = workers:create "SectionContainer" { title = "Worker " .. worker.no, group = "info_workers_worker_" .. worker.no, borderless = true }
+		self:createWorker(worker, new_worker)
+		workers:addObject(new_worker)
+	end
+end
+
+---@param worker DumpedNode
+---@param section SectionContainer
+function InfoPanel:createWorker(worker, section)
+	---@cast worker +{no: integer, other: table<string, any>}
+
+	if worker.loop_count then
+		section
+			:addText("Loops: " .. worker.loop_count)
+			:addTextProtected("Rows: ", worker.rows)
+
+		if worker.loop_count == 1 then
+			section
+				:addTextProtected("Node: ", worker.timing.node.single[1] .. ".." .. worker.timing.node.single[2] .. "ms")
+				:addTextProtected("Tree: ", worker.timing.tree and (worker.timing.tree.single[1] .. ".." .. worker.timing.tree.single[2] .. "ms") or nil, true)
+		else
+			section
+				:addTextProtected("Node (total): ", worker.timing.node.total[1] .. ".." .. worker.timing.node.total[2] .. "ms")
+				:addTextProtected("Node (single time): ", worker.timing.node.single[1] .. ".." .. worker.timing.node.single[2] .. "ms")
+				:addTextProtected("Tree (total): ", worker.timing.tree and (worker.timing.tree.total[1] .. ".." .. worker.timing.tree.total[2] .. "ms") or nil, true)
+				:addTextProtected("Tree (single time): ", worker.timing.tree and (worker.timing.tree.single[1] .. ".." .. worker.timing.tree.single[2] .. "ms") or nil, true)
+		end
+	end
+
+	if worker.buffers then
+		local buffer_group = "info_workers_buffers_worker_" .. (worker.no or "master")
+
+		local buffer_section = self:create "SectionContainer" { title = "Buffers", borderless = true, no_div = true, group = buffer_group, collapser_pos = "left"}
+
+		local buffers = self:create "BufferSheet" {
+			buffers = worker.buffers,
+			group = buffer_group
+		}
+		buffer_section:addObject(buffers)
+
+		section:addObject(buffer_section)
+	end
+
+	if (not worker.wal or worker.wal.node.records == 0) and not worker.other then
 		return
 	end
 
-	local wal = self.contentsContainer:createChild "SectionContainer" { title = "WAL Info" }
+	local other_group = "info_workers_other_worker_" .. (worker.no or "master")
 
-	if node.node.raw["WAL Bytes"] and node.node.raw["WAL Bytes"] > 0 then
-		wal:addText("Records: " .. node.node.raw["WAL Records"] .. " (" .. node.node.raw["WAL Bytes"] .. " bytes)")
-	else
-		wal:addTextProtected("Records: ", node.node.raw["WAL Records"])
+	local other_section = self:create "SectionContainer" { title = "Other", borderless = true, no_div = true, group = other_group, collapser_pos = "left"}
+
+	if worker.wal and (worker.wal.node.records ~= 0 or worker.other) then
+		if worker.wal.node.records == 0 then
+			other_section:addText("No WAL Records created.")
+		else
+			if worker.wal.node.bytes and worker.wal.node.bytes > 0 then
+				other_section:addText("Records: " .. worker.wal.node.records .. " (" .. worker.wal.node.bytes .. " bytes)")
+			else
+				other_section:addTextProtected("Records: ", worker.wal.node.records)
+			end
+
+			if worker.wal.node.fpi_bytes and worker.wal.node.fpi_bytes > 0 then
+				other_section:addText("FPI: " .. worker.wal.node.fpi .. " (" .. worker.wal.node.fpi_bytes .. " bytes)")
+			else
+				other_section:addTextProtected("FPI: ", worker.wal.node.fpi)
+			end
+
+			other_section:addTextProtected("Buffers Full: ", worker.wal.node.buffers_full)
+		end
 	end
 
-	if node.node.raw["WAL FPI Bytes"] and node.node.raw["WAL FPI Bytes"] > 0 then
-		wal:addText("FPI: " .. node.node.raw["WAL FPI"] .. " (" .. node.node.raw["WAL FPI Bytes"] .. " bytes)")
-	else
-		wal:addTextProtected("FPI: ", node.node.raw["WAL FPI"])
+	if worker.other then
+		if worker.wal then
+			other_section:addDivider(nil, true)
+		end
+
+		for key, value in pairs(worker.other) do
+			other_section:addText(key .. ": " .. value)
+		end
 	end
 
-	wal:addTextProtected("Buffers Full: ", node.node.raw["WAL Buffers Full"])
+	section:addObject(other_section)
 end
 
 ---@param node DiagramNode

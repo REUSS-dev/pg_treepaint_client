@@ -11,6 +11,28 @@ local DiagramNodeGather = {
 	}
 }
 
+function DiagramNodeGather:populateInfo(covered)
+	local sections = {}
+
+	covered["Workers Planned"] = true
+	covered["Workers Launched"] = true
+
+	local gather_section = self:create "SectionContainer" { title = "Gather Info" }
+	sections[#sections+1] = gather_section
+
+	if self.node.raw["Workers Launched"] and self.node.raw["Workers Planned"] then
+		gather_section:addText("Workers Launched: " .. self.node.raw["Workers Launched"] .. " (" .. self.node.raw["Workers Planned"] .. " planned)")
+
+		return sections
+	end
+
+	gather_section
+		:addTextProtected("Workers Launched: ", self.node.raw["Workers Launched"])
+		:addTextProtected("Workers Planned: ", self.node.raw["Workers Planned"])
+
+	return sections
+end
+
 -- node fnc
 
 function DiagramNodeGather:new()

@@ -21,6 +21,7 @@ local currentSelect	---@type DiagramNode?
 ---@field lineSize number
 ---@field cachedLines number[][]
 ---@field selectMode "parent"|"child"|nil
+---@field linesColor ColorTable
 local DiagramContainer = {
 	name = "DiagramContainer",
 	extends = "CompositeObject",
@@ -36,7 +37,9 @@ local DiagramContainer = {
 		lineSize = 2
 	},
 
+	linesColor = COLORS.CONNECTION,
 	hoverColor = COLORS.CONNECTION_HOVER,
+
 	hoverMultiplier = HOVER_MULTIPLIER,
 	hoverRadius = HOVER_RADIUS,
 	defaultCursor = "hand"
@@ -72,7 +75,7 @@ end
 
 function DiagramContainer:paintLines()
 	love.graphics.setLineWidth(self.lineSize)
-	love.graphics.setColor(self.palette.border)
+	love.graphics.setColor(self.linesColor)
 
 	if self:getConnectionHl() then
 		love.graphics.setLineWidth(self.lineSize * self.hoverMultiplier)

@@ -1,10 +1,16 @@
 -- ContainerSubplan
 
+local kind_colors = {
+	subplan = COLORS.CONNECTION,
+	workers = COLORS.NODE_GATHER,
+}
+
 -- class
 
 ---@class DiagramSubplanContainer : DiagramContainer
 ---@field DiagramContainer DiagramContainer
 ---@field title string
+---@field kind "workers"|"subplan"
 ---@field titleContainer CompositeObject
 ---@field divider CompositeObject
 ---@field subplanContainer CompositeObject
@@ -13,18 +19,21 @@ local DiagramSubplanContainer = {
 	name = "DiagramSubplanContainer",
 	extends = "DiagramContainer",
 	rules = {
-		{{"title"}, "title"}
+		{{"title"}, "title"},
+		{{"kind"}, "kind"},
 	},
 	default = {
 		gap = 0,
 		r = 15,
 		growth = "vertical",
 
-		additionalColor = COLORS.CONNECTION,
+		additionalColor = kind_colors["subplan"],
 		textColor = COLORS.NODE_TEXT,
 		font = "default 18",
 
-		borderSize = 1
+		borderSize = 1,
+
+		kind = "subplan",
 	},
 
 	hoverMultiplier = 1
@@ -133,6 +142,7 @@ function DiagramSubplanContainer:masqueradeSubplanContainer()
 end
 
 function DiagramSubplanContainer:new()
+	self.palette:setColor(3, kind_colors[self.kind])
 	self.border_flag = true
 
 	self.titleContainer = self:createChild "Container" { w = "fill", padding = 15, vertical = "center"}
@@ -149,7 +159,7 @@ function DiagramSubplanContainer:new()
 	self.divider = self:createChild "Container" {
 		w = "fill",
 		h = 1,
-		color = COLORS.NODE_BORDER
+		color = self.palette.border
 	}
 
 	self.subplanContainer = self:createChild "Container" { w = "hug", vertical = "top", padding = {50, 25, 50, 50}, gap = 50}

@@ -11,6 +11,7 @@
 ---@field collapsible boolean
 ---@field borderless boolean
 ---@field noDiv boolean
+---@field collapser_pos "left"|"right"
 local SectionContainer = {
 	name = "SectionContainer",
 	extends = "CompositeObject",
@@ -20,6 +21,7 @@ local SectionContainer = {
 		{{"collapse", "collapsible"}, "collapsible"},
 		{{"borderless"}, "borderless"},
 		{{"no_div", "no_divider"}, "noDiv"},
+		{{"collapser_pos", "collapser_position"}, "collapser_pos"}
 	},
 	default = {
 		w = "fill",
@@ -38,11 +40,14 @@ local SectionContainer = {
 		collapsible = true,
 		borderless = false,
 		no_div = false,
+		collapser_pos = "right",
 	},
 
 	sectionStates = {
-		["Timing Info"] = true,
-		["Buffers Info"] = true
+		["Buffers Info"] = true,
+
+		info_timing = true,
+		info_workers_master = true
 	}
 }
 
@@ -163,6 +168,7 @@ function SectionContainer:new()
 
 	if self.collapsible then
 		assert(self.title, "Element \"title\" is required for a collapsible SectionContainer object")
+		assert(self.collapser_pos == "left" or self.collapser_pos == "right", "Element \"collapser_pos\" is invalid for a collapsible SectionContainer object")
 
 		if self.sectionStates[self.group] == nil then
 			self.sectionStates[self.group] = false
@@ -170,20 +176,36 @@ function SectionContainer:new()
 
 		local top_container = self:createChild "Container" {
 			growth = "horizontal",
-			w = "fill"
-		}
-
-		top_container:createChild "Label" {
-			text = self.title,
-			font = self.font.title,
 			w = "fill",
-			horizontal = "left",
-			textColor = self.palette.text
+			gap = 10
 		}
 
-		self.collapseButton = top_container:createChild "SectionCollapse" {
-			target = self
-		}
+		if self.collapser_pos == "left" then
+			self.collapseButton = top_container:createChild "SectionCollapse" {
+				target = self,
+				invert = true,
+			}
+
+			top_container:createChild "Label" {
+				text = self.title,
+				font = self.font.title,
+				w = "fill",
+				horizontal = "left",
+				textColor = self.palette.text
+			}
+		else
+			top_container:createChild "Label" {
+				text = self.title,
+				font = self.font.title,
+				w = "fill",
+				horizontal = "left",
+				textColor = self.palette.text
+			}
+
+			self.collapseButton = top_container:createChild "SectionCollapse" {
+				target = self
+			}
+		end
 
 		self.divider = self:createChild "Container" {
 			w = "fill",
