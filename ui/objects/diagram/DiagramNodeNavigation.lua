@@ -61,6 +61,7 @@ function DiagramNodeNavigation:createLabel()
 	}
 end
 
+---@param text string
 function DiagramNodeNavigation:createText(text)
 	self:createChild "Label" {
 		text = text,

@@ -23,7 +23,7 @@ function DiagramNodeSeqScan:populateInfo(covered)
 	sections[1] = self:create "SectionContainer" { title = "Scan Info" }
 		:addTextProtected("Schema: ", self.node.raw["Schema"])
 		:addTextProtected("Relation: ", self.node.raw["Relation Name"])
-		:addTextProtected("Alias: ", self.node.raw["Alias"])
+		:addTextProtected("Alias: ", self.node.raw["Relation Name"] ~= self.node.raw["Alias"] and self.node.raw["Alias"] or nil)
 		:addTextProtected("Rows Removed by Filter: ", self.node.raw["Rows Removed by Filter"])
 		:addTextProtected("Filter: ", self.node.raw["Filter"])
 

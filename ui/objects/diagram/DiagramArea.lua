@@ -12,7 +12,7 @@ local TreeParser = require("classes.TreeParser")
 ---@field summaryToggle Button
 ---@field parser TreeParser
 ---@field plan DumpedPlan
----@field root CompositeObject?
+---@field root DiagramNode|DiagramContainer?
 ---@field mouse_held {[1]: integer, [2]: integer}?
 ---@field mouse_held_origin {[1]: integer, [2]: integer}?
 ---@field cte_list table<string, DiagramNode>
@@ -260,6 +260,7 @@ function DiagramArea:packNode(node)
 	local children_object = self:packNodeList(node.children)
 
 	if node_object.nodeType == "Gather" or node_object.nodeType == "Gather Merge" then
+		---@cast children_object DiagramNode|DiagramVerticalContainer
 		local worker_count = node_object.node.raw["Workers Launched"] or node_object.node.raw["Workers Planned"]
 		local subplan_container = self:create "DiagramSubplanContainer" { title = worker_count and "Additional Workers: " .. worker_count or "Parallelized", diagram = self, kind = "workers" }
 			:pack(children_object)
@@ -289,6 +290,7 @@ function DiagramArea:makeNodeObject(node)
 	}
 end
 
+---@param node DiagramNode|DiagramContainer
 function DiagramArea:createMinimap(node)
 	self.minimap = self:createChild "MinimapApplet" {node}
 

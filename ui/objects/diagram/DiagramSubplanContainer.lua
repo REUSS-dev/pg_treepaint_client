@@ -14,7 +14,7 @@ local kind_colors = {
 ---@field titleContainer CompositeObject
 ---@field divider CompositeObject
 ---@field subplanContainer CompositeObject
----@field node DiagramNode
+---@field node DiagramNode|DiagramVerticalContainer
 local DiagramSubplanContainer = {
 	name = "DiagramSubplanContainer",
 	extends = "DiagramContainer",
@@ -113,6 +113,8 @@ function DiagramSubplanContainer:generateLines()
 	self.cachedLines = {{x1, y1, x2, y2}}
 end
 
+---@param packed DiagramNode|DiagramVerticalContainer
+---@return DiagramSubplanContainer self
 function DiagramSubplanContainer:pack(packed)
 	self.subplanContainer:add(packed)
 	self.node = packed

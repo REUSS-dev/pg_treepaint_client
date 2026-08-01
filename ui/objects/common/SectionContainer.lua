@@ -109,12 +109,17 @@ function SectionContainer:addTextBig(text, greyed)
 	return self
 end
 
+---@param obj ObjectUI
+---@return SectionContainer self
 function SectionContainer:addObject(obj)
 	self.contents:add(obj)
 
 	return self
 end
 
+---@param padding (number|number[])?
+---@param greyed boolean?
+---@return SectionContainer self
 function SectionContainer:addDivider(padding, greyed)
 	local divider = self:create "Container" {
 		w = "fill",

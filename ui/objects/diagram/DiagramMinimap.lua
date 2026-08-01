@@ -139,6 +139,8 @@ function DiagramMinimap:getScale()
 	return self.scale
 end
 
+---@param new_scale number
+---@return DiagramMinimap? self
 function DiagramMinimap:setScale(new_scale)
 	if not self:calculateCanvasResolution(new_scale) then
 		return nil

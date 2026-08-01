@@ -53,6 +53,7 @@ function SummaryFoldController:triggerDefault()
 end
 
 ---@public
+---@param id integer
 function SummaryFoldController:trigger(id)
 	id = id or self.current
 

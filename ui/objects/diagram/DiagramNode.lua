@@ -486,6 +486,44 @@ function DiagramNode:processChildren(objects)
 	return children
 end
 
+function DiagramNode:buildTitleContainer()
+	self.titleContainer = self:createChild "DiagramNodeContainer" { font = self.font }
+
+	if not self.node.rows or self.node.loop_count == 0 then
+		self.titleContainer:createChild "Label" {
+			w = "fill",
+			font = self.font.M,
+			horizontal = "left",
+			text = self.node.type,
+			textColor = self.text_color
+		}
+
+		return
+	end
+
+	local titlebox = self.titleContainer:createChild "Container" {
+		w = "fill",
+		growth = "horizontal",
+		vertical = "top",
+		gap = 10,
+	}
+
+	titlebox:createChild "Label" {
+		w = "fill",
+		font = self.font.M,
+		horizontal = "left",
+		text = self.node.type,
+		textColor = self.text_color
+	}
+
+	titlebox:createChild "Label" {
+		font = self.font.S,
+		horizontal = "right",
+		text = self.node.rows,
+		textColor = self.text_color_desc
+	}
+end
+
 ---@param _ table<string, boolean>
 ---@return SectionContainer
 function DiagramNode:populateInfo(_)
@@ -517,13 +555,7 @@ function DiagramNode:new()
 
 	-- Children
 
-	self.titleContainer = self:createChild "DiagramNodeContainer" { font = self.font }
-	self.titleContainer:createChild "Label" {
-		font = self.font.M,
-		horizontal = "left",
-		text = node_data.type,
-		textColor = self.text_color
-	}
+	self:buildTitleContainer()
 
 	self.contentsSeparator = self:createChild "Container" { color = {0.5, 0.5, 0.5, 1}, w = "fill", h = 1 }
 

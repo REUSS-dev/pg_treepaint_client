@@ -20,11 +20,15 @@ local TextParser = require("classes.TextParser")
 
 ---@class DumpedPlan
 ---@field root DumpedNode
+---@field format "text"|"json"|"xml"|"yaml"|"pg_treepaint"
 ---@field type string
 ---@field nodeCount integer
 ---@field subplanCount integer
 ---@field timing {planning: number?, execution: number?}?
 ---@field buffers {planning: BufferTable?, total: BufferTable}?
+---@field wal WALStats
+---@field settings table<string, string>?
+---@field serialization table
 ---@field identifier string
 
 ---@class DumpedNode
@@ -285,11 +289,23 @@ function TreeParser:parse(tree)
 		return nil
 	end
 
+	self.dump.format = plan.tp_format
+
 	plan = plan[1] or plan
 
 	self.dump.root = self:dumpNode(plan["Plan"])
 
 	-- Query type
+
+	if self.dump.root.type == "ModifyTable" then
+		if self.dump.root.raw["Operation"] == "Insert" then
+			self.dump.type = "INSERT"
+		elseif self.dump.root.raw["Operation"] == "Update" then
+			self.dump.type = "UPDATE"
+		elseif self.dump.root.raw["Operation"] == "Delete" then
+			self.dump.type = "DELETE"
+		end
+	end
 
 	if self.dump.root.type == "Insert" then
 		self.dump.type = "INSERT"
@@ -308,7 +324,7 @@ function TreeParser:parse(tree)
 		}
 	end
 
-	-- Plan Summary Buffers
+	-- Plan Summary Buffers & wal
 
 	if not plan["Plan"]["Subplan Name"] then
 		plan["Plan"]["Subplan Name"] = "dummy"
@@ -316,6 +332,7 @@ function TreeParser:parse(tree)
 		plan["Plan"]["Plans"] = nil
 
 		self:dumpBuffers(plan["Plan"], {})
+		self:dumpWAL(plan["Plan"], {})
 
 		plan["Plan"]["Subplan Name"] = nil
 		plan["Plan"]["Plans"] = plans
@@ -333,6 +350,8 @@ function TreeParser:parse(tree)
 	-- Misc
 
 	self.dump.identifier = plan["Query Identifier"]
+	self.dump.settings = plan["Settings"]
+	self.dump.serialization = plan["Serialization"]
 
 	return self.dump
 end
@@ -477,6 +496,16 @@ function TreeParser:dumpWAL(node_data, sink)
 
 	local records, bytes, fpi, fpi_bytes, buffers = node_data["WAL Records"], node_data["WAL Bytes"], node_data["WAL FPI"], node_data["WAL FPI Bytes"], node_data["WAL Buffers Full"]
 
+	if node_data["Subplan Name"] then
+		self.dump.wal = self.dump.wal or { records = 0, bytes = 0, fpi = 0, fpi_bytes = 0, buffers_full = 0 }
+
+		self.dump.wal.records = self.dump.wal.records + (records or 0)
+		self.dump.wal.bytes = self.dump.wal.bytes + (bytes or 0)
+		self.dump.wal.fpi = self.dump.wal.fpi + (fpi or 0)
+		self.dump.wal.fpi_bytes = self.dump.wal.fpi_bytes + (fpi_bytes or 0)
+		self.dump.wal.buffers_full = self.dump.wal.buffers_full + (buffers or 0)
+	end
+
 	local wal = {}
 
 	if node_data.Plans then
@@ -522,16 +551,60 @@ function TreeParser:dumpBuffers(node_data, sink)
 		node_data["Shared Read Blocks"],
 		node_data["Shared Dirtied Blocks"],
 		node_data["Shared Written Blocks"]
+	local shared_sum = shared_hit + shared_read + shared_dirtied + shared_written
 
 	local local_hit, local_read, local_dirtied, local_written =
 		node_data["Local Hit Blocks"],
 		node_data["Local Read Blocks"],
 		node_data["Local Dirtied Blocks"],
 		node_data["Local Written Blocks"]
+	local local_sum = local_hit + local_read + local_dirtied + local_written
 
 	local temp_read, temp_written =
 		node_data["Temp Read Blocks"],
 		node_data["Temp Written Blocks"]
+	local temp_sum = temp_read and (temp_read + temp_written) or 0
+
+	if node_data["Subplan Name"] and (shared_sum + local_sum + temp_sum > 0) then
+		self.dump.buffers = self.dump.buffers or { total = {} }
+		local total = self.dump.buffers.total
+
+		if shared_sum > 0 then
+			total.Shared = total.Shared or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+			total.Shared.hit = total.Shared.hit + shared_hit
+			total.Shared.read = total.Shared.read + shared_read
+			total.Shared.dirtied = total.Shared.dirtied + shared_dirtied
+			total.Shared.written = total.Shared.written + shared_written
+			total.Shared.total = total.Shared.total + shared_sum
+		end
+
+		if local_sum > 0 then
+			total.Local = total.Local or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+			total.Local.hit = total.Local.hit + local_hit
+			total.Local.read = total.Local.read + local_read
+			total.Local.dirtied = total.Local.dirtied + local_dirtied
+			total.Local.written = total.Local.written + local_written
+			total.Local.total = total.Local.total + local_sum
+		end
+
+		if temp_sum > 0 then
+			total.Temp = total.Temp or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+			total.Temp.read = total.Temp.read + temp_read
+			total.Temp.written = total.Temp.written + temp_written
+			total.Temp.total = total.Temp.total + temp_sum
+		end
+
+		total.Total = total.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+
+		total.Total.hit = total.Total.hit + shared_hit + local_hit
+		total.Total.read = total.Total.read + shared_read + local_read + temp_read
+		total.Total.dirtied = total.Total.dirtied + shared_dirtied + local_dirtied
+		total.Total.written = total.Total.written + shared_written + local_written + temp_written
+		total.Total.total = total.Total.total + shared_sum + local_sum + temp_sum
+	end
 
 	if node_data.Plans then
 		for _, child in ipairs(node_data.Plans) do
@@ -546,18 +619,24 @@ function TreeParser:dumpBuffers(node_data, sink)
 				local_dirtied = local_dirtied - child["Local Dirtied Blocks"]
 				local_written = local_written - child["Local Written Blocks"]
 
-				temp_read = temp_read - child["Temp Read Blocks"]
-				temp_written = temp_written - child["Temp Written Blocks"]
+				if temp_read then
+					temp_read = temp_read - child["Temp Read Blocks"]
+					temp_written = temp_written - child["Temp Written Blocks"]
+				end
 			end
 		end
 	end
 
-	if shared_hit ~= 0 or shared_read ~= 0 or shared_dirtied ~= 0 or shared_written ~= 0 then
+	shared_sum = shared_hit + shared_read + shared_dirtied + shared_written
+	local_sum = local_hit + local_read + local_dirtied + local_written
+	temp_sum = temp_read and (temp_read + temp_written) or 0
+
+	if shared_sum > 0 then
 		buffers.Shared = {hit = shared_hit, read = shared_read, dirtied = shared_dirtied, written = shared_written, total = shared_hit + shared_read + shared_dirtied + shared_written}
 		buffers.Total = {hit = shared_hit, read = shared_read, dirtied = shared_dirtied, written = shared_written, total = shared_hit + shared_read + shared_dirtied + shared_written}
 	end
 
-	if local_hit ~= 0 or local_read ~= 0 or local_dirtied ~= 0 or local_written ~= 0 then
+	if local_sum > 0 then
 		buffers.Local = {hit = local_hit, read = local_read, dirtied = local_dirtied, written = local_written, total = local_hit + local_read + local_dirtied + local_written}
 		buffers.Total = buffers.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
 
@@ -568,56 +647,13 @@ function TreeParser:dumpBuffers(node_data, sink)
 		buffers.Total.total = buffers.Total.total + buffers.Local.total
 	end
 
-	if temp_read ~= 0 or temp_written ~= 0 then
+	if temp_sum > 0 then
 		buffers.Temp = {hit = 0, read = temp_read, dirtied = 0, written = temp_written, total = temp_read + temp_written}
 		buffers.Total = buffers.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
 
 		buffers.Total.read = buffers.Total.read + temp_read
 		buffers.Total.written = buffers.Total.written + temp_written
 		buffers.Total.total = buffers.Total.total + buffers.Temp.total
-	end
-
-	if node_data["Subplan Name"] then
-		self.dump.buffers = self.dump.buffers or { total = {} }
-		local total = self.dump.buffers.total
-
-		if buffers.Shared then
-			total.Shared = total.Shared or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
-
-			total.Shared.hit = total.Shared.hit + buffers.Shared.hit
-			total.Shared.read = total.Shared.read + buffers.Shared.read
-			total.Shared.dirtied = total.Shared.dirtied + buffers.Shared.dirtied
-			total.Shared.written = total.Shared.written + buffers.Shared.written
-			total.Shared.total = total.Shared.total + buffers.Shared.total
-		end
-
-		if buffers.Local then
-			total.Local = total.Local or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
-
-			total.Local.hit = total.Local.hit + buffers.Local.hit
-			total.Local.read = total.Local.read + buffers.Local.read
-			total.Local.dirtied = total.Local.dirtied + buffers.Local.dirtied
-			total.Local.written = total.Local.written + buffers.Local.written
-			total.Local.total = total.Local.total + buffers.Local.total
-		end
-
-		if buffers.Temp then
-			total.Temp = total.Temp or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
-
-			total.Temp.read = total.Temp.read + buffers.Temp.read
-			total.Temp.written = total.Temp.written + buffers.Temp.written
-			total.Temp.total = total.Temp.total + buffers.Temp.total
-		end
-
-		if buffers.Total then
-			total.Total = total.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
-
-			total.Total.hit = total.Total.hit + buffers.Total.hit
-			total.Total.read = total.Total.read + buffers.Total.read
-			total.Total.dirtied = total.Total.dirtied + buffers.Total.dirtied
-			total.Total.written = total.Total.written + buffers.Total.written
-			total.Total.total = total.Total.total + buffers.Total.total
-		end
 	end
 
 	sink.buffers = buffers
@@ -745,7 +781,7 @@ end
 --#region Explain format parsers
 
 ---@param json_string string
----@return DumpedPlan
+---@return table
 function TreeParser:parseJSON(json_string)
 	json_string = json_string:gsub("\n(%S)", "%1")
 
@@ -757,11 +793,12 @@ function TreeParser:parseJSON(json_string)
 		plan["Query Identifier"] = string.match(json_string, "\"Query Identifier\":%s*(%-?%d+),")
 	end
 
+	tree.tp_format = "json"
 	return tree
 end
 
 ---@param text string
----@return DumpedPlan?
+---@return table?
 function TreeParser:parseText(text)
 	local success, tree = pcall(self.textParser.parse, self.textParser, text)
 
@@ -772,6 +809,7 @@ function TreeParser:parseText(text)
 
 	print(json.encode(tree[1]["Plan"]))
 
+	tree.tp_format = "text"
 	return tree
 end
 

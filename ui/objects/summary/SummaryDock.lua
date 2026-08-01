@@ -37,6 +37,7 @@ local SummaryDock = {
 	},
 }
 
+---@param new_plan DumpedPlan
 function SummaryDock:applyPlan(new_plan)
 	self.plan = new_plan
 
@@ -59,7 +60,7 @@ function SummaryDock:triggerInfo()
 	self.currentContent = 1
 
 	self.contentsContainer.objects = self.content[1]
-	self:relayout()
+	self.contentsContainer:relayout()
 end
 
 function SummaryDock:triggerSubplans()
@@ -74,7 +75,7 @@ function SummaryDock:triggerSubplans()
 	self.currentContent = 2
 
 	self.contentsContainer.objects = self.content[2]
-	self:relayout()
+	self.contentsContainer:relayout()
 end
 
 function SummaryDock:triggerStats()
@@ -89,7 +90,7 @@ function SummaryDock:triggerStats()
 	self.currentContent = 3
 
 	self.contentsContainer.objects = self.content[3]
-	self:relayout()
+	self.contentsContainer:relayout()
 end
 
 function SummaryDock:triggerInsights()
@@ -104,7 +105,7 @@ function SummaryDock:triggerInsights()
 	self.currentContent = 4
 
 	self.contentsContainer.objects = self.content[4]
-	self:relayout()
+	self.contentsContainer:relayout()
 end
 
 --#endregion
@@ -246,6 +247,33 @@ function SummaryDock:generateInfo()
 		end
 	end
 
+	if plan.wal then
+		local wal = self.contentsContainer:createChild "SectionContainer" {
+			title = "WAL",
+			group = "summary_wal"
+		}
+
+		local wal_main = self.plan.wal
+
+		if wal_main.records == 0 then
+			wal:addText("No WAL Records created.")
+		else
+			if wal_main.bytes and wal_main.bytes > 0 then
+				wal:addText("Records: " .. wal_main.records .. " (" .. wal_main.bytes .. " bytes)")
+			else
+				wal:addTextProtected("Records: ", wal_main.records)
+			end
+
+			if wal_main.fpi_bytes and wal_main.fpi_bytes > 0 then
+				wal:addText("FPI: " .. wal_main.fpi .. " (" .. wal_main.fpi_bytes .. " bytes)")
+			else
+				wal:addTextProtected("FPI: ", wal_main.fpi)
+			end
+
+			wal:addTextProtected("Buffers Full: ", wal_main.buffers_full)
+		end
+	end
+
 	if plan.identifier then
 		local id = self.contentsContainer:createChild "SectionContainer" {
 			title = "Query Identifier"
@@ -293,6 +321,7 @@ function SummaryDock:generateInsights()
 	return self.contentsContainer.objects
 end
 
+---@param diagram DiagramArea
 function SummaryDock:registerDiagramObject(diagram)
 	self.diagram = diagram
 end

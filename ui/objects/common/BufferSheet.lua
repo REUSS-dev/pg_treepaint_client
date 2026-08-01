@@ -5,8 +5,8 @@ local gui = require("stellargui")
 local EPS = 0.0000000000001
 local BUFFER_SIZE = BUFFER_SIZE / 1024
 
----@enum ViewStates
-local ViewStates = {
+---@enum ViewState
+local ViewState = {
 	PAGE = "123",
 	PERCENT = "%",
 	BYTES = "KB"
@@ -14,21 +14,21 @@ local ViewStates = {
 
 local InformationUnits = {"kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"}
 
-local DEFAULT_VIEW_STATE = ViewStates.PAGE
+local DEFAULT_VIEW_STATE = ViewState.PAGE
 
 local FONT_STEP = 1
 local FONT_MIN_SIZE = 12
 
 ---@class BufferSheet : CompositeObject
 ---@field CompositeObject CompositeObject
----@field buffers BufferTable
----@field header CompositeObject
----@field shared_row {objects: Label[]}?
----@field local_row {objects: Label[]}?
----@field temp_row {objects: Label[]}?
----@field total_row {objects: Label[]}?
----@field populatedView ViewStates?
----@field group string
+---@field buffers BufferTable Active buffers table that is being drawn
+---@field header CompositeObject Container with Buffer Sheet header labels
+---@field shared_row {objects: Label[]}? Container with Shared Buffer row. May be missing if active buffers table does not contain Shared buffers
+---@field local_row {objects: Label[]}? Container with Local Buffer row. May be missing if active buffers table does not contain Local buffers
+---@field temp_row {objects: Label[]}? Container with Temp Buffer row. May be missing if active buffers table does not contain Temp buffers
+---@field total_row {objects: Label[]}? Container with Total Buffer row. Only present if 2 or more other rows are present
+---@field populatedView ViewState? View state what Buffer Sheet rows' Labels are populated with. nil if none
+---@field group string Group that identifies Buffer Sheet object. All Buffer Sheets that share one group will share current ViewState
 local BufferSheet = {
 	name = "BufferSheet",
 	extends = "CompositeObject",
@@ -63,12 +63,12 @@ end
 function BufferSheet:toggleView()
 	local current_view = self.currentView[self.group]
 
-	if current_view == ViewStates.PAGE then
-		self.currentView[self.group] = ViewStates.PERCENT
-	elseif current_view == ViewStates.PERCENT then
-		self.currentView[self.group] = ViewStates.BYTES
-	elseif current_view == ViewStates.BYTES then
-		self.currentView[self.group] = ViewStates.PAGE
+	if current_view == ViewState.PAGE then
+		self.currentView[self.group] = ViewState.PERCENT
+	elseif current_view == ViewState.PERCENT then
+		self.currentView[self.group] = ViewState.BYTES
+	elseif current_view == ViewState.BYTES then
+		self.currentView[self.group] = ViewState.PAGE
 	end
 
 	self:redraw()
@@ -85,15 +85,15 @@ function BufferSheet:resolveView()
 		return
 	end
 
-	if current_view == ViewStates.PAGE then
+	if current_view == ViewState.PAGE then
 		self:populatePage()
-		self.header.objects[1].objects[1].objects[1]:setText(ViewStates.PAGE)
-	elseif current_view == ViewStates.PERCENT then
+		self.header.objects[1].objects[1].objects[1]:setText(ViewState.PAGE)
+	elseif current_view == ViewState.PERCENT then
 		self:populatePercent()
-		self.header.objects[1].objects[1].objects[1]:setText(ViewStates.PERCENT)
-	elseif current_view == ViewStates.BYTES then
+		self.header.objects[1].objects[1].objects[1]:setText(ViewState.PERCENT)
+	elseif current_view == ViewState.BYTES then
 		self:populateBytes()
-		self.header.objects[1].objects[1].objects[1]:setText(ViewStates.BYTES)
+		self.header.objects[1].objects[1].objects[1]:setText(ViewState.BYTES)
 	end
 
 	self.populatedView = current_view
@@ -106,6 +106,8 @@ function BufferSheet:populatePage()
 	self:populatePageRow(self.total_row, self.buffers.Total)
 end
 
+---@param row {objects: Label[]} CompositeObject of Labels
+---@param buffer_values BufferStats
 function BufferSheet:populatePageRow(row, buffer_values)
 	if row then
 		row.objects[2]:setText(self:getFitPage(buffer_values.hit, row.objects[2]))
@@ -153,6 +155,8 @@ function BufferSheet:populatePercent()
 	self:populatePercentRow(self.total_row, self.buffers.Total)
 end
 
+---@param row {objects: Label[]} CompositeObject of Labels
+---@param buffer_values BufferStats
 function BufferSheet:populatePercentRow(row, buffer_values)
 	if row then
 		row.objects[2]:setText(self:getFitPercent(buffer_values.hit / buffer_values.total, row.objects[2]))
@@ -182,6 +186,8 @@ function BufferSheet:populateBytes()
 	self:populateBytesRow(self.total_row, self.buffers.Total)
 end
 
+---@param row {objects: Label[]} CompositeObject of Labels
+---@param buffer_values BufferStats
 function BufferSheet:populateBytesRow(row, buffer_values)
 	if row then
 		row.objects[2]:setText(self:getFitBytes(buffer_values.hit, row.objects[2]))

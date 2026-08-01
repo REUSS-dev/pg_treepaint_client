@@ -74,13 +74,19 @@ local paste = gui.PasteApplet{
 }
 top_panel:add(paste)
 
+local tcp_listener = TCPListener(CLIENT_IP, CLIENT_PORT)
+
 local tcp = gui.TCPApplet{
-	tcp = TCPListener(CLIENT_IP, CLIENT_PORT):start(),
+	tcp = tcp_listener,
 	w = 180,
 	r = 5,
 	font = "default 18"
 }
 top_panel:add(tcp)
+
+if CLIENT_AUTOSTART then
+	tcp_listener:start()
+end
 
 --#endregion
 
