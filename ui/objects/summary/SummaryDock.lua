@@ -1,5 +1,7 @@
 -- SummaryDock
 
+local conf_defaults = require("scripts.conf_default")
+
 -- Folds contents
 
 local folds = {
@@ -280,6 +282,63 @@ function SummaryDock:generateInfo()
 		}
 
 		id:addText(plan.identifier)
+	end
+
+	if plan.settings then
+		local label_sets = {}
+
+		for setting, value in pairs(plan.settings) do
+			label_sets[#label_sets+1] = {setting .. " = " .. value, conf_defaults.get(setting)}
+		end
+
+		if #label_sets > 0 then
+			local section = self.contentsContainer:createChild "SectionContainer" {
+				title = "Server Settings",
+				no_div = true,
+			}
+
+			local header_container = self:create "Container" { w = "fill", growth = "horizontal", gap = 5 }
+			header_container:createChild "Label" {
+				w = "fill",
+				horizontal = "left",
+
+				text = "Parameter",
+				font = "default 18",
+				textColor = self.palette.text
+			}
+			header_container:createChild "Label" {
+				w = "hug",
+				horizontal = "right",
+
+				text = "Default (pg 18)",
+				font = "default 18",
+				textColor = COLORS.COLOR_TEXT_2
+			}
+			section:addObject(header_container)
+
+			section:addDivider({0, 2}, true)
+
+			for _, labelset in ipairs(label_sets) do
+				local setting_container = self:create "Container" { w = "fill", growth = "horizontal", gap = 5 }
+				setting_container:createChild "Label" {
+					w = "fill",
+					horizontal = "left",
+
+					text = labelset[1],
+					font = "default 17",
+					textColor = self.palette.text
+				}
+				setting_container:createChild "Label" {
+					w = "hug",
+					horizontal = "right",
+
+					text = labelset[2],
+					font = "default 17",
+					textColor = COLORS.COLOR_TEXT_2
+				}
+				section:addObject(setting_container)
+			end
+		end
 	end
 
 	return self.contentsContainer.objects
