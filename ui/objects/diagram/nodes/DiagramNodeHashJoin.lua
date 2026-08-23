@@ -18,7 +18,7 @@ function DiagramNodeHashJoin:populateInfo(covered)
 
 	covered["Hash Cond"] = true
 
-	join_info:addTextProtected("Hash condition: ", self.node.raw["Hash Cond"])
+	join_info:addTextParametrized("node.HashJoin.section.condition", self.node.raw["Hash Cond"])
 
 	return sections
 end
@@ -26,7 +26,7 @@ end
 -- node fnc
 
 function DiagramNodeHashJoin:new()
-	self.titleContainer:addDescProtected("on ", self.node.join_on, true)
+	self.titleContainer:addDescParametrized("node.HashJoin.on", self.node.join_on, true)
 end
 
 return DiagramNodeHashJoin

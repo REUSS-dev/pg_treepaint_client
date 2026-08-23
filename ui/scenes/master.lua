@@ -50,12 +50,12 @@ local label_container = gui.Container{
 }
 
 local treepaint_label = gui.Label{
-	text = "TreePaint",
+	text = "header.title",
 	font = "default 26",
 	text_color = COLORS.LABEL_TREEPAINT
 }
 local treepaint_desc = gui.Label{
-	text = "A PostgreSQL Tree Visualization Tool",
+	text = "header.undertext",
 	font = "default 18",
 	text_color = COLORS.LABEL_TREEMOTTO
 }

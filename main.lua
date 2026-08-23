@@ -11,6 +11,8 @@ function love.load()
 	gui.loadExternalObjects()
 	gui.loadExternalObjects("ui/objects")
 
+	gui.setLocale(LOCALE)
+
 	local mastercanvas = require("ui.scenes.master")
 	gui.storeCanvas("master", mastercanvas)
 	gui.setCanvas("master")

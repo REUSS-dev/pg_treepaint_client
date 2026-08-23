@@ -5,10 +5,10 @@ local conf_defaults = require("scripts.conf_default")
 -- Folds contents
 
 local folds = {
-	{"triggerInfo", "Info"},
-	{"triggerSubplans", "Subplans"},
-	{"triggerStats", "Stats"},
-	{"triggerInsights", "Insights"},
+	{"triggerInfo", "summary.tabs.info"},
+	{"triggerSubplans", "summary.tabs.subplans"},
+	{"triggerStats", "summary.tabs.stats"},
+	{"triggerInsights", "summary.tabs.insights"},
 }
 
 ---@class SummaryDock : CompositeObject
@@ -134,7 +134,7 @@ function SummaryDock:generateInfo()
 
 	if plan.timing then
 		local timings = self.contentsContainer:createChild "SectionContainer" {
-			title = "Timing",
+			title = "summary.info.timing.title",
 			collapsible = false
 		}
 
@@ -145,7 +145,8 @@ function SummaryDock:generateInfo()
 				w = "fill",
 				horizontal = "right",
 
-				text = "Execution time: " .. plan.timing.execution .. "ms",
+				text = "summary.info.timing.execution",
+				with = {plan.timing.execution},
 				font = "default 18",
 				textColor = COLORS.SUMMARY_TEXT,
 			}
@@ -157,7 +158,8 @@ function SummaryDock:generateInfo()
 				w = "fill",
 				horizontal = "right",
 
-				text = "Planning time: " .. plan.timing.planning .. "ms",
+				text = "summary.info.timing.planning",
+				with = {plan.timing.planning},
 				font = "default 18",
 				textColor = COLORS.SUMMARY_TEXT,
 			}
@@ -180,7 +182,8 @@ function SummaryDock:generateInfo()
 				w = "fill",
 				horizontal = "right",
 
-				text = "Total: " .. string.format("%.3f", (plan.timing.execution + plan.timing.planning)) .. "ms",
+				text = "summary.info.timing.total",
+				with = {string.format("%.3f", (plan.timing.execution + plan.timing.planning))},
 				font = "default 18",
 				textColor = COLORS.SUMMARY_TEXT,
 			}
@@ -190,7 +193,7 @@ function SummaryDock:generateInfo()
 
 	if plan.buffers then
 		local buffers = self.contentsContainer:createChild "SectionContainer" {
-			title = "Buffers (total)",
+			title = "summary.info.buffers.title",
 			gap = 5,
 			collapsible = false,
 			no_div = true,
@@ -205,7 +208,7 @@ function SummaryDock:generateInfo()
 		if plan.buffers.planning then
 			buffers:addDivider({0, 5, 0, 2}, true)
 
-			local planning = self:create "SectionContainer" { title = "Buffers (planning)", borderless = true, no_div = true }
+			local planning = self:create "SectionContainer" { title = "summary.info.buffers.title_planning", borderless = true, no_div = true }
 
 			planning:addObject(self:create "BufferSheet" {
 				buffers = plan.buffers.planning,
@@ -213,7 +216,9 @@ function SummaryDock:generateInfo()
 			})
 
 			planning:addObject(self:create "Label" {
-				text = "Planning buffer usage is included in total",
+				text = "summary.info.buffers.planning_tip",
+				w = "fill",
+				horizontal = "center",
 				font = "default 16",
 				textColor = COLORS.NODE_TEXT_GREYED
 			})
@@ -226,18 +231,18 @@ function SummaryDock:generateInfo()
 
 	if root.raw["Actual Rows"] or root.raw["Output"] then
 		local output = self.contentsContainer:createChild "SectionContainer" {
-			title = "Output",
+			title = "summary.info.output.title",
 			group = "summary_output"
 		}
 
-		output:addTextProtected("Output Rows: ", root.raw["Actual Rows"])
+		output:addTextParametrized("summary.info.output.rows", root.raw["Actual Rows"])
 
 		if root.raw["Output"] then
 			if root.raw["Actual Rows"] then
 				output:addText("")
 			end
 
-			output:addText("Output Columns (" .. #root.raw["Output"] .. ")")
+			output:addTextParametrized("summary.info.output.columns", #root.raw["Output"])
 			local divider = self:create "Container" {
 				w = "fill",
 				h = 1,
@@ -251,34 +256,34 @@ function SummaryDock:generateInfo()
 
 	if plan.wal then
 		local wal = self.contentsContainer:createChild "SectionContainer" {
-			title = "WAL",
+			title = "summary.info.wal.title",
 			group = "summary_wal"
 		}
 
 		local wal_main = self.plan.wal
 
 		if wal_main.records == 0 then
-			wal:addText("No WAL Records created.")
+			wal:addText("info.wal.no_wal")
 		else
 			if wal_main.bytes and wal_main.bytes > 0 then
-				wal:addText("Records: " .. wal_main.records .. " (" .. wal_main.bytes .. " bytes)")
+				wal:addTextParametrized("info.wal.records_bytes", {wal_main.records, wal_main.bytes})
 			else
-				wal:addTextProtected("Records: ", wal_main.records)
+				wal:addTextParametrized("info.wal.records", wal_main.records)
 			end
 
 			if wal_main.fpi_bytes and wal_main.fpi_bytes > 0 then
-				wal:addText("FPI: " .. wal_main.fpi .. " (" .. wal_main.fpi_bytes .. " bytes)")
+				wal:addTextParametrized("info.wal.fpi_bytes", {wal_main.fpi, wal_main.fpi_bytes})
 			else
-				wal:addTextProtected("FPI: ", wal_main.fpi)
+				wal:addTextParametrized("info.wal.fpi", wal_main.fpi)
 			end
 
-			wal:addTextProtected("Buffers Full: ", wal_main.buffers_full)
+			wal:addTextParametrized("info.wal.buffers_full", wal_main.buffers_full)
 		end
 	end
 
 	if plan.identifier then
 		local id = self.contentsContainer:createChild "SectionContainer" {
-			title = "Query Identifier"
+			title = "summary.info.identifier.title"
 		}
 
 		id:addText(plan.identifier)
@@ -293,7 +298,7 @@ function SummaryDock:generateInfo()
 
 		if #label_sets > 0 then
 			local section = self.contentsContainer:createChild "SectionContainer" {
-				title = "Server Settings",
+				title = "summary.info.settings.title",
 				no_div = true,
 			}
 
@@ -302,7 +307,7 @@ function SummaryDock:generateInfo()
 				w = "fill",
 				horizontal = "left",
 
-				text = "Parameter",
+				text = "summary.info.settings.parameter",
 				font = "default 18",
 				textColor = self.palette.text
 			}
@@ -310,7 +315,7 @@ function SummaryDock:generateInfo()
 				w = "hug",
 				horizontal = "right",
 
-				text = "Default (pg 18)",
+				text = "summary.info.settings.default",
 				font = "default 18",
 				textColor = COLORS.COLOR_TEXT_2
 			}

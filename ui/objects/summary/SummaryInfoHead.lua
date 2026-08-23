@@ -32,11 +32,11 @@ function SummaryInfoHead:setPlan(plan)
 	self.picture:setPlan(plan)
 
 	-- 2 - Type name
-	self.nameLabel:setText(plan.type .. " Query")
+	self.nameLabel:setData(plan.type)
 
-	self.nodeCount:setText("Node count: " .. plan.nodeCount)
+	self.nodeCount:setData(plan.nodeCount)
 
-	self.subplanCount:setText("Subplan count: " .. plan.subplanCount)
+	self.subplanCount:setData(plan.subplanCount)
 	if plan.subplanCount ~= 0 then
 		self.subplanCount:show()
 	else
@@ -65,7 +65,7 @@ function SummaryInfoHead:new()
 		h = "hug",
 		font = self.font.title,
 		textColor = COLORS.NODE_TEXT,
-		text = "Plan Type"
+		text = "summary.info.head.title"
 	}
 
 	self.nodeCount = text_container:createChild "Label" {
@@ -73,7 +73,7 @@ function SummaryInfoHead:new()
 		h = "hug",
 		font = self.font.text,
 		textColor = COLORS.NODE_TEXT_DESC,
-		text = "Nodes: "
+		text = "summary.info.head.nodes"
 	}
 
 	self.subplanCount = text_container:createChild "Label" {
@@ -81,7 +81,7 @@ function SummaryInfoHead:new()
 		h = "hug",
 		font = self.font.text,
 		textColor = COLORS.NODE_TEXT_DESC,
-		text = "Subplans: "
+		text = "summary.info.head.subplan"
 	}
 	self.subplanCount:hide()
 

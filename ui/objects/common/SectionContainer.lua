@@ -65,6 +65,22 @@ function SectionContainer:getContentsContainer()
 	return self.contents
 end
 
+---@param str string
+---@param vars table|any?
+---@param greyed boolean?
+---@return SectionContainer
+function SectionContainer:addTextParametrized(str, vars, greyed)
+	if not vars then
+		return self
+	end
+
+	if type(vars) == "table" then
+		return self:addText(str, greyed, vars)
+	end
+
+	return self:addText(str, greyed, {vars})
+end
+
 ---@param prefix string
 ---@param value (string|integer)?
 ---@param greyed boolean?
@@ -80,12 +96,13 @@ end
 ---@param text string
 ---@param greyed boolean?
 ---@return SectionContainer
-function SectionContainer:addText(text, greyed)
+function SectionContainer:addText(text, greyed, vars)
 	self.contents:createChild "Label" {
 		w = "fill",
 		h = "hug",
 		horizontal = "left",
 		text = text,
+		with = vars,
 		font = self.font.text,
 		textColor = greyed and COLORS.NODE_TEXT_GREYED or COLORS.NODE_TEXT
 	}

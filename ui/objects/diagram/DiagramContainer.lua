@@ -141,7 +141,7 @@ function DiagramContainer:resetSelect()
 	self.selectMode = nil
 end
 
----@param node DiagramNode
+---@param node DiagramNode?
 function DiagramContainer.setCurrentSelect(node)
 	currentSelect = node
 end

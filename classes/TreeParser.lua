@@ -16,12 +16,15 @@ local TextParser = require("classes.TextParser")
 ---@alias WALStats {records: integer, bytes: integer?, fpi: integer?, fpi_bytes: integer?, buffers_full: integer?}
 ---@alias WALTable {node: WALStats, tree: WALStats}
 ---@alias BufferStats {hit: integer, read: integer, dirtied: integer, written: integer, total: integer}
----@alias BufferTable {Local: BufferStats?, Shared: BufferStats?, Temp: BufferStats?, Total: BufferStats?}
+---@alias BufferTable {Local: BufferStats?, Shared: BufferStats?, Temp: BufferStats?, Total: BufferStats}
+
+---@alias PlanFormat "text"|"json"|"xml"|"yaml"|"pg_treepaint"
+---@alias PlanType "SELECT"|"INSERT"|"UPDATE"|"DELETE"
 
 ---@class DumpedPlan
 ---@field root DumpedNode
----@field format "text"|"json"|"xml"|"yaml"|"pg_treepaint"
----@field type string
+---@field format PlanFormat
+---@field type PlanType
 ---@field nodeCount integer
 ---@field subplanCount integer
 ---@field timing {planning: number?, execution: number?}?
@@ -73,8 +76,8 @@ local NodeType = {
 
 ---@enum SortMethod
 local SortMethod = {
-	["quicksort"] = "Quick sort",
-	["top-N heapsort"] = "Top-N Heapsort",
+	["quicksort"] = "quick",
+	["top-N heapsort"] = "topn_heap",
 }
 
 local WorkerIgnoreFields = {
@@ -151,7 +154,7 @@ local function sort_dump_indicators(node_data, sink)
 	end
 
 	if sink.timing then
-		local node_total_startup, node_total_total = sink.timing.tree.total[1], sink.timing.tree.total[2]
+		local node_total_startup, node_total_total = tonumber(sink.timing.tree.total[1]), tonumber(sink.timing.tree.total[2])
 
 		for _, child in ipairs(node_data.Plans) do
 			if not child["Subplan Name"] then
@@ -164,6 +167,8 @@ local function sort_dump_indicators(node_data, sink)
 				node_total_total = node_total_total - child["Actual Total Time"] * child_loops
 			end
 		end
+
+		node_total_startup = math.max(node_total_startup --[[@as number]], 0)
 
 		local loops = sink.loop_count
 

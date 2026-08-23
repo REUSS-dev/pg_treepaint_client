@@ -495,7 +495,8 @@ function DiagramNode:buildTitleContainer()
 			font = self.font.M,
 			horizontal = "left",
 			text = self.node.type,
-			textColor = self.text_color
+			textColor = self.text_color,
+			no_locale = true,
 		}
 
 		return
@@ -513,14 +514,16 @@ function DiagramNode:buildTitleContainer()
 		font = self.font.M,
 		horizontal = "left",
 		text = self.node.type,
-		textColor = self.text_color
+		textColor = self.text_color,
+		no_locale = true,
 	}
 
 	titlebox:createChild "Label" {
 		font = self.font.S,
 		horizontal = "right",
 		text = self.node.rows,
-		textColor = self.text_color_desc
+		textColor = self.text_color_desc,
+		no_locale = true,
 	}
 end
 
@@ -569,7 +572,7 @@ function DiagramNode:new()
 				font = self.font.S,
 				horizontal = "right",
 				textColor = self.text_color_desc,
-				text = "Never executed",
+				text = "node.time_never_executed",
 			}
 		elseif node_data.workers then
 			self.footerContainer:createChild "Label" {
@@ -577,7 +580,8 @@ function DiagramNode:new()
 				font = self.font.S,
 				horizontal = "right",
 				textColor = self.text_color_desc,
-				text = "Time: " .. node_data.workers .. " * " .. node_data.timing.node.total[2] .. "ms",
+				text = "node.time_workers",
+				with = {node_data.timing.node.total[2], node_data.workers}
 			}
 		else
 			self.footerContainer:createChild "Label" {
@@ -585,7 +589,8 @@ function DiagramNode:new()
 				font = self.font.S,
 				horizontal = "right",
 				textColor = self.text_color_desc,
-				text = "Time: " .. node_data.timing.node.total[2] .. "ms",
+				text = "node.time",
+				with = {node_data.timing.node.total[2]}
 			}
 		end
 	elseif node_data.startup_cost then
@@ -594,7 +599,8 @@ function DiagramNode:new()
 			font = self.font.S,
 			horizontal = "right",
 			textColor = self.text_color_desc,
-			text = "Cost: " .. node_data.startup_cost .. ".." .. node_data.total_cost,
+			text = "node.time_cost",
+			with = {node_data.startup_cost, node_data.total_cost}
 		}
 	end
 end

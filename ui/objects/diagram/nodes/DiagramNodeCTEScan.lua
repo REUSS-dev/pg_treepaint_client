@@ -17,14 +17,10 @@ function DiagramNodeCTEScan:populateInfo(covered)
 
 	covered["CTE Name"] = true
 	covered["Alias"] = true
-	covered["Rows Removed by Filter"] = true
-	covered["Filter"] = true
 
-	sections[1] = self:create "SectionContainer" { title = "Scan Info" }
-		:addTextProtected("CTE Name: ", self.node.raw["CTE Name"])
-		:addTextProtected("Alias: ", self.node.raw["Alias"])
-		:addTextProtected("Rows Removed by Filter: ", self.node.raw["Rows Removed by Filter"])
-		:addTextProtected("Filter: ", self.node.raw["Filter"])
+	sections[1] = self:create "SectionContainer" { title = "node.CTEScan.section.title" }
+		:addTextParametrized("node.CTEScan.section.cte", self.node.raw["CTE Name"])
+		:addTextParametrized("node.CTEScan.section.alias", self.node.raw["Alias"])
 
 	return sections
 end
@@ -48,7 +44,7 @@ function DiagramNodeCTEScan:generateNavigationObjects()
 		pointer = cte_node,
 		style = "Left"
 	}
-	cte_navigation:createText("Jump to CTE")
+	cte_navigation:createText("node.CTEScan.jump")
 	cte_navigation:hide()
 
 	cte_navigation.x = math.floor((self.w - cte_navigation.w)/2 + .5)
@@ -61,7 +57,13 @@ end
 -- node fnc
 
 function DiagramNodeCTEScan:new()
-	self.titleContainer:addDescProtected("on CTE ", self.node.raw["CTE Name"] and (self.node.raw["CTE Name"] .. (self.node.raw["Alias"] and self.node.raw["Alias"] ~= self.node.raw["CTE Name"] and (" (" .. self.node.raw["Alias"] .. ")") or "")), true)
+	if self.node.raw["CTE Name"] then
+		if self.node.raw["Alias"] and self.node.raw["Alias"] ~= self.node.raw["CTE Name"] then
+			self.titleContainer:addDescParametrized("node.CTEScan.on_cte_alias", {self.node.raw["CTE Name"], self.node.raw["Alias"]})
+		else
+			self.titleContainer:addDescParametrized("node.CTEScan.on_cte", self.node.raw["CTE Name"])
+		end
+	end
 end
 
 return DiagramNodeCTEScan

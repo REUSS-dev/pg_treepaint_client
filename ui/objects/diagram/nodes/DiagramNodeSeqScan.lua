@@ -17,15 +17,11 @@ function DiagramNodeSeqScan:populateInfo(covered)
 	covered["Schema"] = true
 	covered["Relation Name"] = true
 	covered["Alias"] = true
-	covered["Rows Removed by Filter"] = true
-	covered["Filter"] = true
 
-	sections[1] = self:create "SectionContainer" { title = "Scan Info" }
-		:addTextProtected("Schema: ", self.node.raw["Schema"])
-		:addTextProtected("Relation: ", self.node.raw["Relation Name"])
-		:addTextProtected("Alias: ", self.node.raw["Relation Name"] ~= self.node.raw["Alias"] and self.node.raw["Alias"] or nil)
-		:addTextProtected("Rows Removed by Filter: ", self.node.raw["Rows Removed by Filter"])
-		:addTextProtected("Filter: ", self.node.raw["Filter"])
+	sections[1] = self:create "SectionContainer" { title = "node.SeqScan.section.title" }
+		:addTextParametrized("node.SeqScan.section.schema", self.node.raw["Schema"])
+		:addTextParametrized("node.SeqScan.section.relation", self.node.raw["Relation Name"])
+		:addTextParametrized("node.SeqScan.section.alias", self.node.raw["Relation Name"] ~= self.node.raw["Alias"] and self.node.raw["Alias"])
 
 	return sections
 end
@@ -33,7 +29,7 @@ end
 -- node fnc
 
 function DiagramNodeSeqScan:new()
-	self.titleContainer:addDescProtected("on ", self.node.table, true)
+	self.titleContainer:addDescParametrized("node.SeqScan.on", self.node.table, true)
 end
 
 return DiagramNodeSeqScan

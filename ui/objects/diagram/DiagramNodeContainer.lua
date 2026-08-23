@@ -23,6 +23,22 @@ local DiagramNodeContainer = {
 	}
 }
 
+---@param str string
+---@param vars table|any?
+---@param greyed boolean?
+---@return DiagramNodeContainer
+function DiagramNodeContainer:addTextParametrized(str, vars, greyed)
+	if not vars then
+		return self
+	end
+
+	if type(vars) == "table" then
+		return self:addText(str, greyed, vars)
+	end
+
+	return self:addText(str, greyed, {vars})
+end
+
 ---@param prefix string
 ---@param value (string|integer)?
 ---@param greyed boolean?
@@ -38,16 +54,33 @@ end
 ---@param text string
 ---@param greyed boolean?
 ---@return DiagramNodeContainer
-function DiagramNodeContainer:addText(text, greyed)
+function DiagramNodeContainer:addText(text, greyed, vars)
 	self:createChild "Label" {
 		w = "fill",
 		font = self.font.M,
 		horizontal = "left",
 		text = text,
+		with = vars,
 		textColor = greyed and self.text_color_desc or self.text_color,
 	}
 
 	return self
+end
+
+---@param str string
+---@param vars table|any?
+---@param greyed boolean?
+---@return DiagramNodeContainer
+function DiagramNodeContainer:addDescParametrized(str, vars, greyed)
+	if not vars then
+		return self
+	end
+
+	if type(vars) == "table" then
+		return self:addDesc(str, greyed, vars)
+	end
+
+	return self:addDesc(str, greyed, {vars})
 end
 
 ---@param prefix string
@@ -65,12 +98,13 @@ end
 ---@param text string
 ---@param greyed boolean?
 ---@return DiagramNodeContainer
-function DiagramNodeContainer:addDesc(text, greyed)
+function DiagramNodeContainer:addDesc(text, greyed, vars)
 	self:createChild "Label" {
 		w = "fill",
 		font = self.font.S,
 		horizontal = "left",
 		text = text,
+		with = vars,
 		textColor = greyed and self.text_color_desc or self.text_color,
 	}
 

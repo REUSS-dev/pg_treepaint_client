@@ -19,16 +19,12 @@ function DiagramNodeIndexOnlyScan:populateInfo(covered)
 	covered["Scan Direction"] = true
 	covered["Index Searches"] = true
 	covered["Heap Fetches"] = true
-	covered["Rows Removed by Index Recheck"] = true
-	covered["Index Cond"] = true
 
-	sections[#sections+1] = self:create "SectionContainer" { title = "Index Info" }
-		:addTextProtected("Index: ", self.node.raw["Index Name"])
-		:addTextProtected("Scan Direction: ", self.node.raw["Scan Direction"])
-		:addTextProtected("Index Searches: ", self.node.raw["Index Searches"])
-		:addTextProtected("Heap fetches (rows total): ", self.node.raw["Heap Fetches"])
-		:addTextProtected("Rows Removed by Recheck: ", self.node.raw["Rows Removed by Index Recheck"])
-		:addTextProtected("Condition:\n", self.node.raw["Index Cond"])
+	sections[#sections+1] = self:create "SectionContainer" { title = "node.IndexOnlyScan.section.title" }
+		:addTextParametrized("node.IndexOnlyScan.section.index", self.node.raw["Index Name"])
+		:addTextParametrized("node.IndexOnlyScan.section.direction", self.node.raw["Scan Direction"])
+		:addTextParametrized("node.IndexOnlyScan.section.searches", self.node.raw["Index Searches"])
+		:addTextParametrized("node.IndexOnlyScan.section.heap", self.node.raw["Heap Fetches"])
 
 	return sections
 end
@@ -36,7 +32,7 @@ end
 -- node fnc
 
 function DiagramNodeIndexOnlyScan:new()
-	self.contentsContainer:addTextProtected("Loops: ", self.node.loop_count and (self.node.loop_count > 1) and self.node.loop_count or nil)
+	self.contentsContainer:addTextParametrized("node.IndexOnlyScan.loops", self.node.loop_count and (self.node.loop_count > 1) and self.node.loop_count)
 end
 
 return DiagramNodeIndexOnlyScan

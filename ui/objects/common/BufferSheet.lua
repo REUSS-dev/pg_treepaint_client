@@ -298,7 +298,7 @@ function BufferSheet:new()
 
 	if not self.buffers.Total then
 		self:createChild "Label" {
-			text = "No buffers utilized.",
+			text = "buffers.no_buffers",
 			font = self.font,
 			w = "fill",
 			horizontal = "left",
@@ -342,7 +342,7 @@ function BufferSheet:new()
 			w = "fill",
 			h = "hug",
 			horizontal = "right",
-			text = "Hit",
+			text = "buffers.Hit",
 			font = self.font,
 			textColor = COLORS.BUFFER_TEXT
 		}
@@ -350,7 +350,7 @@ function BufferSheet:new()
 			w = "fill",
 			h = "hug",
 			horizontal = "right",
-			text = "Read",
+			text = "buffers.Read",
 			font = self.font,
 			textColor = COLORS.BUFFER_TEXT
 		}
@@ -358,7 +358,7 @@ function BufferSheet:new()
 			w = "fill",
 			h = "hug",
 			horizontal = "right",
-			text = "Dirtied",
+			text = "buffers.Dirtied",
 			font = self.font,
 			textColor = COLORS.BUFFER_TEXT
 		}
@@ -366,7 +366,7 @@ function BufferSheet:new()
 			w = "fill",
 			h = "hug",
 			horizontal = "right",
-			text = "Written",
+			text = "buffers.Written",
 			font = self.font,
 			textColor = COLORS.BUFFER_TEXT
 		}
@@ -375,19 +375,19 @@ function BufferSheet:new()
 	end
 
 	if self.buffers.Shared then
-		self.shared_row = self:createRow("Shared")
+		self.shared_row = self:createRow("buffers.Shared")
 	end
 
 	if self.buffers.Local then
-		self.local_row = self:createRow("Local")
+		self.local_row = self:createRow("buffers.Local")
 	end
 
 	if self.buffers.Temp then
-		self.temp_row = self:createRow("Temp")
+		self.temp_row = self:createRow("buffers.Temp")
 	end
 
 	if #self.objects > 3 then
-		self.total_row = self:createRow("Total", true)
+		self.total_row = self:createRow("buffers.total", true)
 	end
 end
 

@@ -32,10 +32,25 @@ function DiagramNodeHash:populateInfo(covered)
 		return {}
 	end
 
-	local hash = self:create "SectionContainer" { title = "Hash Info" }
-		:addTextProtected("Batches: ", batches and (batches_o and batches~=batches_o and (batches .. " (Original: " .. batches_o .. ")") or batches))
-		:addTextProtected("Buckets: ", buckets and (buckets_o and buckets~=buckets_o and (buckets .. " (Original: " .. buckets_o .. ")") or buckets))
-		:addTextProtected("Peak memory usage: ", peak and (peak .. "kB"))
+	local hash = self:create "SectionContainer" { title = "node.Hash.section.title" }
+
+	if batches then
+		if batches_o and batches ~= batches_o then
+			hash:addTextParametrized("node.Hash.section.batches_o", {batches, batches_o})
+		else
+			hash:addTextParametrized("node.Hash.section.batches", batches)
+		end
+	end
+
+	if batches then
+		if batches_o and batches ~= batches_o then
+			hash:addTextParametrized("node.Hash.section.buckets_o", {buckets, buckets_o})
+		else
+			hash:addTextParametrized("node.Hash.section.buckets", buckets)
+		end
+	end
+
+	hash:addTextParametrized("node.Hash.section.peak", peak)
 
 	sections[#sections+1] = hash
 
@@ -46,7 +61,7 @@ end
 
 function DiagramNodeHash:new()
 	if self.node.columns then
-		self.contentsContainer:addText("Columns")
+		self.contentsContainer:addText("node.Hash.columns")
 		self.contentsContainer:addDesc(table.concat(self.node.columns, "\n"), true)
 	end
 end

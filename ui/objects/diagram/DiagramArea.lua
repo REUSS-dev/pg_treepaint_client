@@ -230,7 +230,9 @@ function DiagramArea:packChild(node)
 	if node.relationship == "Subquery" then
 		self.subquery_counter = self.subquery_counter + 1
 
-		subplan_container = self:create "DiagramSubplanContainer" { title = "Subquery " .. self.subquery_counter, diagram = self }
+		local subquery_title = self:getObjectClass("Label").locale:format("plan.subquery", {self.subquery_counter})
+
+		subplan_container = self:create "DiagramSubplanContainer" { title = subquery_title, diagram = self }
 			:pack(packed)
 	end
 
@@ -262,7 +264,10 @@ function DiagramArea:packNode(node)
 	if node_object.nodeType == "Gather" or node_object.nodeType == "Gather Merge" then
 		---@cast children_object DiagramNode|DiagramVerticalContainer
 		local worker_count = node_object.node.raw["Workers Launched"] or node_object.node.raw["Workers Planned"]
-		local subplan_container = self:create "DiagramSubplanContainer" { title = worker_count and "Additional Workers: " .. worker_count or "Parallelized", diagram = self, kind = "workers" }
+
+		local gather_title = worker_count and self:getObjectClass("Label").locale:format("plan.gather.additional_workers", {worker_count}) or "plan.gather.parallelized"
+
+		local subplan_container = self:create "DiagramSubplanContainer" { title = gather_title, diagram = self, kind = "workers" }
 			:pack(children_object)
 
 		self.subplanContainers[#self.subplanContainers+1] = subplan_container

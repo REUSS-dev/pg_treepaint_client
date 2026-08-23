@@ -60,12 +60,12 @@ function TCPApplet:tick(dt)
 			self.palette:setColor(1, COLOR_ACTIVE)
 			self.palette:setColor(3, BORDER_ACTIVE)
 
-			self.label:setText("TCP Active\n" .. self.tcp:getBindAddress())
+			self.label:setText("header.tcp.active", {self.tcp:getBindAddress()})
 		elseif current_status == self.tcp.Status.INACTIVE then
 			self.palette:setColor(1, COLOR_INACTIVE)
 			self.palette:setColor(3, BORDER_INACTIVE)
 
-			self.label:setText("TCP Inactive")
+			self.label:setText("header.tcp.inactive")
 		end
 	end
 end

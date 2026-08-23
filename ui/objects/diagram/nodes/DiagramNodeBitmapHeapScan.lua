@@ -1,10 +1,10 @@
 -- node
 
 ---@class DiagramNodeBitmapHeapScan : DiagramNode
----@field DiagramNodeIndexOnlyScan DiagramNodeIndexOnlyScan
+---@field DiagramNodeSeqScan DiagramNodeSeqScan
 local DiagramNodeBitmapHeapScan = {
 	name = "DiagramNodeBitmapHeapScan",
-	extends = "DiagramNodeIndexOnlyScan",
+	extends = "DiagramNodeSeqScan",
 	default = {
 		colors = {
 			border = COLORS.NODE_BITMAP_HEAP_SCAN
@@ -13,19 +13,19 @@ local DiagramNodeBitmapHeapScan = {
 }
 
 function DiagramNodeBitmapHeapScan:populateInfo(covered)
-	local sections = self.DiagramNodeIndexOnlyScan.populateInfo(self, covered)
+	local sections = self.DiagramNodeSeqScan.populateInfo(self, covered)
 	local scan_info = sections[1]
-	local index_info = sections[#sections]
 
 	covered["Exact Heap Blocks"] = true
 	covered["Lossy Heap Blocks"] = true
 
-	scan_info:addTextProtected("Exact Heap Blocks: ", self.node.raw["Exact Heap Blocks"] and self.node.raw["Exact Heap Blocks"] ~= 0 and self.node.raw["Exact Heap Blocks"])
-	scan_info:addTextProtected("Lossy Heap Blocks: ", self.node.raw["Lossy Heap Blocks"] and self.node.raw["Lossy Heap Blocks"] ~= 0 and self.node.raw["Lossy Heap Blocks"])
+	if (not self.node.raw["Exact Heap Blocks"] or self.node.raw["Exact Heap Blocks"] == 0) and (not self.node.raw["Lossy Heap Blocks"] or self.node.raw["Lossy Heap Blocks"] == 0) then
+		return sections
+	end
 
-	covered["Recheck Cond"] = true
-
-	index_info:addTextProtected("Recheck condition: ", self.node.raw["Recheck Cond"])
+	scan_info:addDivider(nil, true)
+	scan_info:addTextParametrized("node.BitmapHeapScan.section.exact", self.node.raw["Exact Heap Blocks"] and self.node.raw["Exact Heap Blocks"] ~= 0 and self.node.raw["Exact Heap Blocks"])
+	scan_info:addTextParametrized("node.BitmapHeapScan.section.lossy", self.node.raw["Lossy Heap Blocks"] and self.node.raw["Lossy Heap Blocks"] ~= 0 and self.node.raw["Lossy Heap Blocks"])
 
 	return sections
 end

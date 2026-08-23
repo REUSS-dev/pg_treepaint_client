@@ -17,7 +17,7 @@ local PasteApplet = {
 			text = COLORS.PASTE_TEXT
 		},
 
-		text = "Plot\nfrom clipboard",
+		text = "header.paste.button",
 		r = 5,
 		bsize = 3
 	}

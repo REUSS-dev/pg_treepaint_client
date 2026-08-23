@@ -46,7 +46,7 @@ function InfoPanelHead:setParent(node)
 		return
 	end
 
-	self.parentLabel:setText("Parent: " .. parent.nodeType)
+	self.parentLabel:setData(parent.nodeType)
 	self.parentLabel:show()
 end
 
@@ -60,7 +60,7 @@ function InfoPanelHead:setChildren(node)
 	end
 
 	if #children == 1 then
-		self.childrenLabel:setText("Child: " .. children[1].nodeType)
+		self.childrenLabel:setText("info.head.child", {children[1].nodeType})
 	else
 		self:fitChildren(children)
 	end
@@ -76,7 +76,7 @@ function InfoPanelHead:fitChildren(children)
 
 	for i, child in ipairs(children) do
 		if child.node.relationship == "InitPlan" then
-			children_names[i] = "CTE"
+			children_names[i] = self.childrenLabel.locale:get("info.head.cte")
 		else
 			children_names[i] = child.nodeType
 		end
@@ -89,7 +89,7 @@ function InfoPanelHead:fitChildren(children)
 	end
 
 	if same_names then
-		local children_text = "Children (" .. #children .. "): " .. children_names[1] .. " (x" .. #children_names .. ")"
+		local children_text = self.childrenLabel.locale:format("info.head.children_same", {count = #children, name = children_names[1], same_count = #children_names})
 
 		if self.childrenLabel.font:getWidth(children_text) <= self.childrenLabel.w then
 			self.childrenLabel:setText(children_text)
@@ -97,14 +97,14 @@ function InfoPanelHead:fitChildren(children)
 		end
 	end
 
-	local children_text = "Children (" .. #children .. "): " .. table.concat(children_names, ", ")
+	local children_text = self.childrenLabel.locale:format("info.head.children_literal", {count = #children, names = table.concat(children_names, ", ")})
 
 	if self.childrenLabel.font:getWidth(children_text) <= self.childrenLabel.w then
 		self.childrenLabel:setText(children_text)
 		return
 	end
 
-	self.childrenLabel:setText("Children: " .. #children)
+	self.childrenLabel:setText("info.head.children", {#children})
 end
 
 function InfoPanelHead:new()
@@ -128,7 +128,8 @@ function InfoPanelHead:new()
 		h = "hug",
 		font = self.font.title,
 		textColor = COLORS.NODE_TEXT,
-		text = "Node Type"
+		text = "Node Type",
+		no_locale = true
 	}
 
 	self.parentLabel = text_container:createChild "Label" {
@@ -136,7 +137,7 @@ function InfoPanelHead:new()
 		h = "hug",
 		font = self.font.text,
 		textColor = COLORS.NODE_TEXT_DESC,
-		text = "Parent: "
+		text = "info.head.parent"
 	}
 	self.parentLabel:hide()
 
@@ -145,7 +146,7 @@ function InfoPanelHead:new()
 		h = "hug",
 		font = self.font.text,
 		textColor = COLORS.NODE_TEXT_DESC,
-		text = "Children: "
+		text = "info.head.children"
 	}
 	self.childrenLabel:hide()
 end
