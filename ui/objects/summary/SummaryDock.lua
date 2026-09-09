@@ -193,7 +193,7 @@ function SummaryDock:generateInfo()
 
 	if plan.buffers then
 		local buffers = self.contentsContainer:createChild "SectionContainer" {
-			title = "summary.info.buffers.title",
+			title = (plan.buffers.total.Total.io_read or plan.buffers.total.Total.io_write) and "summary.info.buffers.title_io" or "summary.info.buffers.title",
 			gap = 5,
 			collapsible = false,
 			no_div = true,
@@ -254,13 +254,13 @@ function SummaryDock:generateInfo()
 		end
 	end
 
-	if plan.wal then
+	local wal_main = plan.wal
+
+	if wal_main then
 		local wal = self.contentsContainer:createChild "SectionContainer" {
 			title = "summary.info.wal.title",
 			group = "summary_wal"
 		}
-
-		local wal_main = self.plan.wal
 
 		if wal_main.records == 0 then
 			wal:addText("info.wal.no_wal")

@@ -15,7 +15,7 @@ local TextParser = require("classes.TextParser")
 ---@alias TimingTable {node: TimingStats, tree: TimingStats?}
 ---@alias WALStats {records: integer, bytes: integer?, fpi: integer?, fpi_bytes: integer?, buffers_full: integer?}
 ---@alias WALTable {node: WALStats, tree: WALStats}
----@alias BufferStats {hit: integer, read: integer, dirtied: integer, written: integer, total: integer}
+---@alias BufferStats {hit: integer, read: integer, dirtied: integer, written: integer, total: integer, io_read: number?, io_write: number?}
 ---@alias BufferTable {Local: BufferStats?, Shared: BufferStats?, Temp: BufferStats?, Total: BufferStats}
 
 ---@alias PlanFormat "text"|"json"|"xml"|"yaml"|"pg_treepaint"
@@ -29,7 +29,7 @@ local TextParser = require("classes.TextParser")
 ---@field subplanCount integer
 ---@field timing {planning: number?, execution: number?}?
 ---@field buffers {planning: BufferTable?, total: BufferTable}?
----@field wal WALStats
+---@field wal WALStats?
 ---@field settings table<string, string>?
 ---@field serialization table
 ---@field identifier string
@@ -102,6 +102,15 @@ local WorkerIgnoreFields = {
 	["WAL FPI"] = true,
 	["WAL FPI Bytes"] = true,
 	["WAL Buffers Full"] = true,
+
+	["I/O Read Time"] = true,
+	["I/O Write Time"] = true,
+	["Shared I/O Read Time"] = true,
+	["Shared I/O Write Time"] = true,
+	["Local I/O Read Time"] = true,
+	["Local I/O Write Time"] = true,
+	["Temp I/O Read Time"] = true,
+	["Temp I/O Write Time"] = true,
 }
 
 -- declarations
@@ -329,7 +338,7 @@ function TreeParser:parse(tree)
 		}
 	end
 
-	-- Plan Summary Buffers & wal
+	-- Plan Summary Buffers, io & wal
 
 	if not plan["Plan"]["Subplan Name"] then
 		plan["Plan"]["Subplan Name"] = "dummy"
@@ -338,6 +347,7 @@ function TreeParser:parse(tree)
 
 		self:dumpBuffers(plan["Plan"], {})
 		self:dumpWAL(plan["Plan"], {})
+		self:dumpIO(plan["Plan"], {})
 
 		plan["Plan"]["Subplan Name"] = nil
 		plan["Plan"]["Plans"] = plans
@@ -347,9 +357,12 @@ function TreeParser:parse(tree)
 		local sink = {}
 		plan["Planning"]["Subplan Name"] = "dummy"
 		self:dumpBuffers(plan["Planning"], sink)
+		self:dumpIO(plan["Planning"], sink)
 		plan["Planning"]["Subplan Name"] = nil
 
-		self.dump.buffers.planning = sink.buffers
+		if sink.buffers then
+			self.dump.buffers.planning = sink.buffers
+		end
 	end
 
 	-- Misc
@@ -398,6 +411,7 @@ function TreeParser:dumpNode(node)
 
 	self:dumpTiming(node, new_node)
 	self:dumpBuffers(node, new_node)
+	self:dumpIO(node, new_node)
 	self:dumpWAL(node, new_node)
 	self:dumpWorkers(node, new_node)
 
@@ -494,56 +508,6 @@ function TreeParser:dumpTiming(node_data, sink)
 	sink.timing = timing
 end
 
-function TreeParser:dumpWAL(node_data, sink)
-	if not node_data["WAL Records"] then
-		return
-	end
-
-	local records, bytes, fpi, fpi_bytes, buffers = node_data["WAL Records"], node_data["WAL Bytes"], node_data["WAL FPI"], node_data["WAL FPI Bytes"], node_data["WAL Buffers Full"]
-
-	if node_data["Subplan Name"] then
-		self.dump.wal = self.dump.wal or { records = 0, bytes = 0, fpi = 0, fpi_bytes = 0, buffers_full = 0 }
-
-		self.dump.wal.records = self.dump.wal.records + (records or 0)
-		self.dump.wal.bytes = self.dump.wal.bytes + (bytes or 0)
-		self.dump.wal.fpi = self.dump.wal.fpi + (fpi or 0)
-		self.dump.wal.fpi_bytes = self.dump.wal.fpi_bytes + (fpi_bytes or 0)
-		self.dump.wal.buffers_full = self.dump.wal.buffers_full + (buffers or 0)
-	end
-
-	local wal = {}
-
-	if node_data.Plans then
-		wal.tree = {
-			records = records,
-			bytes = bytes,
-			fpi = fpi,
-			fpi_bytes = fpi_bytes,
-			buffers_full = buffers,
-		}
-
-		for _, child in ipairs(node_data.Plans) do
-			if not child["Subplan Name"] then
-				records = records and (records - (child["WAL Records"] or 0))
-				bytes = bytes and (bytes - (child["WAL Bytes"] or 0))
-				fpi = fpi and (fpi - (child["WAL FPI"] or 0))
-				fpi_bytes = fpi_bytes and (fpi_bytes - (child["WAL FPI Bytes"] or 0))
-				buffers = buffers and (buffers - (child["WAL Buffers Full"] or 0))
-			end
-		end
-	end
-
-	wal.node = {
-		records = records,
-		bytes = bytes,
-		fpi = fpi,
-		fpi_bytes = fpi_bytes,
-		buffers_full = buffers,
-	}
-
-	sink.wal = wal
-end
-
 function TreeParser:dumpBuffers(node_data, sink)
 	if not node_data["Shared Hit Blocks"] then
 		return
@@ -575,7 +539,7 @@ function TreeParser:dumpBuffers(node_data, sink)
 		local total = self.dump.buffers.total
 
 		if shared_sum > 0 then
-			total.Shared = total.Shared or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+			total.Shared = total.Shared or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0, io_read = 0, io_write = 0}
 
 			total.Shared.hit = total.Shared.hit + shared_hit
 			total.Shared.read = total.Shared.read + shared_read
@@ -585,7 +549,7 @@ function TreeParser:dumpBuffers(node_data, sink)
 		end
 
 		if local_sum > 0 then
-			total.Local = total.Local or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+			total.Local = total.Local or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0, io_read = 0, io_write = 0}
 
 			total.Local.hit = total.Local.hit + local_hit
 			total.Local.read = total.Local.read + local_read
@@ -595,14 +559,14 @@ function TreeParser:dumpBuffers(node_data, sink)
 		end
 
 		if temp_sum > 0 then
-			total.Temp = total.Temp or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+			total.Temp = total.Temp or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0, io_read = 0, io_write = 0}
 
 			total.Temp.read = total.Temp.read + temp_read
 			total.Temp.written = total.Temp.written + temp_written
 			total.Temp.total = total.Temp.total + temp_sum
 		end
 
-		total.Total = total.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
+		total.Total = total.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0, io_read = 0, io_write = 0}
 
 		total.Total.hit = total.Total.hit + shared_hit + local_hit
 		total.Total.read = total.Total.read + shared_read + local_read + temp_read
@@ -664,6 +628,162 @@ function TreeParser:dumpBuffers(node_data, sink)
 	sink.buffers = buffers
 end
 
+function TreeParser:dumpIO(node_data, sink)
+	if not node_data["I/O Read Time"] and not node_data["Shared I/O Read Time"] then
+		return
+	end
+
+	if node_data["Shared I/O Read Time"] then
+		return self:dumpIODetailed(node_data, sink)
+	end
+
+	if node_data["I/O Read Time"] then
+		return self:dumpIOCombined(node_data, sink)
+	end
+end
+
+function TreeParser:dumpIOCombined(node_data, sink)
+	local read, write = node_data["I/O Read Time"], node_data["I/O Write Time"]
+
+	if node_data["Subplan Name"] then
+		self.dump.buffers = self.dump.buffers or { total = { Total = {hit = 0, read = 0, dirtied = 0, written = 0, total = 0, io_read = 0, io_write = 0} } }
+		local total = self.dump.buffers.total
+
+		total.Total.io_read = total.Total.io_read + read
+		total.Total.io_write = total.Total.io_write + write
+	end
+
+	if node_data.Plans then
+		for _, child in ipairs(node_data.Plans) do
+			if not child["Subplan Name"] then
+				read = read - child["I/O Read Time"]
+				write = write - child["I/O Write Time"]
+			end
+		end
+	end
+
+	sink.buffers.Total.io_read = read
+	sink.buffers.Total.io_write = write
+end
+
+function TreeParser:dumpIODetailed(node_data, sink)
+	local shared_read, shared_write, local_read, local_write, temp_read, temp_write = node_data["Shared I/O Read Time"], node_data["Shared I/O Write Time"], node_data["Local I/O Read Time"], node_data["Local I/O Write Time"], node_data["Temp I/O Read Time"], node_data["Temp I/O Write Time"]
+
+	if node_data["Subplan Name"] then
+		self.dump.buffers = self.dump.buffers or { total = { Total = {hit = 0, read = 0, dirtied = 0, written = 0, total = 0, io_read = 0, io_write = 0} } }
+		local total = self.dump.buffers.total
+
+		if total.Shared then
+			total.Shared.io_read = total.Shared.io_read + shared_read
+			total.Shared.io_write = total.Shared.io_write + shared_write
+		end
+
+		if total.Local then
+			total.Local.io_read = total.Local.io_read + local_read
+			total.Local.io_write = total.Local.io_write + local_write
+		end
+
+		if total.Temp then
+			total.Temp.io_read = total.Temp.io_read + temp_read
+			total.Temp.io_write = total.Temp.io_write + temp_write
+		end
+
+		if total.Total then
+			total.Total.io_read = total.Total.io_read + shared_read + local_read + temp_read
+			total.Total.io_write = total.Total.io_write + shared_write + local_write + temp_write
+		end
+	end
+
+	if node_data.Plans then
+		for _, child in ipairs(node_data.Plans) do
+			if not child["Subplan Name"] then
+				shared_read = shared_read - child["Shared I/O Read Time"]
+				shared_write = shared_write - child["Shared I/O Write Time"]
+				local_read = local_read - child["Local I/O Read Time"]
+				local_write = local_write - child["Local I/O Write Time"]
+				temp_read = temp_read - child["Temp I/O Read Time"]
+				temp_write = temp_write - child["Temp I/O Write Time"]
+			end
+		end
+	end
+
+	local buffers = sink.buffers
+
+	if not buffers then
+		return
+	end
+
+	if buffers.Shared then
+		buffers.Shared.io_read = shared_read
+		buffers.Shared.io_write = shared_write
+	end
+
+	if buffers.Local then
+		buffers.Local.io_read = local_read
+		buffers.Local.io_write = local_write
+	end
+
+	if buffers.Temp then
+		buffers.Temp.io_read = temp_read
+		buffers.Temp.io_write = temp_write
+	end
+
+	if buffers.Total then
+		buffers.Total.io_read = shared_read + local_read + temp_read
+		buffers.Total.io_write = shared_write + local_write + temp_write
+	end
+end
+
+function TreeParser:dumpWAL(node_data, sink)
+	if not node_data["WAL Records"] then
+		return
+	end
+
+	local records, bytes, fpi, fpi_bytes, buffers = node_data["WAL Records"], node_data["WAL Bytes"], node_data["WAL FPI"], node_data["WAL FPI Bytes"], node_data["WAL Buffers Full"]
+
+	if node_data["Subplan Name"] then
+		self.dump.wal = self.dump.wal or { records = 0, bytes = 0, fpi = 0, fpi_bytes = 0, buffers_full = 0 }
+
+		self.dump.wal.records = self.dump.wal.records + (records or 0)
+		self.dump.wal.bytes = self.dump.wal.bytes + (bytes or 0)
+		self.dump.wal.fpi = self.dump.wal.fpi + (fpi or 0)
+		self.dump.wal.fpi_bytes = self.dump.wal.fpi_bytes + (fpi_bytes or 0)
+		self.dump.wal.buffers_full = self.dump.wal.buffers_full + (buffers or 0)
+	end
+
+	local wal = {}
+
+	if node_data.Plans then
+		wal.tree = {
+			records = records,
+			bytes = bytes,
+			fpi = fpi,
+			fpi_bytes = fpi_bytes,
+			buffers_full = buffers,
+		}
+
+		for _, child in ipairs(node_data.Plans) do
+			if not child["Subplan Name"] then
+				records = records and (records - (child["WAL Records"] or 0))
+				bytes = bytes and (bytes - (child["WAL Bytes"] or 0))
+				fpi = fpi and (fpi - (child["WAL FPI"] or 0))
+				fpi_bytes = fpi_bytes and (fpi_bytes - (child["WAL FPI Bytes"] or 0))
+				buffers = buffers and (buffers - (child["WAL Buffers Full"] or 0))
+			end
+		end
+	end
+
+	wal.node = {
+		records = records,
+		bytes = bytes,
+		fpi = fpi,
+		fpi_bytes = fpi_bytes,
+		buffers_full = buffers,
+	}
+
+	sink.wal = wal
+end
+
 function TreeParser:dumpWorkers(node_data, sink)
 	if not node_data["Workers"] or #node_data["Workers"] == 0 then
 		return
@@ -695,6 +815,15 @@ function TreeParser:dumpWorkers(node_data, sink)
 		["WAL FPI"] = node_data["WAL FPI"],
 		["WAL FPI Bytes"] = node_data["WAL FPI Bytes"],
 		["WAL Buffers Full"] = node_data["WAL Buffers Full"],
+
+		["I/O Read Time"] = node_data["I/O Read Time"],
+		["I/O Write Time"] = node_data["I/O Write Time"],
+		["Shared I/O Read Time"] = node_data["Shared I/O Read Time"],
+		["Shared I/O Write Time"] = node_data["Shared I/O Write Time"],
+		["Local I/O Read Time"] = node_data["Local I/O Read Time"],
+		["Local I/O Write Time"] = node_data["Local I/O Write Time"],
+		["Temp I/O Read Time"] = node_data["Temp I/O Read Time"],
+		["Temp I/O Write Time"] = node_data["Temp I/O Write Time"],
 	}
 
 	local child_indices = {}
@@ -738,6 +867,7 @@ function TreeParser:dumpWorkers(node_data, sink)
 
 		self:dumpTiming(worker, worker_sink)
 		self:dumpBuffers(worker, worker_sink)
+		self:dumpIO(worker, worker_sink)
 		self:dumpWAL(worker, worker_sink)
 		dumpers[node_data["Node Type"]](worker, worker_sink)
 

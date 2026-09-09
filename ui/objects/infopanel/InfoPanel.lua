@@ -200,8 +200,9 @@ function InfoPanel:createAnalyze(node, covered)
 			:addTextParametrized("info.analyze.node", {startup = node_start, total = node_total})
 			:addTextParametrized("info.analyze.tree", tree_total and {startup = tree_start, total = tree_total}, true)
 
-		section:addDivider(nil, true)
 	end
+
+	section:addDivider(nil, true)
 
 	if node.node.workers then
 		local worker = self:create "SectionContainer" {
@@ -258,7 +259,7 @@ function InfoPanel:createBuffers(node, covered)
 	covered["Temp Read Blocks"] = true
 	covered["Temp Written Blocks"] = true
 
-	self.contentsContainer:createChild "SectionContainer" { title = "info.buffers.title" }
+	self.contentsContainer:createChild "SectionContainer" { title = (node.node.buffers.Total.io_read or node.node.buffers.Total.io_write) and "info.buffers.title_io" or "info.buffers.title" }
 		:getContentsContainer()
 			:createChild "BufferSheet" {
 				buffers = node.node.buffers,

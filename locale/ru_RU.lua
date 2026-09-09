@@ -120,6 +120,7 @@ local text = {
                 direction = "Направление обхода: {1}",
                 searches = "Количество обходов: {1}",
                 heap = "Обращений к куче: {1}{1:plural zero='' one=' строка' many=' строк' few=' строки'}",
+                condition = "Условие индекса: {1}",
             }
         },
 
@@ -230,7 +231,8 @@ local text = {
         },
 
         buffers = {
-            title = "Буферы"
+            title = "Буферы",
+            title_io = "Буферы + IO тайминги",
             ---@see text.buffers at the bottom
         },
 
@@ -291,6 +293,7 @@ local text = {
 
             buffers = {
                 title = "Буферы (итого)",
+                title_io = "Буферы + IO (итого)",
                 title_planning = "Буферы (планировщик)",
                 planning_tip = "Использование буферов планировщиком включено в \"итого\"",
             },

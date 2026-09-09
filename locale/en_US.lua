@@ -120,6 +120,7 @@ local text = {
                 direction = "Scan Direction: {1}",
                 searches = "Index Searches: {1}",
                 heap = "Heap fetches: {1}{1:plural zero='' one=' row' other=' rows'}",
+                condition = "Index Condition: {1}",
             }
         },
 
@@ -233,7 +234,8 @@ local text = {
         },
 
         buffers = {
-            title = "Buffers Info"
+            title = "Buffers Info",
+            title_io = "Buffers Info + IO"
             ---@see text.buffers at the bottom
         },
 
@@ -294,6 +296,7 @@ local text = {
 
             buffers = {
                 title = "Buffers (total)",
+                title_io = "Buffers + IO (total)",
                 title_planning = "Buffers (planning)",
                 planning_tip = "Planning buffer usage is included in total",
             },

@@ -25,6 +25,7 @@ function DiagramNodeIndexOnlyScan:populateInfo(covered)
 		:addTextParametrized("node.IndexOnlyScan.section.direction", self.node.raw["Scan Direction"])
 		:addTextParametrized("node.IndexOnlyScan.section.searches", self.node.raw["Index Searches"])
 		:addTextParametrized("node.IndexOnlyScan.section.heap", self.node.raw["Heap Fetches"])
+		:addTextParametrized("node.IndexOnlyScan.section.condition", self.node.raw["Index Cond"])
 
 	return sections
 end

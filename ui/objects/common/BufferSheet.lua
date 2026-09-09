@@ -2,17 +2,20 @@
 
 local gui = require("stellargui")
 
-local EPS = 0.0000000000001
+local EPS = 10^-14
 local BUFFER_SIZE = BUFFER_SIZE / 1024
 
 ---@enum ViewState
 local ViewState = {
 	PAGE = "123",
 	PERCENT = "%",
-	BYTES = "KB"
+	BYTES = "KB",
+	IO = "I/O"
 }
 
 local InformationUnits = {"kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"}
+local TimeUnits = {"ms", "s", "m", "h", "d", "m", "y"}
+local TimeUnitsMaxAmount = {1000, 60, 60, 24, 30, 12}
 
 local DEFAULT_VIEW_STATE = ViewState.PAGE
 
@@ -68,6 +71,12 @@ function BufferSheet:toggleView()
 	elseif current_view == ViewState.PERCENT then
 		self.currentView[self.group] = ViewState.BYTES
 	elseif current_view == ViewState.BYTES then
+		if self.buffers.Total.io_read then
+			self.currentView[self.group] = ViewState.IO
+		else
+			self.currentView[self.group] = ViewState.PAGE
+		end
+	elseif current_view == ViewState.IO then
 		self.currentView[self.group] = ViewState.PAGE
 	end
 
@@ -94,10 +103,15 @@ function BufferSheet:resolveView()
 	elseif current_view == ViewState.BYTES then
 		self:populateBytes()
 		self.header.objects[1].objects[1].objects[1]:setText(ViewState.BYTES)
+	elseif current_view == ViewState.IO then
+		self:populateIO()
+		self.header.objects[1].objects[1].objects[1]:setText(ViewState.IO)
 	end
 
 	self.populatedView = current_view
 end
+
+--#region View State Page
 
 function BufferSheet:populatePage()
 	self:populatePageRow(self.shared_row, self.buffers.Shared)
@@ -148,6 +162,10 @@ function BufferSheet:getFitPage(value, object)
 	return tostring(value)
 end
 
+--#endregion
+
+--#region View State Percent
+
 function BufferSheet:populatePercent()
 	self:populatePercentRow(self.shared_row, self.buffers.Shared)
 	self:populatePercentRow(self.local_row, self.buffers.Local)
@@ -178,6 +196,10 @@ function BufferSheet:getFitPercent(value, label)
 
 	return self:fitNumber(value, "%", label) or "?"
 end
+
+--#endregion
+
+--#region View State Bytes
 
 function BufferSheet:populateBytes()
 	self:populateBytesRow(self.shared_row, self.buffers.Shared)
@@ -219,6 +241,53 @@ function BufferSheet:getFitBytes(bufer_count, label)
 
 	return string.format("%.1e GB", bufer_count * BUFFER_SIZE / 1024 / 1024)
 end
+
+--#endregion
+
+--#region View State IO
+
+function BufferSheet:populateIO()
+	self:populateIORow(self.shared_row, self.buffers.Shared)
+	self:populateIORow(self.local_row, self.buffers.Local)
+	self:populateIORow(self.temp_row, self.buffers.Temp)
+	self:populateIORow(self.total_row, self.buffers.Total)
+end
+
+---@param row {objects: Label[]} CompositeObject of Labels
+---@param buffer_values BufferStats
+function BufferSheet:populateIORow(row, buffer_values)
+	if row then
+		row.objects[2]:setText("")
+		row.objects[3]:setText(self:getFitIO(buffer_values.io_read, row.objects[3]))
+		row.objects[4]:setText("")
+		row.objects[5]:setText(self:getFitIO(buffer_values.io_write, row.objects[5]))
+	end
+end
+
+---@param time_ms number
+---@param label Label
+---@return string
+function BufferSheet:getFitIO(time_ms, label)
+	if time_ms == 0 then
+		return self:fitNumber(0, " " .. TimeUnits[1], label) or ""
+	end
+
+	local time = time_ms
+
+	for i, unit in ipairs(TimeUnits) do
+		local timestring = self:fitNumber(time, " " .. unit, label)
+
+		if timestring then
+			return timestring
+		end
+
+		time = time / TimeUnitsMaxAmount[i]
+	end
+
+	return string.format("%.1e d", time_ms / 1000 / 60 / 60 / 24)
+end
+
+--#endregion
 
 ---@param value number
 ---@param postfix string
