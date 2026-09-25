@@ -23,8 +23,8 @@ local text = {
     },
 
     node = {
-        time = "Время: {1}ms", -- TIME UNIT
-        time_workers = "Время: {2} * {1}ms", -- TIME UNIT
+        time = "Время: {1}мс", -- TIME UNIT
+        time_workers = "Время: {2} * {1}мс", -- TIME UNIT
         time_never_executed = "Не исполнялся",
         time_cost = "Стоимость: {1}..{2}",
 
@@ -233,6 +233,7 @@ local text = {
         buffers = {
             title = "Буферы",
             title_io = "Буферы + IO тайминги",
+            title_empty = "Буферы (нет)",
             ---@see text.buffers at the bottom
         },
 

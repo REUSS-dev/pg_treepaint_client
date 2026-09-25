@@ -258,8 +258,19 @@ function InfoPanel:createBuffers(node, covered)
 	covered["Local Written Blocks"] = true
 	covered["Temp Read Blocks"] = true
 	covered["Temp Written Blocks"] = true
+	covered["Shared I/O Read Time"] = true
+	covered["Shared I/O Write Time"] = true
+	covered["Local I/O Read Time"] = true
+	covered["Local I/O Write Time"] = true
+	covered["Temp I/O Read Time"] = true
+	covered["Temp I/O Write Time"] = true
+	covered["I/O Read Time"] = true
+	covered["I/O Write Time"] = true
 
-	self.contentsContainer:createChild "SectionContainer" { title = (node.node.buffers.Total.io_read or node.node.buffers.Total.io_write) and "info.buffers.title_io" or "info.buffers.title" }
+	self.contentsContainer:createChild "SectionContainer" {
+		title = node.node.buffers.Total and ((node.node.buffers.Total.io_read or node.node.buffers.Total.io_write) and "info.buffers.title_io" or "info.buffers.title") or "info.buffers.title_empty",
+		group = "info_buffers",
+	}
 		:getContentsContainer()
 			:createChild "BufferSheet" {
 				buffers = node.node.buffers,

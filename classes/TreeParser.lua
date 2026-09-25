@@ -539,7 +539,7 @@ function TreeParser:dumpBuffers(node_data, sink)
 		local total = self.dump.buffers.total
 
 		if shared_sum > 0 then
-			total.Shared = total.Shared or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0, io_read = 0, io_write = 0}
+			total.Shared = total.Shared or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
 
 			total.Shared.hit = total.Shared.hit + shared_hit
 			total.Shared.read = total.Shared.read + shared_read
@@ -549,7 +549,7 @@ function TreeParser:dumpBuffers(node_data, sink)
 		end
 
 		if local_sum > 0 then
-			total.Local = total.Local or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0, io_read = 0, io_write = 0}
+			total.Local = total.Local or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
 
 			total.Local.hit = total.Local.hit + local_hit
 			total.Local.read = total.Local.read + local_read
@@ -559,14 +559,14 @@ function TreeParser:dumpBuffers(node_data, sink)
 		end
 
 		if temp_sum > 0 then
-			total.Temp = total.Temp or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0, io_read = 0, io_write = 0}
+			total.Temp = total.Temp or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
 
 			total.Temp.read = total.Temp.read + temp_read
 			total.Temp.written = total.Temp.written + temp_written
 			total.Temp.total = total.Temp.total + temp_sum
 		end
 
-		total.Total = total.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0, io_read = 0, io_write = 0}
+		total.Total = total.Total or {hit = 0, read = 0, dirtied = 0, written = 0, total = 0}
 
 		total.Total.hit = total.Total.hit + shared_hit + local_hit
 		total.Total.read = total.Total.read + shared_read + local_read + temp_read
@@ -649,8 +649,8 @@ function TreeParser:dumpIOCombined(node_data, sink)
 		self.dump.buffers = self.dump.buffers or { total = { Total = {hit = 0, read = 0, dirtied = 0, written = 0, total = 0, io_read = 0, io_write = 0} } }
 		local total = self.dump.buffers.total
 
-		total.Total.io_read = total.Total.io_read + read
-		total.Total.io_write = total.Total.io_write + write
+		total.Total.io_read = total.Total.io_read and (total.Total.io_read + read) or read
+		total.Total.io_write = total.Total.io_write and (total.Total.io_write + write) or write
 	end
 
 	if node_data.Plans then
@@ -674,23 +674,26 @@ function TreeParser:dumpIODetailed(node_data, sink)
 		local total = self.dump.buffers.total
 
 		if total.Shared then
-			total.Shared.io_read = total.Shared.io_read + shared_read
-			total.Shared.io_write = total.Shared.io_write + shared_write
+			total.Shared.io_read = total.Shared.io_read and (total.Shared.io_read + shared_read) or shared_read
+			total.Shared.io_write = total.Shared.io_write and (total.Shared.io_write + shared_write) or shared_write
 		end
 
 		if total.Local then
-			total.Local.io_read = total.Local.io_read + local_read
-			total.Local.io_write = total.Local.io_write + local_write
+			total.Local.io_read = total.Local.io_read and (total.Local.io_read + local_read) or local_read
+			total.Local.io_write = total.Local.io_write and (total.Local.io_write + local_write) or local_write
 		end
 
 		if total.Temp then
-			total.Temp.io_read = total.Temp.io_read + temp_read
-			total.Temp.io_write = total.Temp.io_write + temp_write
+			total.Temp.io_read = total.Temp.io_read and (total.Temp.io_read + temp_read) or temp_read
+			total.Temp.io_write = total.Temp.io_write and (total.Temp.io_write + temp_write) or temp_write
 		end
 
 		if total.Total then
-			total.Total.io_read = total.Total.io_read + shared_read + local_read + temp_read
-			total.Total.io_write = total.Total.io_write + shared_write + local_write + temp_write
+			local read_sum = shared_read + local_read + temp_read
+			local write_sum = shared_write + local_write + temp_write
+
+			total.Total.io_read = total.Total.io_read and (total.Total.io_read + read_sum) or read_sum
+			total.Total.io_write = total.Total.io_write and (total.Total.io_write + write_sum) or write_sum
 		end
 	end
 

@@ -235,7 +235,8 @@ local text = {
 
         buffers = {
             title = "Buffers Info",
-            title_io = "Buffers Info + IO"
+            title_io = "Buffers Info + IO",
+            title_empty = "Buffers Info (not used)",
             ---@see text.buffers at the bottom
         },
 
