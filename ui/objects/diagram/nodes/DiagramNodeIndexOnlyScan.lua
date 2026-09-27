@@ -19,6 +19,7 @@ function DiagramNodeIndexOnlyScan:populateInfo(covered)
 	covered["Scan Direction"] = true
 	covered["Index Searches"] = true
 	covered["Heap Fetches"] = true
+	covered["Index Cond"] = true
 
 	sections[#sections+1] = self:create "SectionContainer" { title = "node.IndexOnlyScan.section.title" }
 		:addTextParametrized("node.IndexOnlyScan.section.index", self.node.raw["Index Name"])

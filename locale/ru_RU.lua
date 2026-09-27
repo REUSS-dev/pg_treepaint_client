@@ -230,6 +230,18 @@ local text = {
             tree = "Время поддрева: {startup}..{total}мс", -- TIME UNIT
         },
 
+        filters = {
+            title = "Фильтры",
+            total_rows = "Всего исключено строк: {1}",
+            filter_rows = "Строк исключено фильтром: {1}",
+            filter = "Фильтр: {1}",
+            join_filter_rows = "Строк исключено JOIN фильтром: {1}",
+            join_filter = "JOIN фильтр: {1}",
+            index_filter_rows = "Строк исключено перепроверкой индекса: {1}",
+            index_filter = "Условие индекса: {1}",
+            bitmap_filter = "Условие перепроверки: {1}",
+        },
+
         buffers = {
             title = "Буферы",
             title_io = "Буферы + IO тайминги",

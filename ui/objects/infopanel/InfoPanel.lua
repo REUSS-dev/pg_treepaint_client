@@ -98,6 +98,7 @@ function InfoPanel:createContents(node)
 	self.contentsContainer.objects = objects
 
 	self:createNodeSpecific(objects, node, coverage)
+	self:createFilters(node, coverage)
 	self:createCosts(node, coverage)
 	self:createAnalyze(node, coverage)
 	self:createBuffers(node, coverage)
@@ -127,6 +128,63 @@ function InfoPanel:createNodeSpecific(storage, node, covered)
 	for _, object in ipairs(node_specifics) do
 		object.parent = self.contentsContainer
 		storage[#storage+1] = object
+	end
+end
+
+---@param node DiagramNode
+---@param covered table<string, boolean>
+function InfoPanel:createFilters(node, covered)
+	local filter, filter_rows = node.node.raw["Filter"], node.node.raw["Rows Removed by Filter"]
+	local join_filter, join_filter_rows = node.node.raw["Join Filter"], node.node.raw["Rows Removed by Join Filter"]
+	local index_filter, index_filter_rows = node.node.raw["Index Cond"], node.node.raw["Rows Removed by Index Recheck"]
+	local bitmap_filter = node.node.raw["Recheck Cond"]
+
+	if not (
+		filter or
+		filter_rows or
+		join_filter or
+		join_filter_rows or
+		index_filter or
+		index_filter_rows or
+		bitmap_filter
+	) then
+		return
+	end
+
+	covered["Rows Removed by Filter"] = true
+	covered["Filter"] = true
+	covered["Rows Removed by Join Filter"] = true
+	covered["Join Filter"] = true
+	covered["Rows Removed by Index Recheck"] = true
+	covered["Index Cond"] = true
+	covered["Recheck Cond"] = true
+
+	local total_filtered = (filter_rows or 0) + (join_filter_rows or 0) + (index_filter_rows or 0)
+
+	local section = self.contentsContainer:createChild "SectionContainer" {
+		title = "info.filters.title",
+		group = "info_filters",
+	}
+
+	section:addTextParametrized("info.filters.total_rows", total_filtered)
+
+	if filter or filter_rows then
+		section:addDivider(nil, true)
+		section:addTextParametrized("info.filters.filter_rows", filter_rows)
+		section:addTextParametrized("info.filters.filter", filter)
+	end
+
+	if join_filter or join_filter_rows then
+		section:addDivider(nil, true)
+		section:addTextParametrized("info.filters.join_filter_rows", join_filter_rows)
+		section:addTextParametrized("info.filters.join_filter", join_filter)
+	end
+
+	if index_filter or index_filter_rows or bitmap_filter then
+		section:addDivider(nil, true)
+		section:addTextParametrized("info.filters.index_filter_rows", index_filter_rows)
+		section:addTextParametrized("info.filters.index_filter", index_filter)
+		section:addTextParametrized("info.filters.bitmap_filter", bitmap_filter)
 	end
 end
 

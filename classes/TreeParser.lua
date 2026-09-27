@@ -633,6 +633,10 @@ function TreeParser:dumpIO(node_data, sink)
 		return
 	end
 
+	if not sink.buffers or not sink.buffers.Total then
+		return
+	end
+
 	if node_data["Shared I/O Read Time"] then
 		return self:dumpIODetailed(node_data, sink)
 	end

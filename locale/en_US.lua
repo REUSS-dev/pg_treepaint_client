@@ -233,6 +233,18 @@ local text = {
             tree_single = "Tree (single time): {startup}..{total}ms", -- TIME UNIT
         },
 
+        filters = {
+            title = "Filter Info",
+            total_rows = "Total Rows Removed: {1}",
+            filter_rows = "Rows Removed by Filter: {1}",
+            filter = "Filter: {1}",
+            join_filter_rows = "Rows Removed by Join Filter: {1}",
+            join_filter = "Join Filter: {1}",
+            index_filter_rows = "Rows Removed by Index Recheck: {1}",
+            index_filter = "Index Cond: {1}",
+            bitmap_filter = "Recheck Cond: {1}",
+        },
+
         buffers = {
             title = "Buffers Info",
             title_io = "Buffers Info + IO",
