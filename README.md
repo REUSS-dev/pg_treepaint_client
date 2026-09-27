@@ -14,7 +14,7 @@ This project is made for LOVE 11.5. It will be adapted to LOVE 12.0 once it woul
 # Running
 ## Windows
 1. [Get LOVE](https://love2d.org). Download and install either 64-bit (recommended) or 32-bit version of a runtime.
-2. Get the latest release of a program from [Releases](https://github.com/REUSS-dev/pg_treepaint_client/releases) and unzip it somewhere.
+2. Get the latest pg_treepaint_client.zip from [Releases](https://github.com/REUSS-dev/pg_treepaint_client/releases) and unzip it somewhere.
    * Or clone this repository `git clone --recurse-submodules https://github.com/REUSS-dev/pg_treepaint_client/`\
 (Do not use "Code" > "Download ZIP" as it will not include the required submodule files.)
 3. Double-click `start.bat` to launch an application.
@@ -25,12 +25,12 @@ This project is made for LOVE 11.5. It will be adapted to LOVE 12.0 once it woul
      Make sure version you get is at least 11.0
    * pacman users can get it from extra with `sudo pacman -S love`.
 2. Clone this repository `git clone --recurse-submodules https://github.com/REUSS-dev/pg_treepaint_client/`
-   * Or get the latest release of a program from [Releases](https://github.com/REUSS-dev/pg_treepaint_client/releases) and unzip it somewhere.
+   * Or get the latest pg_treepaint_client.zip from [Releases](https://github.com/REUSS-dev/pg_treepaint_client/releases) and unzip it somewhere.
 3. Run `love .` inside the source code root.
 
 ## Android
 1. [Get LOVE](https://love2d.org). Download Android APK in section "Other Downloads" and install it on your device.
-2. Get the latest release of a program from [Releases](https://github.com/REUSS-dev/pg_treepaint_client/releases) and change its extension to read `.love` instead of `.zip`. Launch the `.love` file with installed LOVE app.
+2. Get the latest pg_treepaint_client.zip from [Releases](https://github.com/REUSS-dev/pg_treepaint_client/releases) and change its extension to read `.love` instead of `.zip`. Launch the `.love` file with installed LOVE app.
    * Or create a folder in your sdcard root called "lovegame" and unzip the contents of downloaded zip into "/sdcard/lovegame". Then launch LOVE app from your launcher.  (May noy work in later android versions. You may have to put program source code into `/sdcard/Android/data/org.love2d.android/files/games/lovegame` instead.)
 
 
