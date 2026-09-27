@@ -40,6 +40,8 @@ pg_treepaint receiver functionality is enabled using a TCP Listener applet on to
 
 Currently program supports JSON-formatted input, and parsing for Text-formatted EXPLAIN output is very limited.
 
+You can try TreePaint out with the provided example Query Plans in directory `examples`.
+
 TreePaint Client includes different color themes and locales, as well as other configuration parameters defined in conf.lua. See [conf.lua](https://github.com/REUSS-dev/pg_treepaint_client/blob/master/conf.lua) for explanations.
 
 <img width="1282" height="721" alt="image" src="https://github.com/user-attachments/assets/0661e917-e17f-49e1-b339-3465a64d50d1" />
@@ -64,6 +66,7 @@ TreePaint Client currently implements:
 <img width="1398" height="721" alt="image" src="https://github.com/user-attachments/assets/d652d96f-0954-4f7a-a54e-79ec5e489af1" />
 <br><br>
 
+* Check out example plans in the directory "examples".
 * Copy plan JSON and click the button "Plot from Clipboard". A plan diagram and its summary will appear.
 * Summary can be hidden using the chevron button to its top-right.
 * Diagram can be panned with the mouse, dragging it with left click, or with the mouse wheel (and laptop precision touchpads' gestures respectively).
