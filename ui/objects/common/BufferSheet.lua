@@ -268,7 +268,7 @@ end
 ---@param label Label
 ---@return string
 function BufferSheet:getFitIO(time_ms, label)
-	if time_ms == 0 then
+	if time_ms == 0 or not time_ms then
 		return self:fitNumber(0, " " .. TimeUnits[1], label) or ""
 	end
 
