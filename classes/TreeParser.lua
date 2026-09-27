@@ -923,11 +923,16 @@ end
 --#region Explain format parsers
 
 ---@param json_string string
----@return table
+---@return table?
 function TreeParser:parseJSON(json_string)
 	json_string = json_string:gsub("\n(%S)", "%1")
 
-	local tree = json.decode(fix_data(json_string))
+	local success, tree = pcall(json.decode, fix_data(json_string))
+
+	if not success then
+		love.window.showMessageBox("Error", "Failed to parse JSON plan data.\nError: " .. tostring(tree), "warning")
+		return
+	end
 
 	-- 64-bit integer to string
 	local plan = tree[1] or tree
@@ -945,7 +950,7 @@ function TreeParser:parseText(text)
 	local success, tree = pcall(self.textParser.parse, self.textParser, text)
 
 	if not success then
-		print("Failed to parse plan data, error: " .. tostring(tree))
+		love.window.showMessageBox("Error", "Failed to parse plan data.\nError: " .. tostring(tree), "warning")
 		return
 	end
 
