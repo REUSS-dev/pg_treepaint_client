@@ -19,6 +19,13 @@ local text = {
         gather = {
             additional_workers = "Доп. воркеры: {1}",
             parallelized = "Параллелизированная секция",
+        },
+
+        noplan = {
+            header = "Нет плана",
+            hint = "План не загружен в визуализатор.\nСкопируйте JSON-вывод предложения EXPLAIN в буфер обмена и нажмите кнопку \"Вставить из буфера обмена\", чтобы просмотреть диаграмму плана.",
+            hint_extension = "Попробуйте расширение pg_treepaint для передачи планов напрямую с сервера при помощи EXPLAIN (tp_plan) ...\n(необходимо включить TCP-клиент conf.lua)",
+            extension_button_text = "pg_treepaint GitHub"
         }
     },
 

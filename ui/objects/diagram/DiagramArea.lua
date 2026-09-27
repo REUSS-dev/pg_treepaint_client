@@ -2,6 +2,10 @@
 
 local TreeParser = require("classes.TreeParser")
 
+-- consts
+
+local SPLASH_IMAGE = "assets/sad_malyar.png"
+
 -- classes
 
 ---@class DiagramArea : CompositeObject
@@ -335,6 +339,55 @@ function DiagramArea:registerNodeInfo(node_info_object)
 	self.nodeInfoObject = node_info_object
 end
 
+function DiagramArea:createSplash()
+	local container = self:createChild "Container" {
+		growth = "vertical",
+		padding = {0, 0, 0, 50},
+		w = "hug",
+		h = "fill",
+		gap = 15
+	}
+
+	container:createChild "Image" {
+		image = SPLASH_IMAGE,
+		display = "fixed",
+		limit = 0.75,
+		w = "hug",
+		h = "hug"
+	}
+
+	container:createChild "Label" {
+		font = "default 52",
+		text = "plan.noplan.header"
+	}
+
+	container:createChild "Label" {
+		font = "default 20",
+		text = "plan.noplan.hint",
+		horizontal = "center",
+		w = "fill"
+	}
+
+	container:createChild "Label" {
+		font = "default 18",
+		text = "plan.noplan.hint_extension",
+		horizontal = "center",
+		w = "fill"
+	}
+
+	container:createChild "Button" {
+		text = "plan.noplan.extension_button_text",
+		font = "default 18",
+		w = "hug",
+		h = "hug",
+		color = COLORS.BUFFER_BUTTON_FILL,
+		additionalColor = COLORS.BUFFER_BUTTON_BORDER,
+		action = function ()
+			love.system.openURL(IDENTITY.extension_url)
+		end
+	}
+end
+
 function DiagramArea:selectRelatives(_)
 	return {}
 end
@@ -351,6 +404,8 @@ function DiagramArea:new()
 	self.subplanContainers = {}
 
 	self.parser = TreeParser()
+
+	self:createSplash()
 end
 
 return DiagramArea

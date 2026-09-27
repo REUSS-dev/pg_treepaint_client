@@ -5,6 +5,10 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
 	print("debugger enabled")
 end
 
+IDENTITY = {
+	extension_url = "https://github.com/REUSS-dev/pg_treepaint"
+}
+
 local gui = require("libs.stellargui")
 
 function love.load()
