@@ -1,22 +1,25 @@
---#region Handle Windows DPI settings
-if love._os == "Windows" then
-  local ffi = require "ffi"
-  ffi.cdef[[ bool SetProcessDPIAware(); ]]
-  ffi.C.SetProcessDPIAware();
-end
---#endregion
+-- TCP Client
+CLIENT_IP = "0.0.0.0"               -- TCP Client listenning IP address
+CLIENT_PORT = 4523                  -- TCP Client listening port
+CLIENT_AUTOSTART = false            -- Start TCP Client on launch
 
-CLIENT_IP = "0.0.0.0"
-CLIENT_PORT = 4523
-CLIENT_AUTOSTART = false
-
+-- Program locale. Locales are stored in directory "locale" and are ISO 639-1 + (optionally) ISO 3166-1 language codes like en_US or ru_RU. Can also be just "en" or "ru".
+-- Supported variants: en_US, ru_RU
 LOCALE = "en"
+
+-- Program color scheme. Schemes are described and defined in themes.lua
+-- Supported variants: dark, light
 UI_THEME = "dark"
+
+-- Dimensions of plan minimap. In pixels
 MINIMAP_DIMENSIONS = {300, 200}
 
+-- Size of PostgreSQL buffer, used for calculations default is 8192 bytes
 BUFFER_SIZE = 8192
 
 function love.conf(t)
+    t.version = "11.5"
+
 	t.window.title = "Treepaint"
     t.window.width = 1280
     t.window.height = 720
@@ -46,5 +49,13 @@ function love.conf(t)
     t.modules.video = false
     t.modules.window = true
 end
+
+--#region Handle Windows DPI settings
+if love._os == "Windows" then
+  local ffi = require "ffi"
+  ffi.cdef[[ bool SetProcessDPIAware(); ]]
+  ffi.C.SetProcessDPIAware();
+end
+--#endregion
 
 require("themes")
