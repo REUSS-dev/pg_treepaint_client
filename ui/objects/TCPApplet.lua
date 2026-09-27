@@ -16,7 +16,7 @@ end
 
 -- classes
 
----@class TCPApplet : CompositeObject
+---@class TCPApplet : Button
 ---@field CompositeObject CompositeObject
 ---@field r number Radius of round corner
 ---@field status TCPListenerStatus
@@ -25,16 +25,22 @@ end
 ---@field diagram DiagramArea?
 local TCPApplet = {
 	name = "TCPApplet",
-	extends = "CompositeObject",
+	extends = "Button",
 	rules = {
 		{{"tcp", "tcp_listener", "tcp_client"}, "tcp"}
 	},
 	default = {
 		w = 150, h = "fill",
+		color = COLOR_INACTIVE,
 		text_color = COLORS.TCP_TEXT,
+		additionalColor = BORDER_INACTIVE,
 		font = "default 18"
 	}
 }
+
+function TCPApplet:click_left()
+	self.tcp:toggle()
+end
 
 function TCPApplet:tick(dt)
 	self.CompositeObject.tick(self, dt)
@@ -58,11 +64,13 @@ function TCPApplet:tick(dt)
 
 		if current_status == self.tcp.Status.ACTIVE then
 			self.palette:setColor(1, COLOR_ACTIVE)
+			self.originalColor = self.palette.main
 			self.palette:setColor(3, BORDER_ACTIVE)
 
 			self.label:setText("header.tcp.active", {self.tcp:getBindAddress()})
 		elseif current_status == self.tcp.Status.INACTIVE then
 			self.palette:setColor(1, COLOR_INACTIVE)
+			self.originalColor = self.palette.main
 			self.palette:setColor(3, BORDER_INACTIVE)
 
 			self.label:setText("header.tcp.inactive")
@@ -80,7 +88,7 @@ function TCPApplet:new()
 		error("TCPApplet must be provided with tcp listener")
 	end
 
-	self.fill_flag, self.border_flag = true, true
+	self.objects = {}
 
 	self.label = self:createChild "Label" {
 		font = self.font,

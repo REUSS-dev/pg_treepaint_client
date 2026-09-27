@@ -24,7 +24,7 @@ local text = {
         noplan = {
             header = "No plan",
             hint = "There is nothing to display and there is no plan loaded.\nCopy the JSON-formatted output of an EXPLAIN statement and press \"Plot from Clipboard\" do display a plan diagram.",
-            hint_extension = "Also consider using *pg_treepaint* extension to transfer plans directly from the server via EXPLAIN (tp_plan) ...\n(requires TCP client enabled in conf.lua)",
+            hint_extension = "Also consider using *pg_treepaint* extension to transfer plans directly from the server via EXPLAIN (tp_plan) ...\n(requires TCP client enabled)",
             extension_button_text = "pg_treepaint GitHub"
         }
     },

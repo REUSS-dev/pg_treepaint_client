@@ -1,13 +1,15 @@
-local bind_ip, bind_port, channel = ...
+local bind_ip, bind_port, channel, control_channel = ...
 
 require("love.timer")
 local socket = require("socket")
 
 local server = socket.tcp()
+server:settimeout(0.05)
 server:bind(bind_ip, bind_port)
 server:listen()
 
 local output = love.thread.getChannel(channel)
+local control = love.thread.getChannel(control_channel)
 
 local client
 
@@ -40,9 +42,18 @@ local function wait_client()
 
 	while not client do
 		client = server:accept()
+
+		local msg = control:pop()
+
+		if msg then
+			if msg == "stop" then
+				server:close()
+				return true
+			end
+		end
 	end
 
-	client:settimeout(100)
+	client:settimeout(0.1)
 
 	local ip, port = client:getpeername()
 	send_client_connect(ip .. ":" .. port)
@@ -50,17 +61,17 @@ end
 
 -- init
 
-wait_client()
+if not wait_client() then
+	while true do
+		local msg, _ = client:receive("*a")
 
-while true do
-	local msg, _ = client:receive("*a")
+		if msg then
+			send_data(msg)
+		else
+			local ip, port = client:getpeername()
+			send_client_disconnect(ip .. ":" .. port)
 
-	if msg then
-		send_data(msg)
-	else
-		local ip, port = client:getpeername()
-		send_client_disconnect(ip .. ":" .. port)
-
-		wait_client()
+			if wait_client() then break end
+		end
 	end
 end

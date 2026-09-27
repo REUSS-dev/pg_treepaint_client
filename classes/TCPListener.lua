@@ -19,35 +19,59 @@ local CHANNEL_PREFIX = "TCPListener_"
 
 ---@class TCPListener
 ---@field thread love.Thread
+---@field status TCPListenerStatus
 ---@field channel love.Channel
+---@field controlChannel love.Channel
 ---@field ip string
 ---@field port integer
 ---@field channel_name string
+---@field control_channel_name string
 local TCPListener = {}
 TCPListener.__index = TCPListener
 
 function TCPListener:start()
-	if self.channel then
+	if self.status == Status.ACTIVE then
 		return
 	end
 
-	self.channel = love.thread.getChannel(self.channel_name)
+	self.channel = self.channel or love.thread.getChannel(self.channel_name)
+	self.controlChannel = self.controlChannel or love.thread.getChannel(self.control_channel_name)
 
-	self.thread:start(self.ip, self.port, self.channel_name)
+	self.thread:start(self.ip, self.port, self.channel_name, self.control_channel_name)
 
 	print("Started listener on " .. self.ip .. ":" .. self.port)
 
+	self.status = Status.ACTIVE
+
 	return self
+end
+
+function TCPListener:stop()
+	if self.status == Status.INACTIVE then
+		return
+	end
+
+	self.controlChannel:push("stop")
+
+	print("Stopped listener on " .. self.ip .. ":" .. self.port)
+
+	self.status = Status.INACTIVE
+
+	return self
+end
+
+function TCPListener:toggle()
+	if self.status == Status.ACTIVE then
+		self:stop()
+	else
+		self:start()
+	end
 end
 
 ---Return current listener status
 ---@return TCPListenerStatus
 function TCPListener:getStatus()
-	if self.channel then
-		return Status.ACTIVE
-	else
-		return Status.INACTIVE
-	end
+	return self.status
 end
 
 function TCPListener:getBindAddress()
@@ -64,7 +88,10 @@ function TCPListener:new(ip, port)
 	local new_listener = {
 		ip = assert(type(ip) == "string" and ip, "IP (string) is required to create new TCPListener object, received " .. type(ip)),
 		port = assert(port and tonumber(port), "Port (number) is required to create new TCPListener object, received " .. type(ip)),
-		channel_name = CHANNEL_PREFIX .. ip .. ":" .. port
+		channel_name = CHANNEL_PREFIX .. ip .. ":" .. port,
+		control_channel_name = CHANNEL_PREFIX .. ip .. ":" .. port .. "_CONTROL",
+
+		status = Status.INACTIVE
 	}
 
 	setmetatable(new_listener, TCPListener)
