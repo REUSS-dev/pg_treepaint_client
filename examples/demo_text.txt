@@ -1,0 +1,64 @@
+ Sort  (cost=27.26..27.26 rows=1 width=151) (actual time=0.172..0.173 rows=4.00 loops=1)
+   Output: r.route_no, ml.airport_code, ((ml.country ->> current_setting('bookings.lang'::text, true))), ((ml.city ->> c
+urrent_setting('bookings.lang'::text, true))), ml_1.airport_code, ((ml_1.country ->> current_setting('bookings.lang'::te
+xt, true))), ((ml_1.city ->> current_setting('bookings.lang'::text, true))), f.scheduled_departure
+   Sort Key: f.scheduled_departure
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=51
+   ->  Nested Loop  (cost=1.43..27.25 rows=1 width=151) (actual time=0.078..0.162 rows=4.00 loops=1)
+         Output: r.route_no, ml.airport_code, (ml.country ->> current_setting('bookings.lang'::text, true)), (ml.city ->
+> current_setting('bookings.lang'::text, true)), ml_1.airport_code, (ml_1.country ->> current_setting('bookings.lang'::t
+ext, true)), (ml_1.city ->> current_setting('bookings.lang'::text, true)), f.scheduled_departure
+         Inner Unique: true
+         Buffers: shared hit=51
+         ->  Nested Loop  (cost=1.15..26.33 rows=1 width=126) (actual time=0.062..0.131 rows=4.00 loops=1)
+               Output: f.scheduled_departure, r.route_no, r.arrival_airport, ml.airport_code, ml.country, ml.city
+               Inner Unique: true
+               Buffers: shared hit=39
+               ->  Nested Loop  (cost=0.86..25.44 rows=1 width=23) (actual time=0.056..0.117 rows=4.00 loops=1)
+                     Output: f.scheduled_departure, r.route_no, r.departure_airport, r.arrival_airport
+                     Buffers: shared hit=27
+                     ->  Nested Loop  (cost=0.72..25.08 rows=2 width=15) (actual time=0.025..0.037 rows=4.00 loops=1)
+                           Output: f.scheduled_departure, f.route_no
+                           Inner Unique: true
+                           Buffers: shared hit=16
+                           ->  Index Only Scan using segments_pkey on bookings.segments s  (cost=0.43..8.46 rows=2 width
+=4) (actual time=0.014..0.015 rows=4.00 loops=1)
+                                 Output: s.ticket_no, s.flight_id
+                                 Index Cond: (s.ticket_no = '0005433348362'::text)
+                                 Heap Fetches: 0
+                                 Index Searches: 1
+                                 Buffers: shared hit=4
+                           ->  Index Scan using flights_pkey on bookings.flights f  (cost=0.29..8.30 rows=1 width=19) (a
+ctual time=0.004..0.004 rows=1.00 loops=4)
+                                 Output: f.flight_id, f.route_no, f.status, f.scheduled_departure, f.scheduled_arrival,
+f.actual_departure, f.actual_arrival
+                                 Index Cond: (f.flight_id = s.flight_id)
+                                 Index Searches: 4
+                                 Buffers: shared hit=12
+                     ->  Index Scan using routes_route_no_validity_excl on bookings.routes r  (cost=0.14..0.17 rows=1 wi
+dth=37) (actual time=0.019..0.019 rows=1.00 loops=4)
+                           Output: r.route_no, r.validity, r.departure_airport, r.arrival_airport, r.airplane_code, r.da
+ys_of_week, r.scheduled_time, r.duration
+                           Index Cond: ((r.route_no = f.route_no) AND (r.validity @> f.scheduled_departure))
+                           Index Searches: 4
+                           Buffers: shared hit=11
+               ->  Index Scan using airports_data_pkey on bookings.airports_data ml  (cost=0.28..0.90 rows=1 width=107)
+(actual time=0.003..0.003 rows=1.00 loops=4)
+                     Output: ml.airport_code, ml.airport_name, ml.city, ml.country, ml.coordinates, ml.timezone
+                     Index Cond: (ml.airport_code = r.departure_airport)
+                     Index Searches: 4
+                     Buffers: shared hit=12
+         ->  Index Scan using airports_data_pkey on bookings.airports_data ml_1  (cost=0.28..0.90 rows=1 width=107) (act
+ual time=0.005..0.005 rows=1.00 loops=4)
+               Output: ml_1.airport_code, ml_1.airport_name, ml_1.city, ml_1.country, ml_1.coordinates, ml_1.timezone
+               Index Cond: (ml_1.airport_code = r.arrival_airport)
+               Index Searches: 4
+               Buffers: shared hit=12
+ Settings: search_path = 'bookings, "$user", public'
+ Planning:
+   Buffers: shared hit=26
+   Memory: used=246kB  allocated=264kB
+ Planning Time: 0.824 ms
+ Serialization: time=0.004 ms  output=1kB  format=text
+ Execution Time: 0.240 ms
