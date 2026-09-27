@@ -358,21 +358,24 @@ function DiagramArea:createSplash()
 
 	container:createChild "Label" {
 		font = "default 52",
-		text = "plan.noplan.header"
+		text = "plan.noplan.header",
+		textColor = COLORS.COLOR_TEXT_1
 	}
 
 	container:createChild "Label" {
 		font = "default 20",
 		text = "plan.noplan.hint",
 		horizontal = "center",
-		w = "fill"
+		w = "fill",
+		textColor = COLORS.COLOR_TEXT_1
 	}
 
 	container:createChild "Label" {
 		font = "default 18",
 		text = "plan.noplan.hint_extension",
 		horizontal = "center",
-		w = "fill"
+		w = "fill",
+		textColor = COLORS.COLOR_TEXT_1
 	}
 
 	container:createChild "Button" {

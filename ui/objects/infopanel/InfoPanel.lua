@@ -348,7 +348,7 @@ function InfoPanel:createWorkers(node, covered)
 
 	local locale = self:getObjectClass("Label").locale
 
-	local workers_title = locale:format("info.workers.title", node.node.workers - 1)
+	local workers_title = locale:format("info.workers.title", {node.node.workers - 1})
 
 	local workers = self.contentsContainer:createChild "SectionContainer" { title = workers_title, group = "info_workers" }
 		:addTextParametrized("info.workers.count", node.node.workers - 1)
@@ -361,7 +361,7 @@ function InfoPanel:createWorkers(node, covered)
 	for _, worker in ipairs(node.node.workerDump) do ---@cast worker +{no: integer}
 		workers:addDivider(nil, true)
 
-		local worker_title = locale:format("info.workers.worker_n", worker.no)
+		local worker_title = locale:format("info.workers.worker_n", {worker.no})
 		local new_worker = workers:create "SectionContainer" { title = worker_title, group = "info_workers_worker_" .. worker.no, borderless = true }
 		self:createWorker(worker, new_worker)
 		workers:addObject(new_worker)
