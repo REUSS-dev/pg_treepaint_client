@@ -1,6 +1,20 @@
 -- NodeStringParser
 
----@class Query : table
+---@alias RawQuery QueryStructure
+
+---@alias QueryValue QueryStructure|QueryList|QueryString|QueryNumber|QueryBoolean|QueryNull|QueryDatum
+
+---@alias QueryStructure {__name: string, [string]: QueryValue}
+---@alias QueryList {type: "b"|"i"|nil, items: any[]}
+---@alias QueryDatum {size: integer, data: integer[]}
+---@alias QueryString string
+---@alias QueryNumber number
+---@alias QueryBoolean boolean
+---@alias QueryNull {[1]: "null"}
+
+-- consts
+
+local NULL = {"null"}
 
 ---@class NodeStringParser
 ---@field text string
@@ -10,7 +24,7 @@ NodeStringParser.__index = NodeStringParser
 
 ---Parse Query structure
 ---@param node_string string
----@return Query
+---@return RawQuery
 function NodeStringParser:parse(node_string)
 	self.text = node_string
 	self.pos = 1
@@ -18,6 +32,7 @@ function NodeStringParser:parse(node_string)
 	return self:parseValue() --[[@as table]]
 end
 
+---@return QueryValue?
 function NodeStringParser:parseValue()
 	local char = self:readChar()
 
@@ -48,6 +63,7 @@ function NodeStringParser:parseValue()
 	end
 end
 
+---@return QueryStructure
 function NodeStringParser:parseObject()
 	local new_object = {}
 
@@ -86,6 +102,7 @@ function NodeStringParser:parseFieldName()
 	return field_name
 end
 
+---@return QueryList
 function NodeStringParser:parseList()
 	local new_list = {
 		items = {}
@@ -115,6 +132,7 @@ function NodeStringParser:parseList()
 	return new_list
 end
 
+---@return QueryString
 function NodeStringParser:parseString()
 	self:parseChar("\"")
 
@@ -125,23 +143,26 @@ function NodeStringParser:parseString()
 	return str
 end
 
+---@return (QueryNumber|QueryDatum)?
 function NodeStringParser:parseNumber()
 	local _, finish, minus, left_part, dot, right_part = string.find(self.text, "^(%-?)(%d+)(%.?)(%d*)", self.pos)
 	if not left_part then
 		return nil
-	end
+	end ---@cast left_part integer
 
 	self.pos = finish + 1
 
 	self:parseSpace()
 
 	if self:readChar() == "[" then
-		return self:parseDatum(tonumber(left_part))
+		return self:parseDatum(tonumber(left_part) --[[@as integer]])
 	end
 
-	return tonumber(minus .. left_part .. dot .. right_part)
+	return tonumber(minus .. left_part .. dot .. right_part) --[[@as number]]
 end
 
+---@param length integer
+---@return QueryDatum
 function NodeStringParser:parseDatum(length)
 	local new_datum = { length = length, data = {} }
 
@@ -166,26 +187,30 @@ function NodeStringParser:parseDatum(length)
 	return new_datum
 end
 
+---@return QueryNull
 function NodeStringParser:parseNull()
 	self:parseChar("<", true)
 	self:parseChar(">", true)
 
-	return nil
+	return NULL
 end
 
+---@return boolean
 function NodeStringParser:parseTrue()
-	return self:parsePattern("true")
+	return self:parsePattern("true") ~= nil
 end
 
+---@return boolean
 function NodeStringParser:parseFalse()
-	return self:parsePattern("false")
+	return self:parsePattern("false") ~= nil
 end
 
+---@return QueryString
 function NodeStringParser:parseIdentifier()
 	local identifier
 
 	repeat
-		local new_part, interest = self:parsePattern("(.-)([\\}) \"])")
+		local new_part, interest = self:parsePattern("(.-)([\\}) \"])") --[[@as string?]]	---@type string?, string?
 
 		if new_part then
 			identifier = identifier and (identifier .. new_part) or new_part

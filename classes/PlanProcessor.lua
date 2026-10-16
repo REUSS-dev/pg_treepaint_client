@@ -252,8 +252,9 @@ local function copy_table(src)
 	return new_table
 end
 
----@class TreeProcessor
+---@class PlanProcessor
 ---@field dump DumpedPlan
+---@field workers integer?
 local PlanProcessor = {}
 PlanProcessor.__index = PlanProcessor
 

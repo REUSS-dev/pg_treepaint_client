@@ -56,7 +56,7 @@ end
 -- node fnc
 
 function PlanNode:new()
-	assert(self.node, "DiagramNode object must be initialized with a DumpedNode object")
+	assert(self.node, "PlanNode object must be initialized with a DumpedNode object")
 
 	local node_data = self.node
 	self.nodeType = self.node.type

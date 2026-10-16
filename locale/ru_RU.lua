@@ -304,6 +304,13 @@ local text = {
                 subplan = "{1} {1:plural one='подплан' many='подпланов' other = 'подплана'}",
             },
 
+            diagrams = {
+                title = "Диаграммы",
+                plan = "План",
+                query = "Запрос",
+                query_rewritten = "Запрос (переписанный)"
+            },
+
             timing = {
                 title = "Тайминг",
                 execution = "Время исполнения: {1}мс", -- TIME UNIT

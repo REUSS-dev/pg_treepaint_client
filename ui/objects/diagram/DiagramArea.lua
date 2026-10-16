@@ -194,6 +194,14 @@ function DiagramArea:plot(data, target)
 
 	target = target or PlotTarget.PLAN
 
+	self:generateDiagram(target)
+
+	if self.summaryObject then
+		self.summaryObject:applyPlan(self.plan, target)
+	end
+end
+
+function DiagramArea:generateDiagram(target)
 	self.objects = {}
 
 	if target == PlotTarget.PLAN then
@@ -202,21 +210,18 @@ function DiagramArea:plot(data, target)
 		self:plotQuery(target)
 	end
 
-	if not self.root then
-		return
+	if self.root then
+		self:add(self.root)
+		self.diagramFullSize = {self.root.w, self.root.h}
+		self:createMinimap(self.root)
+
+		self.root.layout.ignore = true
+		self:collapseSubplans()
+		self:moveRoot(0, 0)
+		self.nodeInfoObject:hide()
 	end
 
-	self:add(self.root)
-	self.diagramFullSize = {self.root.w, self.root.h}
-	self:createMinimap(self.root)
-
-	self.root.layout.ignore = true
-	self:collapseSubplans()
-	self:moveRoot(0, 0)
-	self.nodeInfoObject:hide()
-
 	if self.summaryObject then
-		self.summaryObject:applyPlan(object_tree, target)
 		self:createSummaryToggle()
 	end
 

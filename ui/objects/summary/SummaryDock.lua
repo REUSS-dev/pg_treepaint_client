@@ -135,6 +135,65 @@ function SummaryDock:generateInfo(target)
 		plan = plan
 	}
 
+	if plan.query then
+		local diagrams = self.contentsContainer:createChild "SectionContainer" {
+			title = "summary.info.diagrams.title",
+			collapsible = false
+		}
+
+		local button_container = self:create "Container" {
+			growth = "horizontal"
+		}
+
+		button_container:createChild "Button" {
+			text = "summary.info.diagrams.plan",
+			font = "default 16",
+			color = COLORS.SUMMARY_DIAGRAMS_PLAN,
+			textColor = COLORS.COLOR_TEXT_1,
+			additionalColor = COLORS.TRANSPARENT,
+			w = "hug",
+			h = "hug",
+			r = 12,
+			action = function ()
+				self.diagram:generateDiagram("plan")
+			end
+		}
+
+		if plan.query.original then
+			button_container:createChild "Button" {
+				text = "summary.info.diagrams.query",
+				font = "default 16",
+				color = COLORS.SUMMARY_DIAGRAMS_QUERY,
+				textColor = COLORS.COLOR_TEXT_1,
+				additionalColor = COLORS.TRANSPARENT,
+				w = "hug",
+				h = "hug",
+				r = 12,
+				action = function ()
+					self.diagram:generateDiagram("query")
+				end
+			}
+		end
+
+		if plan.query.rewritten then
+			button_container:createChild "Button" {
+				text = "summary.info.diagrams.query_rewritten",
+				font = "default 16",
+				color = COLORS.SUMMARY_DIAGRAMS_QUERY_REWRITTEN,
+				textColor = COLORS.COLOR_TEXT_1,
+				additionalColor = COLORS.TRANSPARENT,
+				w = "hug",
+				h = "hug",
+				r = 12,
+				action = function ()
+					self.diagram:generateDiagram("rewritten")
+				end
+			}
+		end
+
+		diagrams:addObject(button_container)
+	end
+
 	if plan.timing then
 		local timings = self.contentsContainer:createChild "SectionContainer" {
 			title = "summary.info.timing.title",

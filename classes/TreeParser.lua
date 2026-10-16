@@ -3,7 +3,7 @@
 local json = require("libs.json")
 
 local TreeNormalizer = require("classes.TreeNormalizer")
-local NodeStringParser = require("classes.NodeStringParser")
+local QueryProcessor = require("classes.QueryProcessor")
 local PlanProcessor = require("classes.PlanProcessor")
 local TextParser = require("classes.TextParser")
 
@@ -20,9 +20,10 @@ end
 -- class
 
 ---@class TreeParser
+---@field normalizer TreeNormalizer
+---@field queryProcessor QueryProcessor
+---@field processor PlanProcessor
 ---@field textParser TextParser
----@field queryParser NodeStringParser
----@field workers integer?
 local TreeParser = {}
 TreeParser.__index = TreeParser
 
@@ -56,7 +57,7 @@ function TreeParser:parse(tree)
 	if plan["Rewritten Query Tree"] then
 		dump.query = {}
 
-		dump.query.rewritten = self.queryParser:parse(plan["Rewritten Query Tree"])
+		dump.query.rewritten = self.queryProcessor:process(plan["Rewritten Query Tree"])
 	end
 
 	return dump
@@ -110,7 +111,7 @@ function TreeParser:new()
 	setmetatable(new_parser, TreeParser)
 
 	self.normalizer = TreeNormalizer()
-	self.queryParser = NodeStringParser()
+	self.queryProcessor = QueryProcessor()
 	self.processor = PlanProcessor()
 	self.textParser = TextParser()
 
