@@ -110,6 +110,13 @@ function DiagramArea:wheel(x, y)
 		return
 	end
 
+	-- Sometimes touchpad gives us insane values of x or y wheel momentum
+	-- like "105" or "-115" with norm being in range between -10 and 10.
+	-- Ignore wheel events with any momentum more than 25
+	if math.abs(x) > 25 or math.abs(y) > 25 then
+		return
+	end
+
 	if (love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")) and x == 0 then
 		self:moveRoot(y * 20, 0)
 		return
