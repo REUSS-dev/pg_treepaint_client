@@ -40,10 +40,11 @@ local SummaryDock = {
 }
 
 ---@param new_plan DumpedPlan
-function SummaryDock:applyPlan(new_plan)
+---@param target PlotTarget
+function SummaryDock:applyPlan(new_plan, target)
 	self.plan = new_plan
 
-	self:generateContent()
+	self:generateContent(target)
 	self.folds:triggerDefault()
 	self:show()
 end
@@ -112,18 +113,20 @@ end
 
 --#endregion
 
-function SummaryDock:generateContent()
+---@param target PlotTarget
+function SummaryDock:generateContent(target)
 	self.content = {}
 
-	self.content[1] = self:generateInfo()
-	self.content[2] = self:generateSubplans()
-	self.content[3] = self:generateStats()
-	self.content[4] = self:generateInsights()
+	self.content[1] = self:generateInfo(target)
+	self.content[2] = self:generateSubplans(target)
+	self.content[3] = self:generateStats(target)
+	self.content[4] = self:generateInsights(target)
 
 	self.currentContent = 0
 end
 
-function SummaryDock:generateInfo()
+---@param target PlotTarget
+function SummaryDock:generateInfo(target)
 	self.contentsContainer.objects = {}
 
 	local plan = self.plan
@@ -349,7 +352,8 @@ function SummaryDock:generateInfo()
 	return self.contentsContainer.objects
 end
 
-function SummaryDock:generateSubplans()
+---@param target PlotTarget
+function SummaryDock:generateSubplans(target)
 	self.contentsContainer.objects = {}
 
 	self.contentsContainer:createChild "Label" {
@@ -361,7 +365,8 @@ function SummaryDock:generateSubplans()
 	return self.contentsContainer.objects
 end
 
-function SummaryDock:generateStats()
+---@param target PlotTarget
+function SummaryDock:generateStats(target)
 	self.contentsContainer.objects = {}
 
 	self.contentsContainer:createChild "Label" {
@@ -373,7 +378,8 @@ function SummaryDock:generateStats()
 	return self.contentsContainer.objects
 end
 
-function SummaryDock:generateInsights()
+---@param target PlotTarget
+function SummaryDock:generateInsights(target)
 	self.contentsContainer.objects = {}
 
 	self.contentsContainer:createChild "Label" {

@@ -19,14 +19,11 @@ local NAVIGATION_OFFSET = 8
 ---@field text_color ColorTable
 ---@field text_color_desc ColorTable
 ---@field hoverColor ColorTable
----@field node DumpedNode
----@field nodeType NodeType
 ---@field navigation {parent: DiagramNodeNavigation?, left: DiagramNodeNavigation[], right: DiagramNodeNavigation[], [integer]: DiagramNodeNavigation}
 local DiagramNode = {
 	name = "DiagramNode",
 	extends = "CompositeObject",
 	rules = {
-		{{1, "node"}, "node"},
 		{{"hoverColor"}, "hoverColor"},
 		{{"diagram"}, "diagram"},
 	},
@@ -476,7 +473,7 @@ function DiagramNode:processChildren(objects)
 	for i, child in ipairs(objects) do
 		if child.name == "DiagramVerticalContainer" then ---@cast child DiagramVerticalContainer
 			children[i] = child.master
-		elseif child.name == "DiagramSubplanContainer" then
+		elseif child.name == "DiagramSubplanContainer" then ---@cast child DiagramSubplanContainer
 			children[i] = child.node
 		else
 			children[i] = child
@@ -484,47 +481,6 @@ function DiagramNode:processChildren(objects)
 	end
 
 	return children
-end
-
-function DiagramNode:buildTitleContainer()
-	self.titleContainer = self:createChild "DiagramNodeContainer" { font = self.font }
-
-	if not self.node.rows or self.node.loop_count == 0 then
-		self.titleContainer:createChild "Label" {
-			w = "fill",
-			font = self.font.M,
-			horizontal = "left",
-			text = self.node.type,
-			textColor = self.text_color,
-			no_locale = true,
-		}
-
-		return
-	end
-
-	local titlebox = self.titleContainer:createChild "Container" {
-		w = "fill",
-		growth = "horizontal",
-		vertical = "top",
-		gap = 10,
-	}
-
-	titlebox:createChild "Label" {
-		w = "fill",
-		font = self.font.M,
-		horizontal = "left",
-		text = self.node.type,
-		textColor = self.text_color,
-		no_locale = true,
-	}
-
-	titlebox:createChild "Label" {
-		font = self.font.S,
-		horizontal = "right",
-		text = self.node.rows,
-		textColor = self.text_color_desc,
-		no_locale = true,
-	}
 end
 
 ---@param _ table<string, boolean>
@@ -536,14 +492,9 @@ end
 -- node fnc
 
 function DiagramNode:new()
-	assert(self.node, "DiagramNode object must be initialized with a DumpedNode object")
-
 	self:setGrowth("vertical")
 
 	self.select = false
-
-	local node_data = self.node
-	self.nodeType = self.node.type
 
 	self.text_color = self.palette:getColorByIndex(2)
 
@@ -556,53 +507,11 @@ function DiagramNode:new()
 		love.graphics.rectangle("fill", 0, 0, self.w, self.h, self.r)
 	end
 
-	-- Children
-
-	self:buildTitleContainer()
-
+	self.titleContainer = self:createChild "DiagramNodeContainer" { font = self.font }
 	self.contentsSeparator = self:createChild "Container" { color = {0.5, 0.5, 0.5, 1}, w = "fill", h = 1 }
 
 	self.contentsContainer = self:createChild "DiagramNodeContainer" { font = self.font }
 	self.footerContainer = self:createChild "DiagramNodeContainer" { font = self.font }
-
-	if node_data.timing then
-		if node_data.raw["Actual Loops"] == 0 then
-			self.footerContainer:createChild "Label" {
-				w = "fill",
-				font = self.font.S,
-				horizontal = "right",
-				textColor = self.text_color_desc,
-				text = "node.time_never_executed",
-			}
-		elseif node_data.workers then
-			self.footerContainer:createChild "Label" {
-				w = "fill",
-				font = self.font.S,
-				horizontal = "right",
-				textColor = self.text_color_desc,
-				text = "node.time_workers",
-				with = {node_data.timing.node.total[2], node_data.workers}
-			}
-		else
-			self.footerContainer:createChild "Label" {
-				w = "fill",
-				font = self.font.S,
-				horizontal = "right",
-				textColor = self.text_color_desc,
-				text = "node.time",
-				with = {node_data.timing.node.total[2]}
-			}
-		end
-	elseif node_data.startup_cost then
-		self.footerContainer:createChild "Label" {
-			w = "fill",
-			font = self.font.S,
-			horizontal = "right",
-			textColor = self.text_color_desc,
-			text = "node.time_cost",
-			with = {node_data.startup_cost, node_data.total_cost}
-		}
-	end
 end
 
 return DiagramNode

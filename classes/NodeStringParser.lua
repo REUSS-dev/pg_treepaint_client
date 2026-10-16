@@ -1,16 +1,21 @@
 -- NodeStringParser
 
+---@class Query : table
+
 ---@class NodeStringParser
 ---@field text string
 ---@field pos integer
 local NodeStringParser = {}
 NodeStringParser.__index = NodeStringParser
 
+---Parse Query structure
+---@param node_string string
+---@return Query
 function NodeStringParser:parse(node_string)
 	self.text = node_string
 	self.pos = 1
 
-	return self:parseValue()
+	return self:parseValue() --[[@as table]]
 end
 
 function NodeStringParser:parseValue()

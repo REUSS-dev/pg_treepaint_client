@@ -1,10 +1,10 @@
 -- node
 
----@class DiagramNodeCTEScan : DiagramNode
----@field DiagramNode DiagramNode
-local DiagramNodeCTEScan = {
-	name = "DiagramNodeCTEScan",
-	extends = "DiagramNode",
+---@class PlanNodeCTEScan : PlanNode
+---@field PlanNode PlanNode
+local PlanNodeCTEScan = {
+	name = "PlanNodeCTEScan",
+	extends = "PlanNode",
 	default = {
 		colors = {
 			border = COLORS.NODE_CTE_SCAN
@@ -12,7 +12,7 @@ local DiagramNodeCTEScan = {
 	}
 }
 
-function DiagramNodeCTEScan:populateInfo(covered)
+function PlanNodeCTEScan:populateInfo(covered)
 	local sections = {}
 
 	covered["CTE Name"] = true
@@ -25,8 +25,8 @@ function DiagramNodeCTEScan:populateInfo(covered)
 	return sections
 end
 
-function DiagramNodeCTEScan:generateNavigationObjects()
-	self.DiagramNode.generateNavigationObjects(self)
+function PlanNodeCTEScan:generateNavigationObjects()
+	self.PlanNode.generateNavigationObjects(self)
 
 	local cte_name = self.node.raw["CTE Name"]
 	if not cte_name then
@@ -56,7 +56,7 @@ end
 
 -- node fnc
 
-function DiagramNodeCTEScan:new()
+function PlanNodeCTEScan:new()
 	if self.node.raw["CTE Name"] then
 		if self.node.raw["Alias"] and self.node.raw["Alias"] ~= self.node.raw["CTE Name"] then
 			self.titleContainer:addDescParametrized("node.CTEScan.on_cte_alias", {self.node.raw["CTE Name"], self.node.raw["Alias"]})
@@ -66,4 +66,4 @@ function DiagramNodeCTEScan:new()
 	end
 end
 
-return DiagramNodeCTEScan
+return PlanNodeCTEScan

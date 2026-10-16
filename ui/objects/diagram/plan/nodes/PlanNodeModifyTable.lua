@@ -1,11 +1,11 @@
 -- node
 
----@class DiagramNodeModifyTable : DiagramNodeSeqScan
----@field DiagramNodeSeqScan DiagramNodeSeqScan
----@field DiagramNode DiagramNode
-local DiagramNodeModifyTable = {
-	name = "DiagramNodeModifyTable",
-	extends = "DiagramNode",
+---@class PlanNodeModifyTable : PlanNodeSeqScan
+---@field PlanNodeSeqScan PlanNodeSeqScan
+---@field PlanNode PlanNode
+local PlanNodeModifyTable = {
+	name = "PlanNodeModifyTable",
+	extends = "PlanNode",
 	default = {
 		colors = {
 			border = COLORS.NODE_BORDER
@@ -15,7 +15,7 @@ local DiagramNodeModifyTable = {
 
 -- node fnc
 
-function DiagramNodeModifyTable:populateInfo(covered)
+function PlanNodeModifyTable:populateInfo(covered)
 	local sections = {}
 
 	covered["Schema"] = true
@@ -33,7 +33,7 @@ function DiagramNodeModifyTable:populateInfo(covered)
 	return sections
 end
 
-function DiagramNodeModifyTable:new()
+function PlanNodeModifyTable:new()
 	local op = self.node.raw["Operation"]
 
 	if not op then
@@ -52,4 +52,4 @@ function DiagramNodeModifyTable:new()
 	self.titleContainer:addDesc(type(op_name) == "string" and op_name or op, true)
 end
 
-return DiagramNodeModifyTable
+return PlanNodeModifyTable

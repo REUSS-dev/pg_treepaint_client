@@ -1,9 +1,9 @@
 -- node
 
----@class DiagramNodeNestedLoop : DiagramNode
-local DiagramNodeNestedLoop = {
-	name = "DiagramNodeNestedLoop",
-	extends = "DiagramNode",
+---@class PlanNodeNestedLoop : PlanNode
+local PlanNodeNestedLoop = {
+	name = "PlanNodeNestedLoop",
+	extends = "PlanNode",
 	default = {
 		colors = {
 			border = COLORS.NODE_NESTED_LOOP
@@ -11,7 +11,7 @@ local DiagramNodeNestedLoop = {
 	}
 }
 
-function DiagramNodeNestedLoop:populateInfo(covered)
+function PlanNodeNestedLoop:populateInfo(covered)
 	local sections = {}
 
 	covered["Join Type"] = true
@@ -36,8 +36,8 @@ end
 
 -- node fnc
 
-function DiagramNodeNestedLoop:new()
+function PlanNodeNestedLoop:new()
 	self.titleContainer:addDescParametrized("node.NestedLoop.on", self.node.table, true)
 end
 
-return DiagramNodeNestedLoop
+return PlanNodeNestedLoop

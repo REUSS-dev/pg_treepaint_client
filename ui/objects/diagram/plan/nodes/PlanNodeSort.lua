@@ -1,9 +1,9 @@
 -- node
 
----@class DiagramNodeSort : DiagramNode
-local DiagramNodeSort = {
-	name = "DiagramNodeSort",
-	extends = "DiagramNode",
+---@class PlanNodeSort : PlanNode
+local PlanNodeSort = {
+	name = "PlanNodeSort",
+	extends = "PlanNode",
 	default = {
 		colors = {
 			border = COLORS.NODE_SORT
@@ -11,7 +11,7 @@ local DiagramNodeSort = {
 	}
 }
 
-function DiagramNodeSort:populateInfo(covered)
+function PlanNodeSort:populateInfo(covered)
 	local sections = {}
 
 	covered["Sort Method"] = true
@@ -44,7 +44,7 @@ end
 
 -- node fnc
 
-function DiagramNodeSort:new()
+function PlanNodeSort:new()
 	if self.node.sort_method then
 		local method_name = self:getObjectClass("Label").locale:rawget("node.Sort.method." .. self.node.sort_method)
 
@@ -55,4 +55,4 @@ function DiagramNodeSort:new()
 	self.contentsContainer:addTextParametrized("node.Sort.by", self.node.columns and (self.node.columns[1] .. (#self.node.columns > 1 and (", (+" .. (#self.node.columns - 1) .. ")") or "")))
 end
 
-return DiagramNodeSort
+return PlanNodeSort

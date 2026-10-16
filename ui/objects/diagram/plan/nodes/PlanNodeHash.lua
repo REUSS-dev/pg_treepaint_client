@@ -1,9 +1,9 @@
 -- node
 
----@class DiagramNodeHash : DiagramNode
-local DiagramNodeHash = {
-	name = "DiagramNodeHash",
-	extends = "DiagramNode",
+---@class PlanNodeHash : PlanNode
+local PlanNodeHash = {
+	name = "PlanNodeHash",
+	extends = "PlanNode",
 	default = {
 		colors = {
 			border = COLORS.NODE_HASH
@@ -11,7 +11,7 @@ local DiagramNodeHash = {
 	}
 }
 
-function DiagramNodeHash:populateInfo(covered)
+function PlanNodeHash:populateInfo(covered)
 	local sections = {}
 
 	covered["Hash Batches"] = true
@@ -59,11 +59,11 @@ end
 
 -- node fnc
 
-function DiagramNodeHash:new()
+function PlanNodeHash:new()
 	if self.node.columns then
 		self.contentsContainer:addText("node.Hash.columns")
 		self.contentsContainer:addDesc(table.concat(self.node.columns, "\n"), true)
 	end
 end
 
-return DiagramNodeHash
+return PlanNodeHash

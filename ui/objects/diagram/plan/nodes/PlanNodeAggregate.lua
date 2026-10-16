@@ -1,9 +1,9 @@
 -- node
 
----@class DiagramNodeAggregate : DiagramNode
-local DiagramNodeAggregate = {
-	name = "DiagramNodeAggregate",
-	extends = "DiagramNode",
+---@class PlanNodeAggregate : PlanNode
+local PlanNodeAggregate = {
+	name = "PlanNodeAggregate",
+	extends = "PlanNode",
 	default = {
 		colors = {
 			border = COLORS.NODE_AGGREGATE
@@ -11,7 +11,7 @@ local DiagramNodeAggregate = {
 	}
 }
 
-function DiagramNodeAggregate:populateInfo(covered)
+function PlanNodeAggregate:populateInfo(covered)
 	local sections = {}
 
 	covered["Strategy"] = true
@@ -47,7 +47,7 @@ end
 
 -- node fnc
 
-function DiagramNodeAggregate:new()
+function PlanNodeAggregate:new()
 end
 
-return DiagramNodeAggregate
+return PlanNodeAggregate

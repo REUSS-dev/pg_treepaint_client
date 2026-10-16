@@ -1,9 +1,9 @@
 -- node
 
----@class DiagramNodeSeqScan : DiagramNode
-local DiagramNodeSeqScan = {
-	name = "DiagramNodeSeqScan",
-	extends = "DiagramNode",
+---@class PlanNodeSeqScan : PlanNode
+local PlanNodeSeqScan = {
+	name = "PlanNodeSeqScan",
+	extends = "PlanNode",
 	default = {
 		colors = {
 			border = COLORS.NODE_SEQ_SCAN
@@ -11,7 +11,7 @@ local DiagramNodeSeqScan = {
 	}
 }
 
-function DiagramNodeSeqScan:populateInfo(covered)
+function PlanNodeSeqScan:populateInfo(covered)
 	local sections = {}
 
 	covered["Schema"] = true
@@ -28,8 +28,8 @@ end
 
 -- node fnc
 
-function DiagramNodeSeqScan:new()
+function PlanNodeSeqScan:new()
 	self.titleContainer:addDescParametrized("node.SeqScan.on", self.node.table, true)
 end
 
-return DiagramNodeSeqScan
+return PlanNodeSeqScan

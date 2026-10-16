@@ -1,8 +1,17 @@
 -- diagram
 
 local TreeParser = require("classes.TreeParser")
+local PlanConstructor = require("classes.PlanConstructor")
+local QueryConstructor = require("classes.QueryConstructor")
 
 -- consts
+
+---@enum PlotTarget
+local PlotTarget = {
+	PLAN = "plan",
+	QUERY = "query",
+	REWRITTEN = "rewritten"
+}
 
 local SPLASH_IMAGE = "assets/sad_malyar.png"
 
@@ -15,6 +24,8 @@ local SPLASH_IMAGE = "assets/sad_malyar.png"
 ---@field summaryObject SummaryDock
 ---@field summaryToggle Button
 ---@field parser TreeParser
+---@field planConstructor PlanConstructor
+---@field queryConstructor QueryConstructor
 ---@field plan DumpedPlan
 ---@field root DiagramNode|DiagramContainer?
 ---@field mouse_held {[1]: integer, [2]: integer}?
@@ -43,6 +54,8 @@ local MINIMAP_MARGIN = 15
 local MOVE_MAX = 200
 
 -- diagram fnc
+
+--#region UI Object overrides
 
 function DiagramArea:click_left(x, y)
 	self.mouse_held = {x, y}
@@ -105,6 +118,8 @@ function DiagramArea:wheel(x, y)
 	self:moveRoot(x * -20, y * 20)
 end
 
+--#endregion
+
 ---@param x pixels
 ---@param y pixels
 function DiagramArea:moveRoot(x, y)
@@ -160,20 +175,29 @@ function DiagramArea:renderNodeInfo(node, refocus)
 end
 
 ---@param data string
-function DiagramArea:plot(data)
+---@param target PlotTarget?
+function DiagramArea:plot(data, target)
 	local object_tree = self.parser:parse(data)
 
 	if not object_tree then
 		return
 	end
 
-	self.objects = {}
-	self.cte_list = {}
-	self.subplanContainers = {}
-	self.subquery_counter = 0
-
 	self.plan = object_tree
-	self.root = self:packChild(object_tree.root)
+
+	target = target or PlotTarget.PLAN
+
+	self.objects = {}
+
+	if target == PlotTarget.PLAN then
+		self:plotPlan(target)
+	elseif target == PlotTarget.QUERY or target == PlotTarget.REWRITTEN then
+		self:plotQuery(target)
+	end
+
+	if not self.root then
+		return
+	end
 
 	self:add(self.root)
 	self.diagramFullSize = {self.root.w, self.root.h}
@@ -185,118 +209,41 @@ function DiagramArea:plot(data)
 	self.nodeInfoObject:hide()
 
 	if self.summaryObject then
-		self.summaryObject:applyPlan(object_tree)
+		self.summaryObject:applyPlan(object_tree, target)
 		self:createSummaryToggle()
 	end
 
 	collectgarbage("collect")
 end
 
----@param node_list DumpedNode[]
-function DiagramArea:packNodeList(node_list)
-	if #node_list == 1 then
-		return self:packChild(node_list[1])
-	end
+---@param target PlotTarget
+function DiagramArea:plotPlan(target)
+	self.cte_list = {}
+	self.subplanContainers = {}
+	self.subquery_counter = 0
 
-	---@type DiagramHorizontalContainer
-	local horizontal_container  = self:create "DiagramHorizontalContainer" { diagram = self }
-
-	for _, node in ipairs(node_list) do
-		local node_object = self:packChild(node)
-		horizontal_container:add(node_object)
-	end
-
-	return horizontal_container
+	self.root = self.planConstructor:generate(self.plan.root)
 end
 
----@param node DumpedNode
----@protected
-function DiagramArea:packChild(node)
-	local packed = self:packNode(node)
-
-	if node.relationship ~= "InitPlan" and node.relationship ~= "Subquery" and node.relationship ~= "SubPlan" then
-		return packed
+---@param target PlotTarget
+function DiagramArea:plotQuery(target)
+	if not self.plan.query then
+		return
 	end
 
-	local subplan_container
-
-	if node.relationship == "InitPlan" then
-		subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, diagram = self }
-			:pack(packed)
-
-		if packed.name == "DiagramVerticalContainer" then
-			self.cte_list[node.subplan] = packed.master
-		else ---@cast packed DiagramNode
-			self.cte_list[node.subplan] = packed
+	if target == PlotTarget.QUERY then
+		if not self.plan.query.original then
+			return
 		end
+
+		self.root = self.queryConstructor:generate(self.plan.query.original)
+	elseif target == PlotTarget.REWRITTEN then
+		if not self.plan.query.rewritten then
+			return
+		end
+
+		self.root = self.queryConstructor:generate(self.plan.query.rewritten)
 	end
-
-	if node.relationship == "Subquery" then
-		self.subquery_counter = self.subquery_counter + 1
-
-		local subquery_title = self:getObjectClass("Label").locale:format("plan.subquery", {self.subquery_counter})
-
-		subplan_container = self:create "DiagramSubplanContainer" { title = subquery_title, diagram = self }
-			:pack(packed)
-	end
-
-	if node.relationship == "SubPlan" then
-		subplan_container = self:create "DiagramSubplanContainer" { title = node.subplan, diagram = self }
-			:pack(packed)
-	end
-
-	self.subplanContainers[#self.subplanContainers+1] = subplan_container
-
-	return subplan_container
-end
-
----@param node DumpedNode
----@protected
-function DiagramArea:packNode(node)
-	if not node.children then
-		return self:makeNodeObject(node)
-	end
-
-	---@type DiagramVerticalContainer
-	local vetical_container = self:create "DiagramVerticalContainer" { diagram = self }
-
-	local node_object = self:makeNodeObject(node)
-	vetical_container:add(node_object)
-
-	local children_object = self:packNodeList(node.children)
-
-	if node_object.nodeType == "Gather" or node_object.nodeType == "Gather Merge" then
-		---@cast children_object DiagramNode|DiagramVerticalContainer
-		local worker_count = node_object.node.raw["Workers Launched"] or node_object.node.raw["Workers Planned"]
-
-		local gather_title = worker_count and self:getObjectClass("Label").locale:format("plan.gather.additional_workers", {worker_count}) or "plan.gather.parallelized"
-
-		local subplan_container = self:create "DiagramSubplanContainer" { title = gather_title, diagram = self, kind = "workers" }
-			:pack(children_object)
-
-		self.subplanContainers[#self.subplanContainers+1] = subplan_container
-
-		vetical_container:add(subplan_container)
-		return vetical_container
-	end
-
-	vetical_container:add(children_object)
-
-	return vetical_container
-end
-
----@param node DumpedNode
----@return DiagramNode
----@protected
-function DiagramArea:makeNodeObject(node)
-	local node_type_no_space = string.gsub(node.type, " ", "")
-
-	local specific_node_descriptor = self:getObjectClass("DiagramNode" .. node_type_no_space) or self:getObjectClass("DiagramNode")
-
-	return specific_node_descriptor {
-		node,
-		diagram = self
-	}
 end
 
 ---@param node DiagramNode|DiagramContainer
@@ -407,6 +354,8 @@ function DiagramArea:new()
 	self.subplanContainers = {}
 
 	self.parser = TreeParser()
+	self.planConstructor = PlanConstructor(self)
+	self.queryConstructor = QueryConstructor(self)
 
 	self:createSplash()
 end

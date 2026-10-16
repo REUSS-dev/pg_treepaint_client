@@ -1,10 +1,10 @@
 -- node
 
----@class DiagramNodeBitmapHeapScan : DiagramNode
----@field DiagramNodeSeqScan DiagramNodeSeqScan
-local DiagramNodeBitmapHeapScan = {
-	name = "DiagramNodeBitmapHeapScan",
-	extends = "DiagramNodeSeqScan",
+---@class PlanNodeBitmapHeapScan : PlanNode
+---@field PlanNodeSeqScan PlanNodeSeqScan
+local PlanNodeBitmapHeapScan = {
+	name = "PlanNodeBitmapHeapScan",
+	extends = "PlanNodeSeqScan",
 	default = {
 		colors = {
 			border = COLORS.NODE_BITMAP_HEAP_SCAN
@@ -12,8 +12,8 @@ local DiagramNodeBitmapHeapScan = {
 	}
 }
 
-function DiagramNodeBitmapHeapScan:populateInfo(covered)
-	local sections = self.DiagramNodeSeqScan.populateInfo(self, covered)
+function PlanNodeBitmapHeapScan:populateInfo(covered)
+	local sections = self.PlanNodeSeqScan.populateInfo(self, covered)
 	local scan_info = sections[1]
 
 	covered["Exact Heap Blocks"] = true
@@ -32,7 +32,7 @@ end
 
 -- node fnc
 
-function DiagramNodeBitmapHeapScan:new()
+function PlanNodeBitmapHeapScan:new()
 end
 
-return DiagramNodeBitmapHeapScan
+return PlanNodeBitmapHeapScan

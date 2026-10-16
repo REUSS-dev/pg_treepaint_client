@@ -1,10 +1,10 @@
 -- ui/objects/nodes/DiagramNodeIndexOnlyScan.lua
 
----@class DiagramNodeIndexOnlyScan : DiagramNodeSeqScan
----@field DiagramNodeSeqScan DiagramNodeSeqScan
-local DiagramNodeIndexOnlyScan = {
-	name = "DiagramNodeIndexOnlyScan",
-	extends = "DiagramNodeSeqScan",
+---@class PlanNodeIndexOnlyScan : PlanNodeSeqScan
+---@field PlanNodeSeqScan PlanNodeSeqScan
+local PlanNodeIndexOnlyScan = {
+	name = "PlanNodeIndexOnlyScan",
+	extends = "PlanNodeSeqScan",
 	default = {
 		colors = {
 			border = COLORS.NODE_INDEX_ONLY_SCAN
@@ -12,8 +12,8 @@ local DiagramNodeIndexOnlyScan = {
 	}
 }
 
-function DiagramNodeIndexOnlyScan:populateInfo(covered)
-	local sections = self.DiagramNodeSeqScan.populateInfo(self, covered)
+function PlanNodeIndexOnlyScan:populateInfo(covered)
+	local sections = self.PlanNodeSeqScan.populateInfo(self, covered)
 
 	covered["Index Name"] = true
 	covered["Scan Direction"] = true
@@ -33,10 +33,10 @@ end
 
 -- node fnc
 
-function DiagramNodeIndexOnlyScan:new()
+function PlanNodeIndexOnlyScan:new()
 	self.contentsContainer:addTextParametrized("node.IndexOnlyScan.loops", self.node.loop_count and (self.node.loop_count > 1) and self.node.loop_count)
 end
 
-return DiagramNodeIndexOnlyScan
+return PlanNodeIndexOnlyScan
 
 

@@ -1,9 +1,9 @@
 -- node
 
----@class DiagramNodeGather : DiagramNode
-local DiagramNodeGather = {
-	name = "DiagramNodeGather",
-	extends = "DiagramNode",
+---@class PlanNodeGather : PlanNode
+local PlanNodeGather = {
+	name = "PlanNodeGather",
+	extends = "PlanNode",
 	default = {
 		colors = {
 			border = COLORS.NODE_GATHER
@@ -11,7 +11,7 @@ local DiagramNodeGather = {
 	}
 }
 
-function DiagramNodeGather:populateInfo(covered)
+function PlanNodeGather:populateInfo(covered)
 	local sections = {}
 
 	covered["Workers Planned"] = true
@@ -35,8 +35,8 @@ end
 
 -- node fnc
 
-function DiagramNodeGather:new()
+function PlanNodeGather:new()
 	self.titleContainer:addDescParametrized("node.Gather.workers", self.node.raw["Workers Launched"] or self.node.raw["Workers Planned"], true)
 end
 
-return DiagramNodeGather
+return PlanNodeGather
