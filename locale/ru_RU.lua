@@ -212,6 +212,7 @@ local text = {
             children = "Потомков: {1}",
             children_same = "Потомки ({count}): {name} (x{same_count})",
             children_literal = "Потомки ({count}): {names}",
+            child_query = "Имя: {1}",
             cte = "CTE"
         },
 

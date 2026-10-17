@@ -211,6 +211,7 @@ local text = {
             children = "{1:plural one='Child' other='Children'}: {1}",
             children_same = "Children ({count}): {name} (x{same_count})",
             children_literal = "Children ({count}): {names}",
+            child_query = "Name: {1}",
             cte = "CTE"
         },
 
@@ -289,6 +290,22 @@ local text = {
 
         other = {
             title = "Other"
+        },
+
+        properties = {
+            title_active = "Properties",
+            title_inactive = "Inactive properties",
+            property = "{name}: {value}",
+            property_blist = "{name} bitmap: {value}",
+            property_ilist = "{name} array: {value}",
+            property_datum = "{name} datum: {value}",
+            property_null = "{name}: Null",
+
+        },
+
+        list = {
+            title = "List Info",
+            size = "List Size: {1} elements"
         }
     },
 

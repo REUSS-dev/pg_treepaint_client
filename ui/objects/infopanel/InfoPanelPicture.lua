@@ -23,7 +23,7 @@ local InfoPanelPicture = {
 }
 
 ---Updates node picture
----@param new_node DiagramNode
+---@param new_node PlanNode|QueryNode
 function InfoPanelPicture:setNode(new_node)
 	self.type = assert(new_node and new_node.nodeType, "bad argument #1 to 'InfoPanelPicture:setType()' (DiagramNode expected, got " .. type(new_node) .. ")")
 

@@ -56,7 +56,7 @@ function InfoPanel:nodeDeselect()
 end
 
 ---Display specific node information on info panel
----@param node DiagramNode
+---@param node PlanNode|QueryNode
 function InfoPanel:displayNode(node)
 	local scroll = -self.contentsContainer.currentScroll
 
@@ -75,19 +75,15 @@ function InfoPanel:displayNode(node)
 	self:show()
 end
 
----@param node DiagramNode
+---@param node PlanNode|QueryNode
 function InfoPanel:setNodeInfo(node)
 	self.head:setNode(node)
 end
 
----@param node DiagramNode
+---@param node PlanNode|QueryNode
 function InfoPanel:createContents(node)
 	local bucket = self.cacheCounter % CACHE_SIZE
 	local objects = {}
-	local coverage = {
-		["Node Type"] = true,
-		["Plans"] = true
-	}
 
 	if self.cacheBuckets[bucket] then
 		self.cacheStorage[self.cacheBuckets[bucket]] = nil
@@ -97,23 +93,36 @@ function InfoPanel:createContents(node)
 	self.cacheStorage[node] = objects
 	self.contentsContainer.objects = objects
 
-	self:createNodeSpecific(objects, node, coverage)
-	self:createFilters(node, coverage)
-	self:createCosts(node, coverage)
-	self:createAnalyze(node, coverage)
-	self:createBuffers(node, coverage)
-	self:createWorkers(node, coverage)
-	self:createOutput(node, coverage)
-	self:createWAL(node, coverage)
+	if node.node then ---@cast node PlanNode
+		local coverage = {
+			["Node Type"] = true,
+			["Plans"] = true
+		}
 
-	self:createUnknown(node, coverage)
+		self:createNodeSpecific(objects, node, coverage)
+		self:createFilters(node, coverage)
+		self:createCosts(node, coverage)
+		self:createAnalyze(node, coverage)
+		self:createBuffers(node, coverage)
+		self:createWorkers(node, coverage)
+		self:createOutput(node, coverage)
+		self:createWAL(node, coverage)
+
+		self:createUnknown(node, coverage)
+	else ---@cast node QueryNode
+		local coverage = {}
+
+		self:createNodeSpecific(objects, node, coverage)
+		self:createProperties(node, coverage)
+		self:createListInfo(node, coverage)
+	end
 
 	self.cacheCounter = self.cacheCounter + 1
 end
 
 ---Generates node-specific section of info panel body
 ---@param storage ObjectUI[]
----@param node DiagramNode
+---@param node PlanNode|QueryNode
 ---@param covered table<string, boolean>
 function InfoPanel:createNodeSpecific(storage, node, covered)
 	local node_specifics = node:populateInfo(covered)
@@ -131,7 +140,9 @@ function InfoPanel:createNodeSpecific(storage, node, covered)
 	end
 end
 
----@param node DiagramNode
+--#region Plan node Info
+
+---@param node PlanNode
 ---@param covered table<string, boolean>
 function InfoPanel:createFilters(node, covered)
 	local filter, filter_rows = node.node.raw["Filter"], node.node.raw["Rows Removed by Filter"]
@@ -188,7 +199,7 @@ function InfoPanel:createFilters(node, covered)
 	end
 end
 
----@param node DiagramNode
+---@param node PlanNode
 ---@param covered table<string, boolean>
 function InfoPanel:createCosts(node, covered)
 	if not node.node.raw["Total Cost"] then
@@ -210,7 +221,7 @@ function InfoPanel:createCosts(node, covered)
 	end
 end
 
----@param node DiagramNode
+---@param node PlanNode
 ---@param covered table<string, boolean>
 function InfoPanel:createAnalyze(node, covered)
 	if not node.node.raw["Actual Total Time"] then
@@ -299,7 +310,7 @@ function InfoPanel:createAnalyze(node, covered)
 	end
 end
 
----@param node DiagramNode
+---@param node PlanNode
 ---@param covered table<string, boolean>
 function InfoPanel:createBuffers(node, covered)
 	if not node.node.buffers then
@@ -337,7 +348,7 @@ function InfoPanel:createBuffers(node, covered)
 			}
 end
 
----@param node DiagramNode
+---@param node PlanNode
 ---@param covered table<string, boolean>
 function InfoPanel:createWorkers(node, covered)
 	covered["Workers"] = true
@@ -446,7 +457,7 @@ function InfoPanel:createWorker(worker, section)
 	section:addObject(other_section)
 end
 
----@param node DiagramNode
+---@param node PlanNode
 ---@param covered table<string, boolean>
 function InfoPanel:createOutput(node, covered)
 	if not node.node.raw["Output"] then
@@ -467,7 +478,7 @@ function InfoPanel:createOutput(node, covered)
 	end
 end
 
----@param node DiagramNode
+---@param node PlanNode
 ---@param covered table<string, boolean>
 function InfoPanel:createWAL(node, covered)
 	if not node.node.wal then
@@ -540,7 +551,7 @@ function InfoPanel:createWAL(node, covered)
 	end
 end
 
----@param node DiagramNode
+---@param node PlanNode
 ---@param covered table<string, boolean>
 function InfoPanel:createUnknown(node, covered)
 	local unknown
@@ -553,6 +564,84 @@ function InfoPanel:createUnknown(node, covered)
 		end
 	end
 end
+
+--#endregion
+
+--#region Query node Info
+
+---@param node QueryNode
+---@param covered table<string, boolean>
+function InfoPanel:createProperties(node, covered)
+	if not node.query.properties then
+		return
+	end
+
+	local active = self.contentsContainer:createChild "SectionContainer" { title = "info.properties.title_active" }
+	local inactive = self.contentsContainer:createChild "SectionContainer" { title = "info.properties.title_inactive" }
+
+	for key, value in pairs(node.query.properties) do
+		if not covered[key] then
+			local proprty_type = type(value)
+
+			if proprty_type == "boolean" then
+				if value then
+					active:addTextParametrized("info.properties.property", {name = key, value = tostring(value)})
+				else
+					inactive:addTextParametrized("info.properties.property", {name = key, value = tostring(value)})
+				end
+			elseif proprty_type == "number" then
+				if value ~= 0 then
+					active:addTextParametrized("info.properties.property", {name = key, value = tostring(value)})
+				else
+					inactive:addTextParametrized("info.properties.property", {name = key, value = tostring(value)})
+				end
+			elseif proprty_type == "table" then
+				if value[1] ~= "null" then
+					if value.items then ---@cast value QueryList
+						if value.type == "b" then
+							active:addTextParametrized("info.properties.property_blist", {name = key, value = table.concat(value.items, ", ")})
+						elseif value.type == "i" then
+							active:addTextParametrized("info.properties.property_ilist", {name = key, value = table.concat(value.items, ", ")})
+						else
+							local res, ret = pcall(table.concat, value.items, ", ")
+
+							if res then
+								active:addTextParametrized("info.properties.property", {name = key, value = ret})
+							else
+								active:addText("Unknown list " .. key) ---@TODO
+							end
+						end
+					elseif value.data then ---@cast value QueryDatum
+						active:addTextParametrized("info.properties.property_datum", {name = key, value = table.concat(value.data, ", ")})
+					else
+						active:addText("Unknown value " .. key) ---@TODO
+					end
+				else
+					inactive:addTextParametrized("info.properties.property_null", {name = key})
+				end
+			end
+
+			covered[key] = true
+		end
+	end
+
+	if #inactive.contents.objects == 0 then
+		self.contentsContainer:remove(inactive)
+	end
+end
+
+---@param node QueryNode
+---@param covered table<string, boolean>
+function InfoPanel:createListInfo(node, covered)
+	if node.query.properties then
+		return
+	end
+
+	local active = self.contentsContainer:createChild "SectionContainer" { title = "info.list.title", collapsible = false }
+		:addTextParametrized("info.list.size", #node.query.children)
+end
+
+--#endregion
 
 function InfoPanel:new()
 	self.cacheStorage = {}

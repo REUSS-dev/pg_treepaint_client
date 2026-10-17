@@ -24,7 +24,7 @@ local InfoPanelHead = {
 }
 
 ---Sets node info in head
----@param node DiagramNode
+---@param node PlanNode|QueryNode
 function InfoPanelHead:setNode(node)
 	-- 1 - picture
 	self.picture:setNode(node)
@@ -37,9 +37,9 @@ function InfoPanelHead:setNode(node)
 	self:setChildren(node)
 end
 
----@param node DiagramNode
+---@param node PlanNode|QueryNode
 function InfoPanelHead:setParent(node)
-	local parent = node:getParentNode()
+	local parent = node:getParentNode() --[[@as PlanNode|QueryNode]]
 
 	if not parent then
 		self.parentLabel:hide()
@@ -50,26 +50,36 @@ function InfoPanelHead:setParent(node)
 	self.parentLabel:show()
 end
 
----@param node DiagramNode
+---@param node PlanNode|QueryNode
 function InfoPanelHead:setChildren(node)
-	local children = node:getChildrenNodes()
 
-	if #children == 0 then
-		self.childrenLabel:hide()
-		return
+	if node.node then ---@cast node PlanNode
+		local children = node:getChildrenNodes() --[[@as PlanNode[] ]]
+
+		if #children == 0 then
+			self.childrenLabel:hide()
+			return
+		end
+
+		if #children == 1 then
+			self.childrenLabel:setText("info.head.child", {children[1].nodeType})
+		else
+			self:fitChildren(children)
+		end
+
+		self.childrenLabel:show()
+	else ---@cast node QueryNode
+		if node.query.name then
+			self.childrenLabel:setText("info.head.child_query", {node.query.name})
+			self.childrenLabel:show()
+		else
+			self.childrenLabel:hide()
+		end
 	end
-
-	if #children == 1 then
-		self.childrenLabel:setText("info.head.child", {children[1].nodeType})
-	else
-		self:fitChildren(children)
-	end
-
-	self.childrenLabel:show()
 end
 
 ---Fits multiple children into a children label
----@param children DiagramNode[]
+---@param children PlanNode[]
 function InfoPanelHead:fitChildren(children)
 	local children_names = {}
 	local same_names = true

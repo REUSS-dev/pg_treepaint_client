@@ -2,24 +2,25 @@
 
 ---@class QueryNode : DiagramNode
 ---@field DiagramNode DiagramNode
----@field node Query
+---@field query Query
+---@field nodeType NodeType
 local QueryNode = {
 	name = "QueryNode",
 	extends = "DiagramNode",
 	rules = {
-		{{1, "node"}, "node"},
+		{{1, "query"}, "query"},
 	},
 	default = {
 	},
 }
 
 function QueryNode:buildTitleContainer()
-	if not self.node.name then
+	if not self.query.name then
 		self.titleContainer:createChild "Label" {
 			w = "fill",
 			font = self.font.M,
 			horizontal = "left",
-			text = self.node.type,
+			text = self.query.type,
 			textColor = self.text_color,
 			no_locale = true,
 		}
@@ -31,7 +32,7 @@ function QueryNode:buildTitleContainer()
 		w = "fill",
 		font = self.font.M,
 		horizontal = "left",
-		text = self.node.name,
+		text = self.query.type,
 		textColor = self.text_color,
 		no_locale = true,
 	}
@@ -39,7 +40,7 @@ function QueryNode:buildTitleContainer()
 		w = "fill",
 		font = self.font.M,
 		horizontal = "left",
-		text = self.node.type,
+		text = self.query.name,
 		textColor = self.text_color_desc,
 		no_locale = true,
 	}
@@ -48,9 +49,9 @@ end
 -- node fnc
 
 function QueryNode:new()
-	assert(self.node, "QueryNode object must be initialized with a Query object")
+	assert(self.query, "QueryNode object must be initialized with a Query object")
 
-	self.nodeType = self.node.type
+	self.nodeType = self.query.type
 
 	self:buildTitleContainer()
 end
