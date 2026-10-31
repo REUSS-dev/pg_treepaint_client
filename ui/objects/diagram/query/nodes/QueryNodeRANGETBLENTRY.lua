@@ -64,7 +64,13 @@ function QueryNodeRANGETBLENTRY:populateInfo(covered)
 			local columns = self:create "SectionContainer" { title = columns_title, borderless = true}
 
 			for i, column in ipairs(calculated.eref_columns) do
-				columns:addTextParametrized("query.RTE.section_eref.colname", {i, column})
+				local renamed = calculated.alias_columns and calculated.alias_columns[i]
+				columns:addTextParametrized(renamed and "query.RTE.section_eref.colname_renamed" or "query.RTE.section_eref.colname", {i, column}, renamed and COLORS.COLOR_TEXT_3)
+			end
+
+			if calculated.alias_columns and #calculated.alias_columns > 0 then
+				columns:addDivider(nil, true)
+				columns:addText("query.RTE.section_eref.renamedtip", true)
 			end
 
 			alias_section:addDivider(nil, true)

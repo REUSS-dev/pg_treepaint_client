@@ -241,14 +241,16 @@ local text = {
             section_alias = {
                 title = "Алиасы",
                 alias = "Алиас RTE: {1}",
-                colnames_title = "Переименованные столбцы ({1})",
+                colnames_title = "Алиасы столбцов ({1})",
             },
 
             section_eref = {
                 title = "Ярлыки исполнителя",
                 eref = "Имя RTE: {1}",
                 colnames_title = "Столбцы ({1})",
-                colname = "[{1}]: {2}"
+                colname = "[{1}]: {2}",
+                colname_renamed = "[{1}]*: {2}",
+                renamedtip = "*Переименованные столбцы"
             },
 
             section_permissions = {

@@ -67,7 +67,7 @@ end
 
 ---@param str string
 ---@param vars table|any?
----@param greyed boolean?
+---@param greyed (boolean|ColorTable)?
 ---@return SectionContainer
 function SectionContainer:addTextParametrized(str, vars, greyed)
 	if not vars then
@@ -83,7 +83,7 @@ end
 
 ---@param prefix string
 ---@param value (string|integer)?
----@param greyed boolean?
+---@param greyed (boolean|ColorTable)?
 ---@return SectionContainer
 function SectionContainer:addTextProtected(prefix, value, greyed)
 	if not value then
@@ -94,9 +94,11 @@ function SectionContainer:addTextProtected(prefix, value, greyed)
 end
 
 ---@param text string
----@param greyed boolean?
+---@param greyed (boolean|ColorTable)?
 ---@return SectionContainer
 function SectionContainer:addText(text, greyed, vars)
+	local color = greyed and (type(greyed) == "table" and greyed or COLORS.NODE_TEXT_GREYED) or COLORS.NODE_TEXT
+
 	self.contents:createChild "Label" {
 		w = "fill",
 		h = "hug",
@@ -104,23 +106,25 @@ function SectionContainer:addText(text, greyed, vars)
 		text = text,
 		with = vars,
 		font = self.font.text,
-		textColor = greyed and COLORS.NODE_TEXT_GREYED or COLORS.NODE_TEXT
+		textColor = color
 	}
 
 	return self
 end
 
 ---@param text string
----@param greyed boolean?
+---@param greyed (boolean|ColorTable)?
 ---@return SectionContainer
 function SectionContainer:addTextBig(text, greyed)
+	local color = greyed and (type(greyed) == "table" and greyed or COLORS.NODE_TEXT_GREYED) or COLORS.NODE_TEXT
+
 	self.contents:createChild "Label" {
 		w = "fill",
 		h = "hug",
 		horizontal = "left",
 		text = text,
 		font = self.font.title,
-		textColor = greyed and COLORS.NODE_TEXT_GREYED or COLORS.NODE_TEXT
+		textColor = color
 	}
 
 	return self

@@ -248,7 +248,7 @@ local text = {
             section_alias = {
                 title = "Aliases",
                 alias = "RTE alias: {1}",
-                colnames_title = "Renamed columns ({1})",
+                colnames_title = "Column aliases ({1})",
                 colname = "[{1}]: {2}"
             },
 
@@ -256,7 +256,9 @@ local text = {
                 title = "Executor references",
                 eref = "RTE name: {1}",
                 colnames_title = "Column names ({1})",
-                colname = "[{1}]: {2}"
+                colname = "[{1}]: {2}",
+                colname_renamed = "[{1}]*: {2}",
+                renamedtip = "*Aliased columns"
             },
 
             section_permissions = {
