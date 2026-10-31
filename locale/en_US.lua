@@ -231,8 +231,10 @@ local text = {
         },
 
         RTE = {
+            title = "RTE #{1}",
+
             section = {
-                title = "RTE",
+                title = "RTE #{1}",
 
                 infromcl_false = "From Orignial Query: No",
                 infromcl_true = "From Orignial Query: Yes",
@@ -241,6 +243,20 @@ local text = {
                 lateral_true = "LATERAL: Yes",
                 securityquals = "Security Qualifiers: {1}",
                 securityquals_null = "No security barriers.",
+            },
+
+            section_alias = {
+                title = "Aliases",
+                alias = "RTE alias: {1}",
+                colnames_title = "Renamed columns ({1})",
+                colname = "[{1}]: {2}"
+            },
+
+            section_eref = {
+                title = "Executor references",
+                eref = "RTE name: {1}",
+                colnames_title = "Column names ({1})",
+                colname = "[{1}]: {2}"
             },
 
             section_permissions = {
@@ -253,7 +269,7 @@ local text = {
             },
 
             relation = {
-                title = "RTE - Relation",
+                title = "RTE #{1} - Relation",
 
                 section = {
                     title = "Kind: Relation",

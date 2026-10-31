@@ -224,8 +224,10 @@ local text = {
         },
 
         RTE = {
+            title = "RTE #{1}",
+
             section = {
-                title = "RTE",
+                title = "RTE #{1}",
 
                 infromcl_true = "Из оригинального запроса: да",
                 infromcl_false = "Из оригинального запроса: нет",
@@ -236,9 +238,22 @@ local text = {
                 securityquals_null = "Нет защитных барьеров.",
             },
 
+            section_alias = {
+                title = "Алиасы",
+                alias = "Алиас RTE: {1}",
+                colnames_title = "Переименованные столбцы ({1})",
+            },
+
+            section_eref = {
+                title = "Ярлыки исполнителя",
+                eref = "Имя RTE: {1}",
+                colnames_title = "Столбцы ({1})",
+                colname = "[{1}]: {2}"
+            },
+
             section_permissions = {
                 title = "RTE - Права доступа",
-                title_no = "RTE - Права доступа (без проверки)",
+                title_no = "RTE - Права доступа (пусто)",
                 index = "Индекс в rteperminfos: {1}",
                 no_check = "Проверка прав доступа не требуется.",
                 jump = "Перейти к связанной структуре",
@@ -246,7 +261,7 @@ local text = {
             },
 
             relation = {
-                title = "RTE - Отношение",
+                title = "RTE #{1} - Отношение",
 
                 section = {
                     title = "Вид: Отношение",

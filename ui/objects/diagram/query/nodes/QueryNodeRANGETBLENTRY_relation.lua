@@ -70,6 +70,9 @@ function QueryNodeRANGETBLENTRY_relation:new()
         local relkind = self.query.properties["relkind"]
         if relkind then
             local relkind_string = locale:rawget("query.relkind." .. relkind) or relkind
+            if self.query.calculated["alias"] then
+                relkind_string = relkind_string .. " (" .. self.query.calculated["alias"] .. ")"
+            end
             self.title_subtype:setText(relkind_string)
         else
             self.titleContainer:remove(self.title_subtype)
@@ -78,7 +81,7 @@ function QueryNodeRANGETBLENTRY_relation:new()
     end
 
     local name_label = self.titleContainer.objects[1] --[[@as Label]]
-    name_label:setText("query.RTE.relation.title")
+    name_label:setText("query.RTE.relation.title", {self.query.index or "?"})
 end
 
 return QueryNodeRANGETBLENTRY_relation
