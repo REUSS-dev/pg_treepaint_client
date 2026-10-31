@@ -11,7 +11,7 @@ local BORDER_INACTIVE = COLORS.TCP_INACTIVE_BORDER
 -- fnc
 
 local function fix_data(data) ---@todo multiple explain types
-	return data .. "}" .. "]"
+	return data .. "]"
 end
 
 -- classes

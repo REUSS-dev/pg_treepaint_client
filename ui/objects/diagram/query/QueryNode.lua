@@ -22,7 +22,6 @@ function QueryNode:buildTitleContainer()
 			horizontal = "left",
 			text = self.query.type,
 			textColor = self.text_color,
-			no_locale = true,
 		}
 
 		return
@@ -34,7 +33,6 @@ function QueryNode:buildTitleContainer()
 		horizontal = "left",
 		text = self.query.type,
 		textColor = self.text_color,
-		no_locale = true,
 	}
 	self.titleContainer:createChild "Label" {
 		w = "fill",
@@ -42,7 +40,6 @@ function QueryNode:buildTitleContainer()
 		horizontal = "left",
 		text = self.query.name,
 		textColor = self.text_color_desc,
-		no_locale = true,
 	}
 end
 

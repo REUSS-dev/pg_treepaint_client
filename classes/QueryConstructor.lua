@@ -59,8 +59,9 @@ end
 ---@return PlanNode
 function QueryConstructor:makeNode(node)
 	local node_type_no_space = string.gsub(node.type, " ", "")
+	local node_subtype_no_space = node.subtype and (node_type_no_space .. "_" .. node.subtype)
 
-	local specific_node_descriptor = self:getObjectClass(QUERY_NODE_PREFIX .. node_type_no_space) or self:getObjectClass(QUERY_NODE_PREFIX)
+	local specific_node_descriptor = node_subtype_no_space and self:getObjectClass(QUERY_NODE_PREFIX .. node_subtype_no_space) or self:getObjectClass(QUERY_NODE_PREFIX .. node_type_no_space) or self:getObjectClass(QUERY_NODE_PREFIX)
 
 	return specific_node_descriptor {
 		node,

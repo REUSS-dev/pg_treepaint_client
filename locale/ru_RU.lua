@@ -205,6 +205,64 @@ local text = {
         }
     },
 
+    query = {
+        relkind = {
+            ['r'] = "Таблица",
+            ['i'] = "Индекс",
+            ['S'] = "Последовательность",
+            ['t'] = "TOAST-таблица",
+            ['v'] = "Представление",
+            ['m'] = "Мат. представление",
+            ['c'] = "Составной тип",
+            ['f'] = "Сторонняя таблица",
+            ['p'] = "Секционированная таблица",
+            ['I'] = "Секционированный индекс"
+        },
+
+        rellockmode = {
+            [0] = "Нет",
+        },
+
+        RTE = {
+            section = {
+                title = "RTE",
+
+                infromcl_true = "Из оригинального запроса: да",
+                infromcl_false = "Из оригинального запроса: нет",
+                inh = "Наследственное распространение: {1}",
+                lateral_false = "LATERAL: отсутствует",
+                lateral_true = "LATERAL: присутствует",
+                securityquals = "Защитные барьеры: {1}",
+                securityquals_null = "Нет защитных барьеров.",
+            },
+
+            section_permissions = {
+                title = "RTE - Права доступа",
+                title_no = "RTE - Права доступа (без проверки)",
+                index = "Индекс в rteperminfos: {1}",
+                no_check = "Проверка прав доступа не требуется.",
+                jump = "Перейти к связанной структуре",
+                jump_fail = "<Не удалось определить связанный узел perminfo>",
+            },
+
+            relation = {
+                title = "RTE - Отношение",
+
+                section = {
+                    title = "Вид: Отношение",
+                    relkind = "Тип отношения: {1}",
+                    relid = "OID отношения: {1}",
+                    inh_true = "Сканировать потомков: да",
+                    inh_false = "Сканировать потомков: нет (мод. ONLY)",
+                    rellockmode = "Блокировка: {1}",
+                    tablesample = "TABLESAMPLE: {1}",
+                    tablesample_null = "TABLESAMPLE не задействован.",
+                }
+            }
+        }
+    },
+
+
     info = {
         head = {
             parent = "Родитель: {1}",
@@ -287,6 +345,23 @@ local text = {
 
         other = {
             title = "Прочее"
+        },
+
+        properties = {
+            title_active = "Свойства",
+            title_inactive = "Неактивные свойства",
+            property = "{name}: {value}",
+            property_string = "{name}: \"{value}\"",
+            property_blist = "{name} bitmap: {value}",
+            property_ilist = "{name} список: {value}",
+            property_datum = "{name} датум: {value}",
+            property_null = "{name}: Null",
+
+        },
+
+        list = {
+            title = "Список",
+            size = "Длина списка: {1} {1:plural one='элемент' few='элемента' many='элементов' other='элемента'}"
         }
     },
 

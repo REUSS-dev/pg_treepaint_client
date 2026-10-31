@@ -127,6 +127,10 @@ end
 function InfoPanel:createNodeSpecific(storage, node, covered)
 	local node_specifics = node:populateInfo(covered)
 
+	if not node_specifics then
+		return
+	end
+
 	if node_specifics.name then
 		node_specifics.parent = self.contentsContainer
 		storage[#storage+1] = node_specifics
@@ -583,7 +587,9 @@ function InfoPanel:createProperties(node, covered)
 		if not covered[key] then
 			local proprty_type = type(value)
 
-			if proprty_type == "boolean" then
+			if proprty_type == "string" then
+				active:addTextParametrized("info.properties.property_string", {name = key, value = value})
+			elseif proprty_type == "boolean" then
 				if value then
 					active:addTextParametrized("info.properties.property", {name = key, value = tostring(value)})
 				else
@@ -623,6 +629,10 @@ function InfoPanel:createProperties(node, covered)
 
 			covered[key] = true
 		end
+	end
+
+	if #active.contents.objects == 0 then
+		self.contentsContainer:remove(active)
 	end
 
 	if #inactive.contents.objects == 0 then

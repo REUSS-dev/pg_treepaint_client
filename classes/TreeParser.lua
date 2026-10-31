@@ -7,16 +7,6 @@ local QueryProcessor = require("classes.QueryProcessor")
 local PlanProcessor = require("classes.PlanProcessor")
 local TextParser = require("classes.TextParser")
 
---#endregion
-
-local function fix_data(data)
-	if data:sub(1, 1) ~= "[" or data:sub(-1, -1) == "]" then
-		return data
-	end
-
-	return data .. "}" .. "]"
-end
-
 -- class
 
 ---@class TreeParser
@@ -57,6 +47,8 @@ function TreeParser:parse(tree)
 	if plan["Rewritten Query Tree"] then
 		dump.query = {}
 
+		print(plan["Rewritten Query Tree"])
+
 		dump.query.rewritten = self.queryProcessor:process(plan["Rewritten Query Tree"])
 	end
 
@@ -70,7 +62,7 @@ end
 function TreeParser:parseJSON(json_string)
 	json_string = json_string:gsub("\n(%S)", "%1")
 
-	local success, tree = pcall(json.decode, fix_data(json_string))
+	local success, tree = pcall(json.decode, json_string)
 
 	if not success then
 		love.window.showMessageBox("Error", "Failed to parse JSON plan data.\nError: " .. tostring(tree), "warning")

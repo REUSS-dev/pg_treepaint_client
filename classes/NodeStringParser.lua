@@ -222,7 +222,9 @@ function NodeStringParser:parseIdentifier()
 
 				new_part = nil
 			elseif interest == "\"" then
-				if self:readChar() == " " then
+				local look_ahead = self:readChar()
+
+				if look_ahead == " " or look_ahead == "}" or look_ahead == ")" then
 					self.pos = self.pos - 1
 					new_part = nil
 				else

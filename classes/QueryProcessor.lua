@@ -4,10 +4,24 @@ local NodeStringParser = require("classes.NodeStringParser")
 
 -- docs
 
----@alias Query ProcessedStrucutre
+---@alias Query ProcessedStructure
 
----@alias ProcessedStrucutre {name: string?, type: string, children: ProcessedStrucutre[]?, properties: table<string, any>}
----@alias ProcessedList {name: string?, children: (ProcessedStrucutre|ProcessedList)[]?}
+---@alias ProcessedStructure {name: string?, type: string, subtype: string?, children: ProcessedStructure[]?, properties: table<string, any>}
+---@alias ProcessedList {name: string?, children: (ProcessedStructure|ProcessedList)[]?}
+
+-- consts
+
+local RTE_KIND = {
+    [0] = "relation",
+    "subquery",
+    "join",
+    "function",
+    "tablefunc",
+    "values",
+    "cte",
+    "namedtuplestore",
+    "result"
+}
 
 ---@class QueryProcessor
 ---@field parser NodeStringParser
@@ -24,6 +38,9 @@ function QueryProcessor:process(query)
     return self:processStructure(query)
 end
 
+---@param raw QueryStructure
+---@param name string?
+---@return ProcessedStructure
 function QueryProcessor:processStructure(raw, name)
     local processed = {
         name = name,
@@ -35,15 +52,17 @@ function QueryProcessor:processStructure(raw, name)
         if key == "__name" then
             processed.type = value
         elseif type(value) == "table" then
-            if value.__name then
+            if value.__name then ---@cast value QueryStructure
                 processed.children[#processed.children+1] = self:processStructure(value, key)
-            elseif value.items and not value.type then
+            elseif value.items and not value.type then ---@cast value QueryList
                 local processed_list = self:processList(value, key)
                 if processed_list then
                     processed.children[#processed.children+1] = processed_list
                 else
                     processed.properties[key] = value
                 end
+            else
+                processed.properties[key] = value
             end
         else
             processed.properties[key] = value
@@ -58,6 +77,10 @@ function QueryProcessor:processStructure(raw, name)
         table.sort(processed.children, function(lower, higher)
             return lower.name < higher.name
         end)
+    end
+
+    if raw.__name == "RANGETBLENTRY" then
+        self:processRTE(processed, raw)
     end
 
     return processed
@@ -89,6 +112,27 @@ function QueryProcessor:processList(raw, name)
             end
         else
             return nil
+        end
+    end
+
+    return processed
+end
+
+---@param processed ProcessedStructure
+---@param raw QueryStructure
+---@return ProcessedStructure
+function QueryProcessor:processRTE(processed, raw)
+    local rte_kind = raw["rtekind"]
+
+    if not rte_kind then
+        return processed
+    end
+
+    processed.subtype = RTE_KIND[rte_kind] or rte_kind
+
+    if rte_kind == 0 then
+        if raw["relkind"] == 'P' then
+            processed.properties["relkind"] = 'p'
         end
     end
 

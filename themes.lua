@@ -102,7 +102,14 @@ local theme_dark = {
 	NODE_SUBQUERY_SCAN = {0.5, 0.1, 0.1, 1},
 	NODE_UNIQUE = {0.4, 0, 1, 1},
 
+	NODE_QUERY_RTE_RELATION = "NODE_AGGREGATE",
+
 	NODE_GLOW = true,
+
+	-- Query structure specifics
+
+	PERMISSIONS_JUMP_BUTTON = "INFO_PANEL_ELEMENT",
+	PERMISSIONS_JUMP_BUTTON_BORDER = "BUFFER_BUTTON_FILL",
 
 	-- Common objects
 

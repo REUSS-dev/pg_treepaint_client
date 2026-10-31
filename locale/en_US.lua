@@ -204,6 +204,71 @@ local text = {
         }
     },
 
+    query = {
+        relkind = {
+            ['r'] = "Table",
+            ['i'] = "Index",
+            ['S'] = "Sequence",
+            ['t'] = "TOAST table",
+            ['v'] = "View",
+            ['m'] = "Materialized View",
+            ['c'] = "Composite Type",
+            ['f'] = "Foreign Table",
+            ['p'] = "Partitioned Table",
+            ['I'] = "Partitioned Index"
+        },
+
+        rellockmode = {
+            [0] = "No Lock",
+            "Access Share",
+            "Row Share",
+            "Row Exclusive",
+            "Share Update Exclusive",
+            "Share",
+            "Share Row Exclusive",
+            "Exclusive",
+            "Access Exclusive",
+        },
+
+        RTE = {
+            section = {
+                title = "RTE",
+
+                infromcl_false = "From Orignial Query: No",
+                infromcl_true = "From Orignial Query: Yes",
+                inh = "Inheritance Expansion: {1}",
+                lateral_false = "LATERAL: No",
+                lateral_true = "LATERAL: Yes",
+                securityquals = "Security Qualifiers: {1}",
+                securityquals_null = "No security barriers.",
+            },
+
+            section_permissions = {
+                title = "RTE - Permissions",
+                title_no = "RTE - Permissions Info (no check)",
+                index = "Permission Info Index: {1}",
+                no_check = "No permission check required.",
+                jump = "Jump to corresponding perminfo",
+                jump_fail = "<Unable to determine perminfo node>",
+            },
+
+            relation = {
+                title = "RTE - Relation",
+
+                section = {
+                    title = "Kind: Relation",
+                    relkind = "Relation kind: {1}",
+                    relid = "Relation OID: {1}",
+                    inh_false = "Scan Child Tables: No (ONLY applied)",
+                    inh_true = "Scan Child Tables: Yes",
+                    rellockmode = "Lock: {1}",
+                    tablesample = "TABLESAMPLE: {1}",
+                    tablesample_null = "TABLESAMPLE is not used.",
+                }
+            }
+        }
+    },
+
     info = {
         head = {
             parent = "Parent: {1}",
@@ -296,6 +361,7 @@ local text = {
             title_active = "Properties",
             title_inactive = "Inactive properties",
             property = "{name}: {value}",
+            property_string = "{name}: \"{value}\"",
             property_blist = "{name} bitmap: {value}",
             property_ilist = "{name} array: {value}",
             property_datum = "{name} datum: {value}",
