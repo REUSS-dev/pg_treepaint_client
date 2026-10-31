@@ -85,6 +85,7 @@ local theme_dark = {
 
 	NODE_AGGREGATE = {0.75, 0.5, 0, 1},
 	NODE_BITMAP_HEAP_SCAN = {0.25, 1, 1, 1},
+	NODE_BITMAP_INDEX_SCAN = {0.6, 1, 1, 1},
 	NODE_BITMAPAND = {1, 0.2, 0.2, 1},
 	NODE_BITMAPOR = {0.2, 0.2, 1, 1},
 	NODE_CTE_SCAN = {0.9, 1, 0, 1},

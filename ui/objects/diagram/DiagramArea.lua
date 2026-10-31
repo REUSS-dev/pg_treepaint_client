@@ -15,6 +15,8 @@ local PlotTarget = {
 
 local SPLASH_IMAGE = "assets/sad_malyar.png"
 
+local NODE_CENTER_OFFSET_Y = 50
+
 -- classes
 
 ---@class DiagramArea : CompositeObject
@@ -127,6 +129,20 @@ end
 
 --#endregion
 
+function DiagramArea:jumpFocusNode(node, refocus)
+	self:renderNodeInfo(node, refocus)
+	self:panToObject(node)
+end
+
+function DiagramArea:panToObject(object)
+	local stx, sty = self:getTranslation()
+	local tx, ty = object:getTranslation()
+
+	tx, ty = tx - stx + object.w/2, ty - sty + NODE_CENTER_OFFSET_Y
+
+	self:moveRoot(-(tx - self.w/2), -(ty - self.h/2))
+end
+
 ---@param x pixels
 ---@param y pixels
 function DiagramArea:moveRoot(x, y)
@@ -138,7 +154,7 @@ function DiagramArea:moveRoot(x, y)
 
 	local new_x, new_y
 
-	if self.root.w + 2*MOVE_MAX> self.w then
+	if self.root.w + 2*MOVE_MAX > self.w then
 		new_x = math.max(self.w - self.root.w - MOVE_MAX, math.min(MOVE_MAX, self.root.x + x))
 	else
 		new_x = math.floor((self.w - self.root.w)/2 + .5)

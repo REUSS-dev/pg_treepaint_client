@@ -7,7 +7,7 @@ local PlanNodeBitmapIndexScan = {
 	extends = "PlanNodeIndexOnlyScan",
 	default = {
 		colors = {
-			border = {0.6, 1, 1, 1}
+			border = COLORS.NODE_BITMAP_INDEX_SCAN
 		}
 	}
 }

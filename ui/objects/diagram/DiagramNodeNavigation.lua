@@ -35,12 +35,7 @@ local DiagramNodeNavigation = {
 }
 
 function DiagramNodeNavigation:action()
-	self.parent.diagram:renderNodeInfo(self.pointer, true)
-
-	local tx, ty = self.parent:getTranslation()
-	local ntx, nty = self.pointer:getTranslation()
-
-	self.parent.diagram:moveRoot(tx - ntx, ty - nty)
+	self.parent.diagram:jumpFocusNode(self.pointer, true)
 end
 
 function DiagramNodeNavigation:createLabel()
