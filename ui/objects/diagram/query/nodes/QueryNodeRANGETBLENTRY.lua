@@ -90,7 +90,7 @@ function QueryNodeRANGETBLENTRY:populateInfo(covered)
 				end
 			end
 
-			if false then
+			if perminfo then
 				local goto_button = self:create "Button" {
 					text = "query.RTE.section_permissions.jump",
 					font = "default 16",
